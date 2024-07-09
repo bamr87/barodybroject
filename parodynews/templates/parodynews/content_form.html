@@ -1,0 +1,29 @@
+<!-- content_form.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Content</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+
+        <h2>Generate the content for the post</h2>
+        <p>Fill out the form below to generate content.</p>
+        
+        <form class="mt-5" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn btn-primary" type="submit">Submit</button>
+        </form>
+        <a href="/" class="btn btn-primary mt-5">Go Home</a>
+    </div>
+    <!-- Add this block at the end of the body in post_form.html -->
+    <div class="generated-content mt-5">
+        <h3>Generated Content</h3>
+        <p>{{ generated_content }}</p>
+    </div>
+</body>
+</html>

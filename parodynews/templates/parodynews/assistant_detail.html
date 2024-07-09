@@ -1,0 +1,62 @@
+<!-- assistant_detail.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistant Details</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Assistant Details</h1>
+        <!-- Display the details of the specific assistant -->
+        <p><strong>ID:</strong> {{ assistant.id }}</p>
+        <p><strong>Name:</strong> {{ assistant.name }}</p>
+        <p><strong>Model:</strong> {{ assistant.model }}</p>
+        <p><strong>Created:</strong> {{ assistant.created_at }}</p>
+
+        <!-- Additional section to list other assistants in a table format -->
+        <h2>Other Assistants</h2>
+        {% if assistants_info %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Instructions</th>
+                        <th>Actions</th> <!-- New column for actions -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assistant in assistants_info %}
+                        <tr>
+                            <td>{{ assistant.id }}</td>
+                            <td>{{ assistant.name }}</td>
+                            <td>{{ assistant.instructions }}</td>
+                            <td>
+                                <!-- Delete button form -->
+                                <form action="/delete_assistant/{{ assistant.id }}/" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No other assistants found.</p>
+        {% endif %}
+        
+        <a href="/" class="btn btn-primary">Go Home</a>
+    </div>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+</body>
+</html>
