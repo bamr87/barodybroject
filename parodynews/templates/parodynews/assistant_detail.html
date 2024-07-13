@@ -9,15 +9,19 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Assistant Details</h1>
-        <!-- Display the details of the specific assistant -->
-        <p><strong>ID:</strong> {{ assistant.id }}</p>
-        <p><strong>Name:</strong> {{ assistant.name }}</p>
-        <p><strong>Model:</strong> {{ assistant.model }}</p>
-        <p><strong>Created:</strong> {{ assistant.created_at }}</p>
-
+        <div class="container mt-5">
+            <h1>Create an Assistant</h2>
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="form-group">
+                        {{ form.as_p }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Assistant</button>
+                </form>
+        </div>
+                
         <!-- Additional section to list other assistants in a table format -->
-        <h2>Other Assistants</h2>
+        <h2>All Assistants</h2>
         {% if assistants_info %}
             <table class="table">
                 <thead>

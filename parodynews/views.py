@@ -1,13 +1,21 @@
 from django.shortcuts import render, redirect
-from .forms import PostForm
-from .forms import AssistantForm
-from .scripts.create_jekyll_post import create_jekyll_post
-from .utils import create_assistant
-from openai import OpenAI  # Import OpenAI library
-from .utils import retrieve_assistants_info  # Ensure this import is correct based on your project structure
-from .utils import generate_content  
-from .models import Post  # Import the Post model
+from django.views.decorators.http import require_POST
+from django.contrib import messages
+from django.http import HttpResponseBadRequest
+from django.http import HttpResponseNotAllowed
 
+from .forms import ContentForm, AssistantForm
+from .models import Content, ContentDetail, Message, Assistant, Thread
+from . import utils  # Import the utils module
+from .utils import (
+    delete_assistant,
+    generate_content, 
+    retrieve_assistants_info,
+    create_assistant
+)
+from .scripts.create_jekyll_post import create_jekyll_post
+from openai import OpenAI  # Import OpenAI library
+from datetime import datetime
 
 def index(request):
     # This view will render the root index page
@@ -15,58 +23,51 @@ def index(request):
 
 # Ensure the rest of your views.py file remains unchanged
 
-# This is the view that will handle the form submission
+from django.shortcuts import render, redirect
+from .forms import ContentForm  # Assuming ContentForm is your form for creating content
+from .models import Content, ContentDetail  # Assuming these are your models
+from .utils import generate_content  # Assuming this is your function to generate content
 
-def content_create(request):
+def manage_content(request):
     if request.method == 'POST':
-        form = PostForm(request.POST)
+        form = ContentForm(request.POST)
         if form.is_valid():
-            # Extract role and prompt from the form submission
+            # Create and save ContentDetail instance
+            title = form.cleaned_data.get('title', 'Default Title')
+            description = form.cleaned_data.get('description', 'Default Description')
+            author = form.cleaned_data.get('author', 'Default Author')
+            content_detail = ContentDetail(title=title, description=description, author=author)
+            content_detail.save()
+
+            # Generate content based on the form's role and prompt
             role = form.cleaned_data['role']
             prompt = form.cleaned_data['prompt']
-
-            # Assume generate_content is a function that generates content based on role and prompt
             generated_content = generate_content(role, prompt)
 
-            # Initialize the post but don't commit to the database yet
+            # Create and save Content instance, linking it to the ContentDetail instance
             post = form.save(commit=False)
-            # Set the generated content to the post's content field
             post.content = generated_content
-            # Now save the post to the database, including the generated content
+            post.detail = content_detail  # Link to the ContentDetail instance
             post.save()
 
-            # Optionally, store generated_content in session for immediate use
-            request.session['generated_content'] = generated_content
+            # Redirect to prevent form resubmission
+            return redirect('manage_content')  # Adjust the redirect as needed
 
-            # Redirect to a success page or the page where the post can be viewed
-            return redirect('post_success')
     else:
-        form = PostForm()
-        generated_content = ""
+        form = ContentForm()
 
-    # Render the form page again if not POST or if form is invalid, with any generated content
-    return render(request, 'parodynews/content_form.html', {'form': form, 'generated_content': generated_content})
+    # This part is executed for both POST (after redirecting) and GET requests
+    generated_content_list = Content.objects.all()  # Retrieve all content from the database
 
-def post_success(request):
-    # Retrieve generated_content from session
-    generated_content = request.session.get('generated_content', '')
-
-    # Optionally, you can delete the session variable after retrieving it
-    # del request.session['generated_content']
-
-    return render(request, 'parodynews/post_success.html', {'generated_content': generated_content})
-
-# New view to list the content generated
-
-def list_content(request):
-    # Retrieve all content from the database
-    generated_content = Post.objects.all()
-
-    return render(request, 'parodynews/generated_content.html', {'generated_content': generated_content})
-
+    # Render the template with the context
+    return render(request, 'parodynews/content_detail.html', {
+        'form': form,
+        'generated_content': generated_content_list
+    })
 # New view function to create an assistant
 
-def create_assistant(request):
+
+def manage_assistants(request):
     if request.method == 'POST':
         form = AssistantForm(request.POST)
         if form.is_valid():
@@ -80,43 +81,105 @@ def create_assistant(request):
             client = OpenAI()
             
             # Retrieve the assistant details from OpenAI using the assistant ID
-            # Assuming `assistant_id` is available from your `create_assistant` function
-            assistant_id = assistant.id  # Adjusted from assistant.get('id') to assistant.id
+            assistant_id = assistant.id
             my_assistant = client.beta.assistants.retrieve(assistant_id)
             
-            # Now you have `my_assistant` details from OpenAI, which you can use
-            # For demonstration, let's pass both local and OpenAI assistant details to a template:
+            # Save the assistant details to the database
+            db_assistant = Assistant(
+                assistant_id=assistant_id,
+                name=assistant_name,
+                model=my_assistant.model,
+                created_at=datetime.fromtimestamp(my_assistant.created_at)
+            )
+            db_assistant.save()
+            messages.success(request, "Assistant created successfully.")
+            
+            # Redirect to the same page or a confirmation page to prevent form resubmission
+            return redirect('manage_assistants')  # Replace 'manage_assistants' with the name of your view or URL pattern
 
-            # Use the retrieve_assistants_info function from utils.py
-            assistants_info = retrieve_assistants_info()
+    # This part is executed for GET requests and after redirecting
+    form = AssistantForm()  # Always provide a fresh form for new entries
+    assistants_info = retrieve_assistants_info()  # Retrieve the list of assistants for the context
+    
+    # Render the template with the context
+    return render(request, 'parodynews/assistant_detail.html', {
+        'form': form,
+        'assistants_info': assistants_info
+    })
 
-            # Pass the list of assistants to the template
-            return render(request, 'parodynews/assistant_detail.html', {'assistant': assistant, 'openai_assistant': my_assistant, 'assistants_info': assistants_info})
-    else:
-        form = AssistantForm()
-    return render(request, 'parodynews/create_assistant.html', {'form': form})
-
-# New view function to list assistants
-
-def list_assistants(request):
-    # Initialize the OpenAI client
-    client = OpenAI()
-
-    # Retrieve the list of assistants
-    assistants_info = retrieve_assistants_info()
-
-    # Pass the list of assistants to a template
-    return render(request, 'parodynews/assistant_detail.html', {'assistants_info': assistants_info})
-
-from django.shortcuts import redirect
-from django.contrib import messages
-from .utils import delete_assistant
 
 def delete_assistant(request, assistant_id):
     # Call the delete function from utils.py
-    response_message = delete_assistant(assistant_id)
+    response_message = utils.delete_assistant(assistant_id)
     # Optionally, add a success message
     messages.success(request, response_message)
     # Redirect to the list of assistants or another appropriate page
-    return redirect('list_assistants')
+    return redirect('manage_assistants')
 
+
+
+@require_POST
+def create_message(request):
+    content_id = request.POST.get('content_id')
+    try:
+        content = Content.objects.get(id=content_id)
+    except Content.DoesNotExist:
+        return HttpResponseBadRequest("The requested content does not exist.")
+
+    # Call utils.create_message to get message and thread_id
+    message, thread_id = utils.create_message(content.content)
+    
+    # Create a new Thread instance and save it
+    new_thread = Thread(thread_id=thread_id)  # Assuming Thread model doesn't require any mandatory fields
+    new_thread.save()
+
+    print(f"New thread created with ID: {content_id}")
+
+    # Create and save the new Message instance with the thread_id
+    new_message = Message(message_id=message.id, content_id=content_id, thread_id=new_thread.thread_id)
+    new_message.save()
+
+    messages.success(request, "Message created successfully.")
+    return redirect('list_messages')
+
+def delete_message(request, message_id):
+    # Retrieve the message instance
+    try:
+        message = Message.objects.get(message_id=message_id)
+    except Message.DoesNotExist:
+        return HttpResponseBadRequest("The requested message does not exist.")
+    
+    # Delete the message
+    message.delete()
+
+    messages.success(request, "Message deleted successfully.")
+    return redirect('list_messages')
+
+
+def list_messages(request):
+    # Check if the request method is GET
+    if request.method != 'GET':
+        # Return a 405 Method Not Allowed response if not a GET request
+        return HttpResponseNotAllowed(['GET'])
+    
+    # Retrieve all messages from the database
+    messages = Message.objects.all()
+    assistants = Assistant.objects.all()  # Fetch all assistants
+
+    # Render the list of messages with the 'list_messages.html' template
+    return render(request, 'parodynews/list_messages.html', {'messages': messages, 'assistants': assistants})
+
+from django.shortcuts import get_object_or_404, redirect
+from django.http import HttpResponse
+from .models import Message, Assistant
+
+def assign_assistant_to_message(request, message_id):
+    if request.method == 'POST':
+        message = get_object_or_404(Message, pk=message_id)
+        assistant_id = request.POST.get('assistant_id')
+        assistant = get_object_or_404(Assistant, pk=assistant_id)
+        message.assistant_id = assistant  # Assuming your Message model has a ForeignKey to Assistant
+        message.save()
+        return redirect('list_messages')  # Redirect to the messages list page or wherever appropriate
+    else:
+        return HttpResponse("Method not allowed", status=405)

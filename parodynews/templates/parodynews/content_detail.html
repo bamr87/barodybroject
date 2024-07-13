@@ -9,6 +9,19 @@
     <title>Generated Content Display</title>
 </head>
 <body>
+
+    <div class="container mt-5">
+
+        <h2>Generate the content for the post</h2>
+        <p>Fill out the form below to generate content.</p>
+        
+        <form class="mt-5" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn btn-primary" type="submit">Submit</button>
+        </form>
+    </div>
+
     <div class="container mt-5">
         <h1>Generated Content</h1>
         {% if generated_content %}
@@ -22,7 +35,18 @@
                                     <p><strong>Prompt:</strong> {{ content.prompt|linebreaksbr }}</p>
                                     <!-- Use the markdownify filter to render Markdown content as HTML -->
                                     <!-- Additionally, use the linebreaksbr filter to retain new lines or blank lines -->
-                                    <div><strong>Content:</strong> {{ content.content|markdownify|linebreaksbr }}</div>
+                                    <div><strong>Content:</strong> {{ content.content|markdownify|linebreaksbr }}
+                                    <!-- Inside the loop for content items, add a button -->
+                                    <div class="card-footer">
+                                        <!-- Assuming you have access to the content object in your template -->
+                                        <form action="{% url 'create_message' %}" method="POST">
+                                            {% csrf_token %}
+                                            <!-- Hidden input to pass the content ID -->
+                                            <input type="hidden" name="content_id" value="{{ content.id }}">
+                                            <button type="submit">Create Message</button>
+                                        </form>
+                                    </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

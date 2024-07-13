@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Messages</h2>
+    <div class="list-group">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="list-group-item list-group-item-action flex-column align-items-start">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Thread ID: {{ message.thread_id }}</h5>
+                        <small>Created At: {{ message.created_at }}</small>
+                    </div>
+                    <p class="mb-1">{{ message.content.content }}</p>
+                    <!-- Assign Assistant Form -->
+                    <form action="{% url 'assign_assistant_to_message' message.message_id %}" method="post" class="mt-2">
+                        {% csrf_token %}
+                        <div class="input-group mb-3">
+                            <select name="assistant_id" class="form-select">
+                                {% for assistant in assistants %}
+                                    <option value="{{ assistant.assistant_id }}">{{ assistant.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-outline-secondary" type="submit">Assign Assistant</button>
+                        </div>
+                    </form>
+                    <!-- Delete Button Form -->
+                    <form action="{% url 'delete_message' message.message_id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this message?');">Delete</button>
+                    </form>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No messages found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

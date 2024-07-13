@@ -58,7 +58,7 @@ def create_assistant(name, instructions):
     assistant = client.beta.assistants.create(
         name=name,
         instructions=instructions,
-        model="gpt-4o",
+        model="gpt-3.5-turbo",
     )
     return assistant
 
@@ -84,6 +84,9 @@ def retrieve_assistants_info():
 # Function to delete an assistant
 
 def delete_assistant(assistant_id):
+    # Assuming you have a Django model named Assistant
+    from .models import Assistant
+    Assistant.objects.filter(assistant_id=assistant_id).delete()
     client.beta.assistants.delete(assistant_id)
 
     return f"Assistant with ID {assistant_id} deleted successfully."
@@ -113,3 +116,11 @@ def generate_content(role, prompt):
     return response.choices[0].message.content.strip()
 
 
+def create_message(content):
+    thread = client.beta.threads.create()
+    message = client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=content
+    )
+    return message, thread.id

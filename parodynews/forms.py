@@ -1,9 +1,9 @@
 from django import forms
-from .models import Post
+from .models import Content
 
-class PostForm(forms.ModelForm):
+class ContentForm(forms.ModelForm):
     class Meta:
-        model = Post
+        model = Content
         fields = ['role', 'prompt']
 
 class AssistantForm(forms.Form):
