@@ -1,13 +1,7 @@
 <!-- assistant_detail.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistant Details</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block content %}
     <div class="container mt-5">
         <div class="container mt-5">
             <h1>Create an Assistant</h2>
@@ -55,12 +49,5 @@
         
         <a href="/" class="btn btn-primary">Go Home</a>
     </div>
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-</body>
-</html>
+
+{% endblock %}

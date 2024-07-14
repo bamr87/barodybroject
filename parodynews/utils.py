@@ -124,3 +124,34 @@ def create_message(content):
         content=content
     )
     return message, thread.id
+
+
+
+def create_run(thread_id, assistant_id):
+    client = OpenAI()
+
+    run = client.beta.threads.runs.create(
+    thread_id=thread_id,
+    assistant_id=assistant_id,
+    )
+    return run
+
+def openai_list_messages(thread_id):
+    client = OpenAI()
+
+    thread_messages = client.beta.threads.messages.list(
+        thread_id=thread_id,
+        limit=10,
+    )
+    # Assuming each message in thread_messages has a 'content' attribute
+    formatted_messages = [
+        {"id": message.id, "text": message.content[0].text.value} for message in thread_messages
+    ]
+    return formatted_messages
+
+def delete_thread(thread_id):
+    client = OpenAI()
+
+    client.beta.threads.delete(thread_id)
+
+    return f"Thread with ID {thread_id} deleted successfully."

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load markdownify %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Threads</h2>
+    <ul class="list-group" id="threads-list">
+        {% for thread in threads %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a href="{% url 'thread_detail' thread.thread_id %}">{{ thread.thread_id }}</a>
+            <form action="{% url 'delete_thread' thread.thread_id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div class="container mt-4">
+    <h2>Messages</h2>
+    <div id="messages-list">
+        {% if current_thread %}
+        {% for message in thread_messages %}
+        <div class="mb-3">
+            <p class="fw-bold">{{ message.id }}</p>
+            <div class="message-content">{{ message.text|markdownify|linebreaksbr }}</div>
+        </div>
+        {% empty %}
+        <p>No messages found for this thread.</p>
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

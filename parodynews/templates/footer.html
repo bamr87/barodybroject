@@ -1,0 +1,36 @@
+<!-- footer.html -->
+<footer class="bd-footer container-xl d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+    <div class="col-sm d-flex align-items-center">
+        
+        <!-- Frameworks/Engines and Affiliations -->
+        <ul class="nav col-sm justify-content-end list-unstyled d-flex align-items-center">
+
+            <!-- Search for Site Frameworks in config file -->
+            <span class="align-self">
+                &copy; {{ now|date:"Y" }} Parody News. Powered by: 
+            </span>
+
+            <li class="btn ">
+                <a href="https://www.djangoproject.com/" rel="nofollow">
+                    <i class="bi" aria-hidden="true"></i>
+                <!-- display name if there's enough space, else icon only -->
+                    <span class="d-none d-md-inline"> 
+                        Django
+                    </span>
+                </a>
+                </li>
+
+            <!-- RSS Feed -->
+            <li class="btn">
+                <a href="/feed.xml">
+                    <i class="bi bi-rss" aria-hidden="true"></i>
+                    <!-- https://icons.getbootstrap.com/icons/rss/ -->
+                    <span class="d-none d-md-inline">
+                        Feed
+                    </span>
+                </a>
+            </li>
+        </ul>
+
+    </div>
+</footer>

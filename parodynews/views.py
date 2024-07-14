@@ -58,7 +58,7 @@ def manage_content(request):
 
     # This part is executed for both POST (after redirecting) and GET requests
     generated_content_list = Content.objects.all()  # Retrieve all content from the database
-
+    messages.success(request, "Content created successfully.")
     # Render the template with the context
     return render(request, 'parodynews/content_detail.html', {
         'form': form,
@@ -163,11 +163,11 @@ def list_messages(request):
         return HttpResponseNotAllowed(['GET'])
     
     # Retrieve all messages from the database
-    messages = Message.objects.all()
+    message_list = Message.objects.all()
     assistants = Assistant.objects.all()  # Fetch all assistants
 
     # Render the list of messages with the 'list_messages.html' template
-    return render(request, 'parodynews/list_messages.html', {'messages': messages, 'assistants': assistants})
+    return render(request, 'parodynews/message_detail.html', {'message_list': message_list, 'assistants': assistants})
 
 from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponse
@@ -183,3 +183,50 @@ def assign_assistant_to_message(request, message_id):
         return redirect('list_messages')  # Redirect to the messages list page or wherever appropriate
     else:
         return HttpResponse("Method not allowed", status=405)
+    
+from django.http import HttpResponse, HttpResponseRedirect
+from .utils import create_run
+from django.urls import reverse
+
+def run_messages(request, message_id):
+    from .models import Message  # Import the Message model
+
+    if request.method == "POST":
+        try:
+            message = Message.objects.get(message_id=message_id)  # Retrieve the message by its ID
+            thread_id = message.thread_id  # Access the thread_id associated with the message
+            assistant_id = request.POST.get('assistant_id')  # Assuming assistant_id is passed in the request
+            create_run(thread_id, assistant_id)  # Pass thread_id instead of message_id
+            return redirect('list_messages')
+        except Message.DoesNotExist:
+            return HttpResponse("Message not found", status=404)
+    else:
+        return HttpResponse("Invalid request", status=400)
+    
+from django.shortcuts import render, get_object_or_404
+from .models import Thread  # Assuming you have a Thread model
+from .utils import openai_list_messages
+
+def thread_detail(request, thread_id=None):
+    threads = Thread.objects.all()  # Retrieve all threads
+    thread_messages = []
+    thread = None
+
+    if thread_id:
+        thread = get_object_or_404(Thread, pk=thread_id)
+        thread_messages = openai_list_messages(thread_id)
+
+    return render(request, 'parodynews/thread_detail.html', {'threads': threads, 'current_thread': thread, 'thread_messages': thread_messages})
+
+from django.shortcuts import redirect, get_object_or_404
+from django.views.decorators.http import require_POST
+from .models import Thread  # Adjust the import path according to your project structure
+
+@require_POST
+def delete_thread(request, thread_id):
+    # Fetch the thread from the database or return a 404 error if not found
+    thread = get_object_or_404(Thread, pk=thread_id)
+    # Delete the thread
+    thread.delete()
+    # Redirect to a suitable page after deletion, e.g., the threads list page
+    return redirect('thread_detail')  # Replace 'threads_list' with the name of your threads list view
