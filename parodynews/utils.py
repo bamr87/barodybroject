@@ -145,7 +145,7 @@ def openai_list_messages(thread_id):
     )
     # Assuming each message in thread_messages has a 'content' attribute
     formatted_messages = [
-        {"id": message.id, "text": message.content[0].text.value} for message in thread_messages
+        {"id": message.id, "text": message.content[0].text.value, "assistant_id": message.assistant_id} for message in thread_messages
     ]
     return formatted_messages
 

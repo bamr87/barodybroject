@@ -50,6 +50,7 @@ def manage_content(request):
             post.detail = content_detail  # Link to the ContentDetail instance
             post.save()
 
+            messages.success(request, "Content created successfully.")
             # Redirect to prevent form resubmission
             return redirect('manage_content')  # Adjust the redirect as needed
 
@@ -58,7 +59,6 @@ def manage_content(request):
 
     # This part is executed for both POST (after redirecting) and GET requests
     generated_content_list = Content.objects.all()  # Retrieve all content from the database
-    messages.success(request, "Content created successfully.")
     # Render the template with the context
     return render(request, 'parodynews/content_detail.html', {
         'form': form,
@@ -88,6 +88,7 @@ def manage_assistants(request):
             db_assistant = Assistant(
                 assistant_id=assistant_id,
                 name=assistant_name,
+                instructions=instructions,
                 model=my_assistant.model,
                 created_at=datetime.fromtimestamp(my_assistant.created_at)
             )
@@ -187,22 +188,22 @@ def assign_assistant_to_message(request, message_id):
 from django.http import HttpResponse, HttpResponseRedirect
 from .utils import create_run
 from django.urls import reverse
+from django.shortcuts import redirect, get_object_or_404
 
 def run_messages(request, message_id):
     from .models import Message  # Import the Message model
 
     if request.method == "POST":
-        try:
-            message = Message.objects.get(message_id=message_id)  # Retrieve the message by its ID
-            thread_id = message.thread_id  # Access the thread_id associated with the message
-            assistant_id = request.POST.get('assistant_id')  # Assuming assistant_id is passed in the request
-            create_run(thread_id, assistant_id)  # Pass thread_id instead of message_id
-            return redirect('list_messages')
-        except Message.DoesNotExist:
-            return HttpResponse("Message not found", status=404)
+        message = get_object_or_404(Message, message_id=message_id)  # Retrieve the message by its ID or return 404
+        thread_id = message.thread_id  # Access the thread_id associated with the message
+        assistant_id = request.POST.get('assistant_id')  # Assuming assistant_id is passed in the request
+        create_run(thread_id, assistant_id)  # Pass thread_id instead of message_id
+        
+        # Redirect to the thread_detail.html of the message
+        return redirect('thread_detail', thread_id=thread_id)
     else:
         return HttpResponse("Invalid request", status=400)
-    
+
 from django.shortcuts import render, get_object_or_404
 from .models import Thread  # Assuming you have a Thread model
 from .utils import openai_list_messages
@@ -210,13 +211,13 @@ from .utils import openai_list_messages
 def thread_detail(request, thread_id=None):
     threads = Thread.objects.all()  # Retrieve all threads
     thread_messages = []
-    thread = None
+    current_thread = None
 
     if thread_id:
-        thread = get_object_or_404(Thread, pk=thread_id)
+        current_thread = get_object_or_404(Thread, pk=thread_id)
         thread_messages = openai_list_messages(thread_id)
 
-    return render(request, 'parodynews/thread_detail.html', {'threads': threads, 'current_thread': thread, 'thread_messages': thread_messages})
+    return render(request, 'parodynews/thread_detail.html', {'threads': threads, 'current_thread': current_thread, 'thread_messages': thread_messages})
 
 from django.shortcuts import redirect, get_object_or_404
 from django.views.decorators.http import require_POST
@@ -230,3 +231,47 @@ def delete_thread(request, thread_id):
     thread.delete()
     # Redirect to a suitable page after deletion, e.g., the threads list page
     return redirect('thread_detail')  # Replace 'threads_list' with the name of your threads list view
+
+
+from django.shortcuts import redirect
+from django.views.decorators.http import require_POST
+from .models import Message, Content, Thread
+from django.utils import timezone
+
+@require_POST
+def add_message_to_db(request):
+    message_id = request.POST.get('message_id')
+    message_content = request.POST.get('message_content')
+    thread_id = request.POST.get('thread_id')
+    assistant_id = request.POST.get('assistant_id')
+
+    # First, create the ContentDetail object
+    content_detail = ContentDetail.objects.create(
+        title="Generated Title",  # Placeholder title, adjust as needed
+        description="Generated Description",  # Placeholder description, adjust as needed
+        author="Generated Author",  # Placeholder author, adjust as needed
+        published_at=timezone.now(),  # Use the current time for published_at
+    )
+    # Retrieve the ContentDetail instance using the ID
+    content_detail_instance = ContentDetail.objects.get(id=content_detail.id)
+
+    # Then, create or update the Content object with the content_detail instance
+    content, _ = Content.objects.update_or_create(
+        prompt= Assistant.objects.get(assistant_id=assistant_id).instructions,  # Assuming you want to use the message_content as the prompt
+        defaults={'role': 'Updated Role', 'content': message_content},
+        detail=content_detail_instance  # Use the ContentDetail instance here
+    )
+
+    # Update content_detail to link to the newly created or updated content
+    content_detail.content = content
+    content_detail.save()
+
+    # Create or update the Message object
+    message = Message.objects.update_or_create(
+        message_id=message_id,
+        thread_id=thread_id,
+        defaults={'content': content, 'created_at': timezone.now()}
+    )
+    messages.success(request, "Message and content created successfully.")
+
+    return redirect('thread_detail')  # Redirect back to the thread detail page

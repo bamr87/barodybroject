@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load markdownify %}
 
 {% block content %}
 <div class="container mt-4">
@@ -11,14 +12,15 @@
                         <h5 class="mb-1">Thread ID: {{ message.thread_id }}</h5>
                         <small>Created At: {{ message.created_at }}</small>
                     </div>
-                    <p class="mb-1">{{ message.content.content }}</p>
+                    <p class="mb-1">{{ message.content.content|markdownify|linebreaksbr }}</p>
                     <!-- Assign Assistant Form -->
                     <form action="{% url 'assign_assistant_to_message' message.message_id %}" method="post" class="mt-2">
                         {% csrf_token %}
                         <div class="input-group mb-3">
                             <select name="assistant_id" class="form-select">
+                                <option value="">Select Assistant</option>
                                 {% for assistant in assistants %}
-                                    <option value="{{ assistant.assistant_id }}">{{ assistant.name }}</option>
+                                    <option value="{{ assistant.assistant_id }}" {% if message.assistant_id == assistant.assistant_id %}selected{% endif %}>{{ assistant.name }}</option>
                                 {% endfor %}
                             </select>
                             <button class="btn btn-outline-secondary" type="submit">Assign Assistant</button>

@@ -34,6 +34,8 @@ urlpatterns = [
     path('run_message/<str:message_id>/', views.run_messages, name='run_message'),
     path('messages/assign/<str:message_id>/', views.assign_assistant_to_message, name='assign_assistant_to_message'),
     path('threads/delete/<str:thread_id>/', views.delete_thread, name='delete_thread'),
+    path('add_message_to_db/', views.add_message_to_db, name='add_message_to_db'),
+
     # Uncomment the following lines if the views are defined and you plan to use them
     # path('create_post/', views.post_create, name='create_post'),
     # path('post/fail/', views.post_fail, name='post_fail'),

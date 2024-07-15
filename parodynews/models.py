@@ -19,6 +19,7 @@ class Assistant(models.Model):
     assistant_id = models.CharField(max_length=225, primary_key=True)
     name = models.CharField(max_length=100)
     description = models.TextField()
+    instructions = models.TextField()
     model = models.CharField(max_length=100, default="gpt-3.5-turbo")
     created_at = models.DateTimeField(default=timezone.now)
 
@@ -27,6 +28,7 @@ class Assistant(models.Model):
 # New model for threads
 class Thread(models.Model):
     thread_id = models.CharField(max_length=255, primary_key=True) 
+    name = models.CharField(max_length=100, default="New Thread")
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

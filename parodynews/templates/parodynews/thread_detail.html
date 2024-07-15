@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load markdownify %}
+
 {% block content %}
 <div class="container mt-4">
     <h2>Threads</h2>
@@ -20,10 +21,20 @@
     <h2>Messages</h2>
     <div id="messages-list">
         {% if current_thread %}
+        <h3>Thread ID: {{ current_thread.thread_id }}</h3>
         {% for message in thread_messages %}
-        <div class="mb-3">
+        <div class="mb-3 p-3 border rounded">
             <p class="fw-bold">{{ message.id }}</p>
             <div class="message-content">{{ message.text|markdownify|linebreaksbr }}</div>
+            <!-- Form to add message to database -->
+            <form action="{% url 'add_message_to_db' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="thread_id" value="{{ current_thread.thread_id }}">
+                <input type="hidden" name="assistant_id" value="{{ message.assistant_id }}">
+                <input type="hidden" name="message_id" value="{{ message.id }}">
+                <input type="hidden" name="message_content" value="{{ message.text }}">
+                <button type="submit" class="btn btn-primary btn-sm">Add to Database</button>
+            </form>
         </div>
         {% empty %}
         <p>No messages found for this thread.</p>
