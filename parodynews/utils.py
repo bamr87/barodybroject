@@ -1,62 +1,62 @@
 # Chat GPT-4o API
 # https://platform.openai.com/docs/api-reference/chat-gpt-4o
 
+from .models import AppConfig
 from openai import OpenAI
-from dotenv import load_dotenv
-from datetime import datetime
-import os
 
+# utils.py (modified usage example)
 
-# Load environment variables from .env file
-if load_dotenv():
-    print("Environment variables loaded successfully.")
-else:
-    print("Failed to load environment variables.")
+def get_config_value(key):
+    try:
+        config = AppConfig.objects.first()  # Assuming only one config is needed
+        return getattr(config, key, None)
+    except AppConfig.DoesNotExist:
+        return None
 
-# Get API key from environment variables
-api_key = os.getenv('OPENAI_API_KEY')
+api_key = get_config_value('api_key')
+project_id = get_config_value('project_id')
+org_id = get_config_value('org_id')
+
 if api_key:
     print("OPENAI_API_KEY loaded successfully.")
 else:
     print("Failed to load OPENAI_API_KEY.")
 
-# Get project ID from environment variables
-project_id = os.getenv('PROJECT_ID')
 if project_id:
     print("PROJECT_ID loaded successfully.")
 else:
     print("Failed to load PROJECT_ID.")
 
-# Get organization ID from environment variables
-org_id = os.getenv('ORG_ID')
 if org_id:
     print("ORG_ID loaded successfully.")
 else:
     print("Failed to load ORG_ID.")
 
+try:
+    client = OpenAI(
+      organization=org_id,  # Use the org_id variable
+      project=project_id,  # Use the project_id variable
+      api_key=api_key  # Use the api_key variable
+    )
 
-# Use the api_key variable directly instead of os.getenv()
-client = OpenAI(
-  organization=org_id, # Use the org_id variable
-  project=project_id, # Use the project_id variable
-  api_key = api_key # Use the api_key variable
-)
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": "Say this is a test, idiot",
+            }
+        ],
+        model="gpt-3.5-turbo",
+    )
+    print(chat_completion.choices[0].message.content)
 
-chat_completion = client.chat.completions.create(
-    messages=[
-        {
-            "role": "user",
-            "content": "Say this is a test",
-        }
-    ],
-    model="gpt-3.5-turbo",
-)
+except Exception as e:
+    print(f"Error: {e}")
 
-print(chat_completion.choices[0].message.content)
 
-def create_assistant(name, instructions):
+def create_assistant(role_name, instructions):
     assistant = client.beta.assistants.create(
-        name=name,
+        name=role_name,
         instructions=instructions,
         model="gpt-3.5-turbo",
     )
@@ -65,7 +65,6 @@ def create_assistant(name, instructions):
 # Function to retrieve assistant information
 
 def retrieve_assistants_info():
-    from openai import OpenAI
     client = OpenAI()
 
     my_assistants = client.beta.assistants.list(
@@ -115,7 +114,6 @@ def generate_content(role, prompt):
     # Get the content of the last message in the response
     return response.choices[0].message.content.strip()
 
-
 def create_message(content):
     thread = client.beta.threads.create()
     message = client.beta.threads.messages.create(
@@ -124,8 +122,6 @@ def create_message(content):
         content=content
     )
     return message, thread.id
-
-
 
 def create_run(thread_id, assistant_id):
     client = OpenAI()

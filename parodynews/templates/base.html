@@ -30,6 +30,9 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
                         <li class="nav-item active">
+                            <a class="nav-link" href="/roles/">Roles</a>
+                        </li>
+                        <li class="nav-item active">
                             <a class="nav-link" href="/content/">Content</a>
                         </li>
                         <li class="nav-item">
@@ -41,11 +44,25 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/threads/">Threads</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/">Admin</a>
+                        </li>
                     </ul>
                 </div>
             </nav>
         </header>
-
+        {% if form.errors %}
+        <div class="container-xl error">
+            <p>Please correct the following errors:</p>
+            {% for field in form %}
+                {% if field.errors %}
+                    {% for error in field.errors %}
+                        <p>{{ field.label }}: {{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
         <main>
             {% block content %}
             <!-- Content from child templates will be inserted here -->

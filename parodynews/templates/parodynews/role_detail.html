@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<body>
+    <div class="container mt-5">
+        <!-- New Section for Creating Roles -->
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title">Create New Role</h3>
+                <form method="post" class="form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        {{ create_form.as_p }}
+                    </div>
+                    <button type="submit" name="create" class="btn btn-success">Create Role</button>
+                </form>
+            </div>
+        </div>
+        <h1>Roles</h1>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Instructions</th>
+                        <!-- Add more headers for additional fields -->
+                        <th scope="col">Actions</th> <!-- Header for the actions column -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for role in roles %}
+                    <tr>
+                        <th scope="row">{{ forloop.counter }}</th>
+                        <td>{{ role.role_name }}</td>
+                        <td>{{ role.role_type }}</td>
+                        <td>{{ role.instructions }}</td>
+                        <!-- Add more data cells for additional fields -->
+                        <td>
+                            <!-- Delete button form for each role -->
+                            <form action="{% url 'manage_roles' %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="role_id" value="{{ role.id }}">
+                                <button type="submit" name="delete" class="btn btn-danger" onclick="return confirm('Are you sure?');">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+{% endblock %}

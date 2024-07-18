@@ -23,6 +23,9 @@ from parodynews import views
 urlpatterns = [
     path('', views.index, name='index'),
     path('admin/', admin.site.urls),
+    path('roles/', views.manage_roles, name='manage_roles'),
+    path('delete_role/<int:role_id>/', views.manage_roles, name='delete_role'),
+    path('get-role-instructions/', views.get_role_instructions, name='get-role-instructions'),
     path('content/', views.manage_content, name='manage_content'),
     path('assistants/', views.manage_assistants, name='manage_assistants'),
     path('delete_assistant/<str:assistant_id>/', views.delete_assistant, name='delete_assistant'),
