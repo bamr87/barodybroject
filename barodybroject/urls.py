@@ -31,13 +31,14 @@ urlpatterns = [
     path('delete_assistant/<str:assistant_id>/', views.delete_assistant, name='delete_assistant'),
     path('create_message/', views.create_message, name='create_message'),
     path('messages/', views.list_messages, name='list_messages'),
-    path('threads/', views.thread_detail, name='thread_detail'),
-    path('threads/<str:thread_id>/', views.thread_detail, name='thread_detail'),
     path('delete_message/<str:message_id>/', views.delete_message, name='delete_message'),
     path('run_message/<str:message_id>/', views.run_messages, name='run_message'),
     path('messages/assign/<str:message_id>/', views.assign_assistant_to_message, name='assign_assistant_to_message'),
-    path('threads/delete/<str:thread_id>/', views.delete_thread, name='delete_thread'),
     path('add_message_to_db/', views.add_message_to_db, name='add_message_to_db'),
+    path('threads/', views.thread_detail, name='thread_detail'),
+    path('threads/<str:thread_id>/', views.thread_detail, name='thread_detail'),
+    path('threads/delete/<str:thread_id>/', views.delete_thread, name='delete_thread'),
+    # path('posts/', views.manage_posts, name='manage_posts'),
 
     # Uncomment the following lines if the views are defined and you plan to use them
     # path('create_post/', views.post_create, name='create_post'),

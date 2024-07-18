@@ -13,7 +13,8 @@ from .utils import (
     delete_assistant, 
     generate_content, 
     openai_list_messages, 
-    retrieve_assistants_info
+    retrieve_assistants_info,
+    create_message
 )
 from .scripts.create_jekyll_post import create_jekyll_post
 from openai import OpenAI  # Import OpenAI library if directly used, otherwise remove
@@ -130,8 +131,9 @@ def manage_assistants(request):
 
 
 def delete_assistant(request, assistant_id):
+    from .utils import delete_assistant
     # Call the delete function from utils.py
-    response_message = utils.delete_assistant(assistant_id)
+    response_message = delete_assistant(assistant_id)
     # Optionally, add a success message
     messages.success(request, response_message)
     # Redirect to the list of assistants or another appropriate page
@@ -139,6 +141,7 @@ def delete_assistant(request, assistant_id):
 
 @require_POST
 def create_message(request):
+    from .utils import create_message  # Import the utils module
     content_id = request.POST.get('content_id')
     try:
         content = Content.objects.get(id=content_id)
@@ -146,7 +149,7 @@ def create_message(request):
         return HttpResponseBadRequest("The requested content does not exist.")
 
     # Call utils.create_message to get message and thread_id
-    message, thread_id = utils.create_message(content.content)
+    message, thread_id = create_message(content.content)
     
     # Create a new Thread instance and save it
     new_thread = Thread(thread_id=thread_id)  # Assuming Thread model doesn't require any mandatory fields
