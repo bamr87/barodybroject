@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load markdownify %}
+
 {% block content %}
 <body>
     <div class="container mt-5">
@@ -34,7 +36,7 @@
                         <th scope="row">{{ forloop.counter }}</th>
                         <td>{{ role.role_name }}</td>
                         <td>{{ role.role_type }}</td>
-                        <td>{{ role.instructions }}</td>
+                        <td>{{ role.instructions|markdownify|linebreaksbr }}</td>
                         <!-- Add more data cells for additional fields -->
                         <td>
                             <!-- Delete button form for each role -->

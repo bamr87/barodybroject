@@ -19,11 +19,12 @@ from .utils import (
 from .scripts.create_jekyll_post import create_jekyll_post
 from openai import OpenAI  # Import OpenAI library if directly used, otherwise remove
 
-
+# View to render the index page
 def index(request):
     # This view will render the root index page
     return render(request, 'parodynews/index.html', {})
 
+# View to manage content creation
 def manage_content(request):
     from django.db import DatabaseError
 
@@ -50,6 +51,7 @@ def manage_content(request):
                 # Create and save Content instance, linking it to the ContentDetail instance
                 content = form.save(commit=False)
                 content.content = generated_content
+
                 # Assuming you have a way to determine the system_role, e.g., from the request
                 system_role = request.POST.get('system_role')
                 system_role = SystemRole.objects.get(id=system_role)
@@ -78,19 +80,20 @@ def manage_content(request):
         'generated_content': generated_content_list
     })
 
+# View to manage assistants
 def manage_assistants(request):
     if request.method == 'POST':
         form = AssistantForm(request.POST)
         if form.is_valid():
             assistant_name = form.cleaned_data['assistant_name']
             instructions = form.cleaned_data['instructions']
-            
+
             # Create an assistant using your custom function
             assistant = create_assistant(assistant_name, instructions)
-            
+
             # Initialize the OpenAI client
             client = OpenAI()
-            
+
             # Assuming there's a ForeignKey from Assistant to SystemRole in your models
             # Update the SystemRole creation to include the link
 
@@ -122,14 +125,14 @@ def manage_assistants(request):
     # This part is executed for GET requests and after redirecting
     form = AssistantForm()  # Always provide a fresh form for new entries
     assistants_info = retrieve_assistants_info()  # Retrieve the list of assistants for the context
-    
+
     # Render the template with the context
     return render(request, 'parodynews/assistant_detail.html', {
         'form': form,
         'assistants_info': assistants_info
     })
 
-
+# View to delete an assistant
 def delete_assistant(request, assistant_id):
     from .utils import delete_assistant
     # Call the delete function from utils.py
@@ -139,6 +142,7 @@ def delete_assistant(request, assistant_id):
     # Redirect to the list of assistants or another appropriate page
     return redirect('manage_assistants')
 
+# View to create a new message
 @require_POST
 def create_message(request):
     from .utils import create_message  # Import the utils module
@@ -150,7 +154,7 @@ def create_message(request):
 
     # Call utils.create_message to get message and thread_id
     message, thread_id = create_message(content.content)
-    
+
     # Create a new Thread instance and save it
     new_thread = Thread(thread_id=thread_id)  # Assuming Thread model doesn't require any mandatory fields
     new_thread.save()
@@ -164,25 +168,27 @@ def create_message(request):
     messages.success(request, "Message created successfully.")
     return redirect('list_messages')
 
+# View to delete a message
 def delete_message(request, message_id):
     # Retrieve the message instance
     try:
         message = Message.objects.get(message_id=message_id)
     except Message.DoesNotExist:
         return HttpResponseBadRequest("The requested message does not exist.")
-    
+
     # Delete the message
     message.delete()
 
     messages.success(request, "Message deleted successfully.")
     return redirect('list_messages')
 
+# View to list all messages
 def list_messages(request):
     # Check if the request method is GET
     if request.method != 'GET':
         # Return a 405 Method Not Allowed response if not a GET request
         return HttpResponseNotAllowed(['GET'])
-    
+
     # Retrieve all messages from the database
     message_list = Message.objects.all()
     assistants = Assistant.objects.all()  # Fetch all assistants
@@ -190,7 +196,7 @@ def list_messages(request):
     # Render the list of messages with the 'list_messages.html' template
     return render(request, 'parodynews/message_detail.html', {'message_list': message_list, 'assistants': assistants})
 
-
+# View to assign an assistant to a message
 def assign_assistant_to_message(request, message_id):
     if request.method == 'POST':
         message = get_object_or_404(Message, pk=message_id)
@@ -201,8 +207,8 @@ def assign_assistant_to_message(request, message_id):
         return redirect('list_messages')  # Redirect to the messages list page or wherever appropriate
     else:
         return HttpResponse("Method not allowed", status=405)
-    
 
+# View to run messages
 def run_messages(request, message_id):
     from .models import Message  # Import the Message model
 
@@ -217,7 +223,7 @@ def run_messages(request, message_id):
     else:
         return HttpResponse("Invalid request", status=400)
 
-
+# View to list all threads and messages
 def thread_detail(request, thread_id=None):
     threads = Thread.objects.all()  # Retrieve all threads
     thread_messages = []
@@ -229,7 +235,7 @@ def thread_detail(request, thread_id=None):
 
     return render(request, 'parodynews/thread_detail.html', {'threads': threads, 'current_thread': current_thread, 'thread_messages': thread_messages})
 
-
+# View to delete a thread
 @require_POST
 def delete_thread(request, thread_id):
     # Fetch the thread from the database or return a 404 error if not found
@@ -239,8 +245,7 @@ def delete_thread(request, thread_id):
     # Redirect to a suitable page after deletion, e.g., the threads list page
     return redirect('thread_detail')  # Replace 'threads_list' with the name of your threads list view
 
-
-
+# View to add a message to the database
 @require_POST
 def add_message_to_db(request):
     message_id = request.POST.get('message_id')
@@ -280,7 +285,7 @@ def add_message_to_db(request):
 
     return redirect('thread_detail')  # Redirect back to the thread detail page
 
-
+# View to manage roles
 def manage_roles(request):
     # Initialize an empty form for the creation of a new role
     create_form = RoleForm()
@@ -310,7 +315,7 @@ def manage_roles(request):
         # If no role is being modified, 'form' remains None
         return render(request, 'parodynews/role_detail.html', {'roles': roles, 'form': form, 'create_form': create_form})
     
-
+# View to get role instructions
 def get_role_instructions(request):
     role_id = request.GET.get('role_id')
     instructions = ''

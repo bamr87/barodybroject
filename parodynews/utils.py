@@ -58,7 +58,7 @@ def create_assistant(role_name, instructions):
     assistant = client.beta.assistants.create(
         name=role_name,
         instructions=instructions,
-        model="gpt-3.5-turbo",
+        model="gpt-4o-mini",
     )
     return assistant
 
@@ -69,7 +69,7 @@ def retrieve_assistants_info():
 
     my_assistants = client.beta.assistants.list(
         order="desc",
-        limit="20",
+        limit="100",
     )
 
     assistants_info = [{
