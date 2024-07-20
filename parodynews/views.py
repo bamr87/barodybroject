@@ -1,3 +1,5 @@
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 from datetime import datetime
 from django import utils
 from django.contrib import messages
@@ -19,12 +21,19 @@ from .utils import (
 from .scripts.create_jekyll_post import create_jekyll_post
 from openai import OpenAI  # Import OpenAI library if directly used, otherwise remove
 
+from django.contrib.auth.views import LoginView
+
+class UserLoginView(LoginView):
+    template_name = 'login.html'  # Step 3: Specify your login template here
+
+
 # View to render the index page
 def index(request):
     # This view will render the root index page
     return render(request, 'parodynews/index.html', {})
 
 # View to manage content creation
+@login_required
 def manage_content(request):
     from django.db import DatabaseError
 
@@ -81,6 +90,7 @@ def manage_content(request):
     })
 
 # View to manage assistants
+@login_required
 def manage_assistants(request):
     if request.method == 'POST':
         form = AssistantForm(request.POST)
@@ -133,6 +143,7 @@ def manage_assistants(request):
     })
 
 # View to delete an assistant
+@login_required
 def delete_assistant(request, assistant_id):
     from .utils import delete_assistant
     # Call the delete function from utils.py
@@ -143,6 +154,7 @@ def delete_assistant(request, assistant_id):
     return redirect('manage_assistants')
 
 # View to create a new message
+@login_required
 @require_POST
 def create_message(request):
     from .utils import create_message  # Import the utils module
@@ -169,6 +181,7 @@ def create_message(request):
     return redirect('list_messages')
 
 # View to delete a message
+@login_required
 def delete_message(request, message_id):
     # Retrieve the message instance
     try:
@@ -183,6 +196,7 @@ def delete_message(request, message_id):
     return redirect('list_messages')
 
 # View to list all messages
+@login_required
 def list_messages(request):
     # Check if the request method is GET
     if request.method != 'GET':
@@ -197,6 +211,7 @@ def list_messages(request):
     return render(request, 'parodynews/message_detail.html', {'message_list': message_list, 'assistants': assistants})
 
 # View to assign an assistant to a message
+@login_required
 def assign_assistant_to_message(request, message_id):
     if request.method == 'POST':
         message = get_object_or_404(Message, pk=message_id)
@@ -209,6 +224,7 @@ def assign_assistant_to_message(request, message_id):
         return HttpResponse("Method not allowed", status=405)
 
 # View to run messages
+@login_required
 def run_messages(request, message_id):
     from .models import Message  # Import the Message model
 
@@ -224,6 +240,7 @@ def run_messages(request, message_id):
         return HttpResponse("Invalid request", status=400)
 
 # View to list all threads and messages
+@login_required
 def thread_detail(request, thread_id=None):
     threads = Thread.objects.all()  # Retrieve all threads
     thread_messages = []
@@ -246,6 +263,7 @@ def delete_thread(request, thread_id):
     return redirect('thread_detail')  # Replace 'threads_list' with the name of your threads list view
 
 # View to add a message to the database
+@login_required
 @require_POST
 def add_message_to_db(request):
     message_id = request.POST.get('message_id')
@@ -286,6 +304,7 @@ def add_message_to_db(request):
     return redirect('thread_detail')  # Redirect back to the thread detail page
 
 # View to manage roles
+@login_required
 def manage_roles(request):
     # Initialize an empty form for the creation of a new role
     create_form = RoleForm()
@@ -316,6 +335,7 @@ def manage_roles(request):
         return render(request, 'parodynews/role_detail.html', {'roles': roles, 'form': form, 'create_form': create_form})
     
 # View to get role instructions
+@login_required
 def get_role_instructions(request):
     role_id = request.GET.get('role_id')
     instructions = ''

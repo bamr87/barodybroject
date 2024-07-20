@@ -14,7 +14,9 @@
                 {{ form.role_name }}<br>
                 <div id="role_text_div">
                     {{ form.instructions.label_tag }}<br>
-                    {{ form.system_role }}<br>
+                    <div style="display: none;">
+                        {{ form.system_role }}<br>
+                    </div>
                     {{ form.instructions }}
                 </div>
                 <script>
@@ -63,7 +65,8 @@
                                     <p><strong>Prompt:</strong> {{ content.prompt|linebreaksbr }}</p>
                                     <!-- Use the markdownify filter to render Markdown content as HTML -->
                                     <!-- Additionally, use the linebreaksbr filter to retain new lines or blank lines -->
-                                    <div><strong>Content:</strong> {{ content.content|markdownify|linebreaksbr }}
+                                    <div><strong>Content:</strong> <br>
+                                    {{ content.content|markdownify|linebreaksbr }}
                                     <!-- Inside the loop for content items, add a button -->
                                     <div class="card-footer">
                                         <!-- Assuming you have access to the content object in your template -->

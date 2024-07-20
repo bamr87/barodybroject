@@ -18,6 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from parodynews import views
+from django.contrib.auth.views import LogoutView
 
 
 urlpatterns = [
@@ -38,6 +39,9 @@ urlpatterns = [
     path('threads/', views.thread_detail, name='thread_detail'),
     path('threads/<str:thread_id>/', views.thread_detail, name='thread_detail'),
     path('threads/delete/<str:thread_id>/', views.delete_thread, name='delete_thread'),
+    path('login/', views.UserLoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
+
     # path('posts/', views.manage_posts, name='manage_posts'),
 
     # Uncomment the following lines if the views are defined and you plan to use them
