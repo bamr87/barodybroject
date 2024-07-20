@@ -107,14 +107,12 @@ Visit [http://localhost:8000](http://localhost:8000) in your web browser to view
 
 ![alt text](/assets/images/home.png)
 
-![alt text](assets/images/assistants.png)
+![alt text](assets/images/roles.png)
 
 ![alt text](assets/images/content.png)
 
-![alt text](assets/images/home-page.png)
+![alt text](assets/images/assistants.png)
 
 ![alt text](assets/images/messages.png)
-
-![alt text](assets/images/roles.png)
 
 ![alt text](assets/images/threads.png)
