@@ -24,23 +24,34 @@ from django.contrib.auth.views import LogoutView
 urlpatterns = [
     path('', views.index, name='index'),
     path('admin/', admin.site.urls),
-    path('roles/', views.manage_roles, name='manage_roles'),
-    path('delete_role/<int:role_id>/', views.manage_roles, name='delete_role'),
-    path('get-role-instructions/', views.get_role_instructions, name='get-role-instructions'),
+    # Content management
     path('content/', views.manage_content, name='manage_content'),
+    path('content/update/<int:content_id>/', views.update_content, name='update_content_url'),
+    path('content/save', views.save_edited_content, name='save_edited_content'),
+    path('get-raw-content', views.get_raw_content, name='get_raw_content'),
+    # Role management
+    path('roles/', views.manage_roles, name='manage_roles'),
+    path('roles/delete/<int:role_id>/', views.manage_roles, name='delete_role'),
+    path('roles/get-instructions/', views.get_role_instructions, name='get-role-instructions'),
+    
     path('assistants/', views.manage_assistants, name='manage_assistants'),
     path('delete_assistant/<str:assistant_id>/', views.delete_assistant, name='delete_assistant'),
+    
     path('create_message/', views.create_message, name='create_message'),
-    path('messages/', views.list_messages, name='list_messages'),
-    path('delete_message/<str:message_id>/', views.delete_message, name='delete_message'),
-    path('run_message/<str:message_id>/', views.run_messages, name='run_message'),
+    path('messages/', views.message_detail, name='list_messages'),
+    path('messages/<str:message_id>/', views.message_detail, name='message_detail'),
+    path('messages/delete/<str:message_id>/', views.delete_message, name='delete_message'),
     path('messages/assign/<str:message_id>/', views.assign_assistant_to_message, name='assign_assistant_to_message'),
+    path('messages/run/<str:message_id>/', views.run_messages, name='run_message'),
     path('add_message_to_db/', views.add_message_to_db, name='add_message_to_db'),
+    
     path('threads/', views.thread_detail, name='thread_detail'),
     path('threads/<str:thread_id>/', views.thread_detail, name='thread_detail'),
     path('threads/delete/<str:thread_id>/', views.delete_thread, name='delete_thread'),
+    
     path('login/', views.UserLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
+    
 
     # path('posts/', views.manage_posts, name='manage_posts'),
 

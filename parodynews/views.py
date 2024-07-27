@@ -1,11 +1,14 @@
-from django.contrib.auth.decorators import login_required
+import json
 from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
 from datetime import datetime
 from django import utils
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django.db import DatabaseError
 from datetime import timezone, datetime
 from .forms import AssistantForm, ContentForm, RoleForm
 from .models import Assistant, Content, ContentDetail, Message, SystemRole, Thread
@@ -18,14 +21,11 @@ from .utils import (
     retrieve_assistants_info,
     create_message
 )
-from .scripts.create_jekyll_post import create_jekyll_post
-from openai import OpenAI  # Import OpenAI library if directly used, otherwise remove
+from openai import OpenAI
 
-from django.contrib.auth.views import LoginView
-
+# Custom LoginView to render a custom login page
 class UserLoginView(LoginView):
-    template_name = 'login.html'  # Step 3: Specify your login template here
-
+    template_name = 'login.html'
 
 # View to render the index page
 def index(request):
@@ -35,8 +35,6 @@ def index(request):
 # View to manage content creation
 @login_required
 def manage_content(request):
-    from django.db import DatabaseError
-
     if request.method == 'POST':
         form = ContentForm(request.POST)
         if form.is_valid():
@@ -195,31 +193,35 @@ def delete_message(request, message_id):
     messages.success(request, "Message deleted successfully.")
     return redirect('list_messages')
 
-# View to list all messages
 @login_required
-def list_messages(request):
+def message_detail(request, message_id=None):
     # Check if the request method is GET
     if request.method != 'GET':
         # Return a 405 Method Not Allowed response if not a GET request
         return HttpResponseNotAllowed(['GET'])
 
-    # Retrieve all messages from the database
-    message_list = Message.objects.all()
+    message_list = Message.objects.all()  # Retrieve all messages
     assistants = Assistant.objects.all()  # Fetch all assistants
+    current_message = None
 
-    # Render the list of messages with the 'list_messages.html' template
-    return render(request, 'parodynews/message_detail.html', {'message_list': message_list, 'assistants': assistants})
+    if message_id:
+        current_message = get_object_or_404(Message, pk=message_id)
+
+    return render(request, 'parodynews/message_detail.html', {'message_list': message_list, 'current_message': current_message, 'assistants': assistants})
+
 
 # View to assign an assistant to a message
 @login_required
 def assign_assistant_to_message(request, message_id):
     if request.method == 'POST':
-        message = get_object_or_404(Message, pk=message_id)
+        message_ai = get_object_or_404(Message, pk=message_id)
         assistant_id = request.POST.get('assistant_id')
         assistant = get_object_or_404(Assistant, pk=assistant_id)
-        message.assistant_id = assistant  # Assuming your Message model has a ForeignKey to Assistant
-        message.save()
-        return redirect('list_messages')  # Redirect to the messages list page or wherever appropriate
+        message_ai.assistant_id = assistant  # Assuming your Message model has a ForeignKey to Assistant
+        message_ai.save()
+
+        messages.success(request, "Message Assigned successfully.")
+        return redirect('message_detail', message_id=message_id)  # Redirect to the messages list page or wherever appropriate
     else:
         return HttpResponse("Method not allowed", status=405)
 
@@ -303,6 +305,30 @@ def add_message_to_db(request):
 
     return redirect('thread_detail')  # Redirect back to the thread detail page
 
+@login_required
+@require_POST
+def update_content(request, content_id):
+    try:
+        # Assuming 'content' is the field name of the text you want to update
+        # and 'YourContentModel' is the name of your model
+        content = Content.objects.get(id=content_id)
+        updated_text = request.POST.get('content', '')  # Get the updated content text from the request
+        
+        # Update the content text
+        content.content = updated_text
+        content.save()
+        
+        # Return a success response
+        return JsonResponse({'status': 'success', 'message': 'Content updated successfully.'})
+    except ObjectDoesNotExist:
+        # Return an error response if the content is not found
+        return JsonResponse({'status': 'error', 'message': 'Content not found.'}, status=404)
+    except Exception as e:
+        # Return a generic error response for any other exceptions
+        return JsonResponse({'status': 'error', 'message': 'An error occurred.'}, status=500)
+
+
+
 # View to manage roles
 @login_required
 def manage_roles(request):
@@ -350,3 +376,43 @@ def get_role_instructions(request):
             instructions = 'Role not found.'
             system_role = None  # Set system_role to None or an appropriate value if the role does not exist
     return JsonResponse({'instructions': instructions, 'system_role': system_role})
+
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404
+
+def get_raw_content(request):
+    content_id = request.GET.get('id')
+    if not content_id:
+        return JsonResponse({'error': 'Missing content ID'}, status=400)
+
+    # Fetch the raw content from the database
+    content = get_object_or_404(Content, pk=content_id)  # Adjust query as needed
+
+    # Assuming the raw content is stored in a field named 'content'
+    return HttpResponse(content.content, content_type='text/plain')
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+from .models import Content  # Adjust with your actual model
+from django.core.exceptions import ObjectDoesNotExist
+
+@csrf_exempt  # Use this decorator to exempt this view from CSRF verification, consider CSRF protection alternatives
+@require_http_methods(["POST"])  # Ensure that only POST requests are accepted
+def save_edited_content(request):
+    try:
+        # Assuming the request body is JSON
+        data = json.loads(request.body)
+        content_id = data.get('contentId')
+        edited_content = data.get('editedContent')
+
+        # Update the content in the database
+        content = Content.objects.get(pk=content_id)
+        content.content = edited_content  
+        content.save()
+
+        return JsonResponse({'message': 'Content updated successfully'}, status=200)
+    except ObjectDoesNotExist:
+        return JsonResponse({'error': 'Content not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
