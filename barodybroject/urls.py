@@ -19,6 +19,8 @@ from django.contrib import admin
 from django.urls import path
 from parodynews import views
 from django.contrib.auth.views import LogoutView
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 urlpatterns = [
@@ -60,6 +62,6 @@ urlpatterns = [
     # path('post/fail/', views.post_fail, name='post_fail'),
     # Assuming you have a view for assistant details
     # path('assistants/<int:assistant_id>/', views.assistant_detail, name='assistant_detail'),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 

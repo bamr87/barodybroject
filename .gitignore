@@ -164,3 +164,4 @@ cython_debug/
 # Ignore macOS system files
 .DS_Store
 parodynews/.DS_Store
+static

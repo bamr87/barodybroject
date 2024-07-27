@@ -117,7 +117,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -127,3 +126,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 
 LOGIN_REDIRECT_URL = 'index'  # Redirect users to a 'home' page defined in your urls.py
+
+STATIC_URL = '/static/'
+# Add your static files directory
+STATICFILES_DIRS = [
+    BASE_DIR / "assets",
+    # Add other directories if needed
+]
+
+# Define STATIC_ROOT for collectstatic
+STATIC_ROOT = BASE_DIR / "static"
+

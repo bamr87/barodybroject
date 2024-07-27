@@ -44,19 +44,15 @@
     <h2>Selected Message</h2>
     <div class="list-group" id="message-list">
         <h3>Message ID: {{ current_message.message_id }}</h3>
-
-            <br>
-                <div class="list-group-item list-group-item-action flex-column align-items-start">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">Thread ID: <br>{{ current_message.thread_id }}</h5>
-                        <small>Created At: <br>{{ current_message.created_at }}</small>
-                    </div>
-                    <p class="mb-1">{{ current_message.content.content|markdownify|linebreaksbr }}</p>
-                    <!-- Assign Assistant Form -->
-
-
+        <br>
+            <div class="list-group-item list-group-item-action flex-column align-items-start">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">Thread ID: <br>{{ current_message.thread_id }}</h5>
+                    <small>Created At: <br>{{ current_message.created_at }}</small>
                 </div>
-
+                <p class="mb-1">{{ current_message.content.content|markdownify|linebreaksbr }}</p>
+                <!-- Assign Assistant Form -->
+            </div>
         {% else %}
             <p>No messages found.</p>
         {% endif %}
