@@ -1,19 +1,29 @@
+import json
 from django.db import models
 from django.utils import timezone
 
-class SystemRole(models.Model):
-    role_name = models.CharField(max_length=100, default="system default")
-    instructions = models.TextField(default="you are a helpful assistant.")
-    SYSTEM = 'system'
-    ASSISTANT = 'assistant'
-    ROLE_CHOICES = [
-        (SYSTEM, 'System'),
-        (ASSISTANT, 'Assistant'),
-    ]
-    role_type = models.CharField(max_length=100, choices=ROLE_CHOICES, default=SYSTEM)
+# Load model choices from the JSON file
+try:
+    with open('model_choices.json', 'r') as f:
+        MODEL_CHOICES = [(model, model) for model in json.load(f)]
+except FileNotFoundError:
+    MODEL_CHOICES = []
+class Assistant(models.Model):
+    assistant_id = models.CharField(max_length=225, primary_key=True)
+    name = models.CharField(max_length=256, null=True, blank=True, default="system default")
+    description = models.CharField(max_length=512, null=True, blank=True, default="Describe the assistant.")
+    instructions = models.TextField(max_length=256000, default="you are a helpful assistant.")
+    object = models.CharField(max_length=50, default="assistant")
+    model = models.CharField(max_length=100, default="gpt-3.5-turbo")
+    created_at = models.DateTimeField(default=timezone.now)
+    tools = models.JSONField(default=list)
+    metadata = models.JSONField(default=dict)
+    temperature = models.FloatField(null=True, blank=True)
+    top_p = models.FloatField(null=True, blank=True)
+    response_format = models.JSONField(default=dict)
 
     def __str__(self):
-        return self.role_name
+        return self.name
 
 class ContentDetail(models.Model):
     title = models.CharField(max_length=255, default="NEED TITLE.")
@@ -24,21 +34,14 @@ class ContentDetail(models.Model):
     def __str__(self):
         return self.title
 class Content(models.Model):
-    system_role = models.ForeignKey(SystemRole, on_delete=models.CASCADE, related_name='contents')
+    assistant = models.ForeignKey(Assistant, on_delete=models.CASCADE)
     prompt = models.TextField(default="say this is a test")
     content = models.TextField()
     detail = models.OneToOneField(ContentDetail, on_delete=models.CASCADE, related_name='content')
 
-class Assistant(models.Model):
-    assistant_id = models.CharField(max_length=225, primary_key=True)
-    system_role = models.ForeignKey(SystemRole, on_delete=models.CASCADE, related_name='assistants', limit_choices_to={'role_type': 'assistant'})
-    description = models.TextField(max_length=225, default="Describe the assistant.")
-    model = models.CharField(max_length=100, default="gpt-3.5-turbo")
-    created_at = models.DateTimeField(default=timezone.now)
-
     def __str__(self):
-        # Assuming the SystemRole has a 'name' attribute
-        return self.system_role.name
+        return self.prompt
+
 # New model for threads
 class Thread(models.Model):
     thread_id = models.CharField(max_length=255, primary_key=True) 

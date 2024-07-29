@@ -2,16 +2,18 @@ import json
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from datetime import datetime
 from django import utils
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django.views import View
 from django.db import DatabaseError
 from datetime import timezone, datetime
-from .forms import AssistantForm, ContentForm, RoleForm
-from .models import Assistant, Content, ContentDetail, Message, SystemRole, Thread
+from .forms import AssistantForm, ContentForm
+from .models import Assistant, Content, ContentDetail, Message, Thread
 from .utils import (
     create_assistant, 
     create_run, 
@@ -32,10 +34,25 @@ def index(request):
     # This view will render the root index page
     return render(request, 'parodynews/index.html', {})
 
-# View to manage content creation
-@login_required
-def manage_content(request):
-    if request.method == 'POST':
+# View to manage content creation and deletion
+class ManageContentView(LoginRequiredMixin, View):
+    def get(self, request, content_id=None):
+        form = ContentForm()
+        selected_content = None
+        if content_id:
+            selected_content = get_object_or_404(Content, id=content_id)
+
+        generated_content = Content.objects.all()
+        return render(request, 'parodynews/content_detail.html', {
+            'form': form,
+            'selected_content': selected_content,
+            'generated_content': generated_content,
+        })
+
+    def post(self, request):
+        if request.POST.get('_method') == 'delete':
+            return self.delete(request)
+        
         form = ContentForm(request.POST)
         if form.is_valid():
             try:
@@ -55,37 +72,49 @@ def manage_content(request):
                     messages.error(request, f"Failed to generate content: {e}")
                     return render(request, 'parodynews/content_detail.html', {'form': form})
 
-                # Create and save Content instance, linking it to the ContentDetail instance
                 content = form.save(commit=False)
                 content.content = generated_content
+                content.detail_id = content_detail.id  # Set the detail_id field
 
-                # Assuming you have a way to determine the system_role, e.g., from the request
-                system_role = request.POST.get('system_role')
-                system_role = SystemRole.objects.get(id=system_role)
-                content.system_role = system_role
-                content.detail = content_detail  # Link to the ContentDetail instance
+                assistant = request.POST.get('assistant')
+                assistant = Assistant.objects.get(assistant_id=assistant)
+                content.assistant = assistant
                 content.save()
 
-                messages.success(request, "Content created successfully.")
-                return redirect('manage_content')
-            except DatabaseError as e:
-                messages.error(request, f"Database error: {e}")
-                return render(request, 'parodynews/content_detail.html', {'form': form})
-        else:
-            # If form is not valid, add an error message and include form errors
-            error_messages = form.errors.as_text()
-            messages.error(request, f"Form validation failed: {error_messages}")
-            # No need to redirect, just render the same page with the form containing errors
-            return render(request, 'parodynews/content_detail.html', {'form': form})
-    else:
-        form = ContentForm()
+                messages.success(request, "Content created successfully!")
+                return redirect('content_detail', content_id=content.id)
+            except Exception as e:
+                messages.error(request, f"An error occurred: {e}")
+        generated_content = Content.objects.all()
+        return render(request, 'parodynews/content_detail.html', {
+            'form': form,
+            'generated_content': generated_content
+        })
+    
+    def delete(self, request):
+        content_id = request.POST.get('content_id')
+        content = get_object_or_404(Content, id=content_id)
+        content.delete()
+        messages.success(request, "Content deleted successfully!")
+        return redirect('manage_content')
 
-    # This part is executed for both POST (after redirecting) and GET requests
-    generated_content_list = Content.objects.all()
-    return render(request, 'parodynews/content_detail.html', {
-        'form': form,
-        'generated_content': generated_content_list
-    })
+
+# View to get Assistant instructions
+@login_required
+def get_assistants(request):
+    assistant_id = request.GET.get('assistant_id')
+    instructions = ''
+    assistant = ''  # Initialize assistant variable
+    if assistant_id:
+        try:
+            assistant_obj = Assistant.objects.get(assistant_id=assistant_id)
+            instructions = assistant_obj.instructions
+            assistant = assistant_obj.name  # Assuming you want to return the assistant's name
+            # If you have a specific field for assistant, replace assistant_obj.name with assistant_obj.<field_name>
+        except Assistant.DoesNotExist:
+            instructions = 'Assistant not found.'
+            assistant = None  # Set assistant to None or an appropriate value if the assistant does not exist
+    return JsonResponse({'instructions': instructions, 'assistant': assistant})
 
 # View to manage assistants
 @login_required
@@ -93,36 +122,33 @@ def manage_assistants(request):
     if request.method == 'POST':
         form = AssistantForm(request.POST)
         if form.is_valid():
-            assistant_name = form.cleaned_data['assistant_name']
+            name = form.cleaned_data['name']
             instructions = form.cleaned_data['instructions']
 
             # Create an assistant using your custom function
-            assistant = create_assistant(assistant_name, instructions)
+            assistant = create_assistant(name, instructions)
 
             # Initialize the OpenAI client
             client = OpenAI()
-
-            # Assuming there's a ForeignKey from Assistant to SystemRole in your models
-            # Update the SystemRole creation to include the link
 
             # Retrieve the assistant details from OpenAI using the assistant ID
             assistant_id = assistant.id
             my_assistant = client.beta.assistants.retrieve(assistant_id)
 
-            # First, create or update the SystemRole with the assistant_name
-            system_role, created = SystemRole.objects.get_or_create(
-                role_name=assistant_name,
-                instructions=instructions,
-                role_type=SystemRole.ASSISTANT
-            )
-
-            # Now, save the assistant details to the database with a link to the SystemRole
+            # Now, save the assistant details to the database
             db_assistant = Assistant(
                 assistant_id=assistant_id,
-                description=instructions,
+                name=name,
+                description=my_assistant.description,
+                instructions=instructions,
+                object=my_assistant.object,
                 model=my_assistant.model,
                 created_at=datetime.fromtimestamp(my_assistant.created_at),
-                system_role=system_role  # Link the Assistant instance to the SystemRole instance
+                tools=my_assistant.tools,
+                metadata=my_assistant.metadata,
+                temperature=my_assistant.temperature,
+                top_p=my_assistant.top_p,
+                response_format=my_assistant.response_format,
             )
             db_assistant.save()
             messages.success(request, "Assistant created successfully.")
@@ -285,8 +311,8 @@ def add_message_to_db(request):
 
     # Then, create or update the Content object with the content_detail instance
     content, _ = Content.objects.update_or_create(
-        prompt= Assistant.objects.get(assistant_id=assistant_id).system_role.instructions,  # Assuming you want to use the message_content as the prompt
-        system_role= Assistant.objects.get(assistant_id=assistant_id).system_role,  # Assuming you want to use the message_content as the prompt
+        prompt= Assistant.objects.get(assistant_id=assistant_id).instructions,  # Assuming you want to use the message_content as the prompt
+        assistant= Assistant.objects.get(assistant_id=assistant_id),  # Assuming you want to use the message_content as the prompt
         content=message_content,
         detail=content_detail_instance  # Use the ContentDetail instance here
     )
@@ -328,54 +354,6 @@ def update_content(request, content_id):
         return JsonResponse({'status': 'error', 'message': 'An error occurred.'}, status=500)
 
 
-
-# View to manage roles
-@login_required
-def manage_roles(request):
-    # Initialize an empty form for the creation of a new role
-    create_form = RoleForm()
-    form = None  # This will be used for modifications
-
-    if request.method == 'POST':
-        if 'create' in request.POST:
-            create_form = RoleForm(request.POST)
-            if create_form.is_valid():
-                create_form.save()
-                return redirect('manage_roles')  # Redirect to clear the form
-        elif 'modify' in request.POST:
-            role_id = request.POST.get('role_id')
-            role = SystemRole.objects.get(pk=role_id)
-            form = RoleForm(request.POST, instance=role)
-            if form.is_valid():
-                form.save()
-        elif 'delete' in request.POST:
-            role_id = request.POST.get('role_id')
-            role = SystemRole.objects.get(pk=role_id)
-            role.delete()
-        # Redirect after modify or delete to prevent re-posting
-        return redirect('manage_roles')
-    else:
-        roles = SystemRole.objects.all()
-        # Pass both the create_form and form for modification
-        # If no role is being modified, 'form' remains None
-        return render(request, 'parodynews/role_detail.html', {'roles': roles, 'form': form, 'create_form': create_form})
-    
-# View to get role instructions
-@login_required
-def get_role_instructions(request):
-    role_id = request.GET.get('role_id')
-    instructions = ''
-    system_role = ''  # Initialize system_role variable
-    if role_id:
-        try:
-            role = SystemRole.objects.get(id=role_id)
-            instructions = role.instructions
-            system_role = role.id  # Assuming you want to return the role's ID as the system_role value
-            # If you have a specific field for system_role, replace role.id with role.<field_name>
-        except SystemRole.DoesNotExist:
-            instructions = 'Role not found.'
-            system_role = None  # Set system_role to None or an appropriate value if the role does not exist
-    return JsonResponse({'instructions': instructions, 'system_role': system_role})
 
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404

@@ -21,20 +21,22 @@ from parodynews import views
 from django.contrib.auth.views import LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
+from parodynews.views import ManageContentView
+
 
 
 urlpatterns = [
     path('', views.index, name='index'),
     path('admin/', admin.site.urls),
     # Content management
-    path('content/', views.manage_content, name='manage_content'),
+    path('content/', ManageContentView.as_view(), name='manage_content'),
+    path('content/<int:content_id>', ManageContentView.as_view(), name='content_detail'),
     path('content/update/<int:content_id>/', views.update_content, name='update_content_url'),
+    path('content/delete/<int:content_id>/', ManageContentView.as_view(), name='delete_content'),
     path('content/save', views.save_edited_content, name='save_edited_content'),
+    path('content/get-assistants/', views.get_assistants, name='get-assistants'),
     path('get-raw-content', views.get_raw_content, name='get_raw_content'),
-    # Role management
-    path('roles/', views.manage_roles, name='manage_roles'),
-    path('roles/delete/<int:role_id>/', views.manage_roles, name='delete_role'),
-    path('roles/get-instructions/', views.get_role_instructions, name='get-role-instructions'),
+
     
     path('assistants/', views.manage_assistants, name='manage_assistants'),
     path('delete_assistant/<str:assistant_id>/', views.delete_assistant, name='delete_assistant'),

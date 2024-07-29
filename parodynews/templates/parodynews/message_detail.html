@@ -23,7 +23,7 @@
                         <select name="assistant_id" class="form-select">
                             <option value="">Select Assistant</option>
                             {% for assistant in assistants %}
-                                <option value="{{ assistant.assistant_id }}" {% if message.assistant_id == assistant.assistant_id %}selected{% endif %}>{{ assistant.system_role.role_name }}</option>
+                                <option value="{{ assistant.assistant_id }}" {% if message.assistant_id == assistant.assistant_id %}selected{% endif %}>{{ assistant.name }}</option>
                             {% endfor %}
                         </select>
                         <button class="btn btn-outline-secondary" type="submit">Assign Assistant</button>

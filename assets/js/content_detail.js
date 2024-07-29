@@ -1,20 +1,21 @@
+// Assistant Selection change event
 document.addEventListener("DOMContentLoaded", function() {
-    const roleSelect = document.querySelector("#id_role_name");
+    const roleSelect = document.querySelector("#id_name");
     const instructionsBox = document.querySelector("#id_instructions");
-    const systemRoleBox = document.querySelector("#id_system_role"); // Assuming the id for system_role field is "id_system_role"
+    const assistantField = document.querySelector("#id_assistant");
 
     roleSelect.addEventListener("change", function() {
-        const roleId = this.value;
-        fetch(`/roles/get-instructions/?role_id=${roleId}`)
+        const selectedAssistantId = this.value;
+        fetch(`/content/get-assistants/?assistant_id=${selectedAssistantId}`)
             .then(response => response.json())
             .then(data => {
                 instructionsBox.value = data.instructions;
-                systemRoleBox.value = data.system_role; // Update the system_role field based on the response
+                assistantField.value = selectedAssistantId; // Update the assistant field with the selected ID
             })
-            .catch(error => console.error('Error fetching instructions:', error));
+            .catch(error => console.error('Error fetching assistants:', error));
     });
 });
-
+// Edit content functionality
 document.querySelectorAll('.edit-btn').forEach(button => {
     button.addEventListener('click', function() {
         const contentId = this.getAttribute('data-content-id');
