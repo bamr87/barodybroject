@@ -29,12 +29,12 @@
                 <tbody>
                     {% for assistant in assistants_info %}
                         <tr>
-                            <td>{{ assistant.id }}</td>
+                            <td>{{ assistant.assistant_id }}</td>
                             <td>{{ assistant.name }}</td>
                             <td>{{ assistant.instructions }}</td>
                             <td>
                                 <!-- Delete button form -->
-                                <form action="/delete_assistant/{{ assistant.id }}/" method="post">
+                                <form action="/delete_assistant/{{ assistant.assistant_id }}/" method="post">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-danger">Delete</button>
                                 </form>

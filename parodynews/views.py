@@ -21,7 +21,8 @@ from .utils import (
     generate_content, 
     openai_list_messages, 
     retrieve_assistants_info,
-    create_message
+    create_message,
+    json_to_markdown
 )
 from openai import OpenAI
 
@@ -43,10 +44,21 @@ class ManageContentView(LoginRequiredMixin, View):
             selected_content = get_object_or_404(Content, id=content_id)
 
         generated_content = Content.objects.all()
+
+        # Create a list to hold content and their details
+        content_with_details = []
+        for content in generated_content:
+            content_detail = ContentDetail.objects.filter(id=content.detail_id).first()
+            content_with_details.append({
+                'content': content,
+                'content_detail': content_detail
+            })
+        
         return render(request, 'parodynews/content_detail.html', {
             'form': form,
             'selected_content': selected_content,
             'generated_content': generated_content,
+            'content_with_details': content_with_details
         })
 
     def post(self, request):
@@ -55,36 +67,40 @@ class ManageContentView(LoginRequiredMixin, View):
         
         form = ContentForm(request.POST)
         if form.is_valid():
-            try:
-                # Create and save ContentDetail instance
-                title = form.cleaned_data.get('title', 'Default Title')
-                description = form.cleaned_data.get('description', 'Default Description')
-                author = form.cleaned_data.get('author', 'Default Author')
-                content_detail = ContentDetail(title=title, description=description, author=author)
-                content_detail.save()
 
-                # Generate content based on the form's role and prompt
-                instructions = form.cleaned_data['instructions']
-                prompt = form.cleaned_data['prompt']
-                try:
-                    generated_content = generate_content(instructions, prompt)
-                except Exception as e:
-                    messages.error(request, f"Failed to generate content: {e}")
-                    return render(request, 'parodynews/content_detail.html', {'form': form})
 
-                content = form.save(commit=False)
-                content.content = generated_content
-                content.detail_id = content_detail.id  # Set the detail_id field
+            # Generate content based on the form's role and prompt
+            instructions = form.cleaned_data['instructions']
+            prompt = form.cleaned_data['prompt']
 
-                assistant = request.POST.get('assistant')
-                assistant = Assistant.objects.get(assistant_id=assistant)
-                content.assistant = assistant
-                content.save()
+            generated_content_response = generate_content(instructions, prompt)
+            generated_content = json.loads(generated_content_response)
 
-                messages.success(request, "Content created successfully!")
-                return redirect('content_detail', content_id=content.id)
-            except Exception as e:
-                messages.error(request, f"An error occurred: {e}")
+            title = generated_content.get('title', 'Default Title')
+            description = generated_content.get('description', 'Default Description')
+            
+            author = form.cleaned_data.get('author', 'Default Author')
+            content_detail = ContentDetail(title=title, description=description, author=author)
+            content_detail.save()
+            
+            content_text = json_to_markdown(generated_content.get('content'))
+
+            if content_text == "None":
+                content_text = json_to_markdown(generated_content_response)
+            
+            content = form.save(commit=False)
+            content.content = content_text
+            content.detail_id = content_detail.id  # Set the detail_id field
+
+            assistant = request.POST.get('assistant')
+            assistant = Assistant.objects.get(assistant_id=assistant)
+            content.assistant = assistant
+            content.save()
+
+
+            messages.success(request, "Content created successfully!")
+            return redirect('content_detail', content_id=content.id)
+
         generated_content = Content.objects.all()
         return render(request, 'parodynews/content_detail.html', {
             'form': form,
@@ -123,10 +139,12 @@ def manage_assistants(request):
         form = AssistantForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
+            description = form.cleaned_data['description']
             instructions = form.cleaned_data['instructions']
+            model = form.cleaned_data['model']
 
             # Create an assistant using your custom function
-            assistant = create_assistant(name, instructions)
+            assistant = create_assistant(name, description, instructions, model)
 
             # Initialize the OpenAI client
             client = OpenAI()
@@ -158,7 +176,7 @@ def manage_assistants(request):
 
     # This part is executed for GET requests and after redirecting
     form = AssistantForm()  # Always provide a fresh form for new entries
-    assistants_info = retrieve_assistants_info()  # Retrieve the list of assistants for the context
+    assistants_info = Assistant.objects.all()  # Retrieve the list of assistants from the database
 
     # Render the template with the context
     return render(request, 'parodynews/assistant_detail.html', {

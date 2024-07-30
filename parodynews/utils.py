@@ -54,11 +54,12 @@ except Exception as e:
     print(f"Error: {e}")
 
 
-def create_assistant(role_name, instructions):
+def create_assistant(name, description, instructions, model):
     assistant = client.beta.assistants.create(
-        name=role_name,
+        name=name,
+        description=description,
         instructions=instructions,
-        model="gpt-4o-mini",
+        model=model,
     )
     return assistant
 
@@ -108,8 +109,15 @@ def generate_content(role, prompt):
             {
                 "role": "user",
                 "content": prompt,
+            },
+            {
+                "role": "assistant",
+                "content": "output the title, description, and content in a json format.",
             }
         ],
+        response_format={
+            "type": "json_object",
+        }
     )
     # Get the content of the last message in the response
     return response.choices[0].message.content.strip()
@@ -145,9 +153,33 @@ def openai_list_messages(thread_id):
     ]
     return formatted_messages
 
+
+
 def delete_thread(thread_id):
     client = OpenAI()
 
     client.beta.threads.delete(thread_id)
 
     return f"Thread with ID {thread_id} deleted successfully."
+
+# Function to convert JSON to Markdown
+def json_to_markdown(data, level=1):
+    markdown_text = ""
+    
+    if isinstance(data, dict):
+        for key, value in data.items():
+            # Add the heading
+            markdown_text += f"{'#' * level} {key.replace('_', ' ').title()}\n\n"
+            # Recursively add the content
+            markdown_text += json_to_markdown(value, level + 1)
+    elif isinstance(data, list):
+        for item in data:
+            # Process each list item without adding extra headings
+            item_text = json_to_markdown(item, level)
+            # Ensure list items are properly formatted
+            markdown_text += f"{item_text.strip()}\n"
+    else:
+        # Add the content
+        markdown_text += f"{data}\n\n"
+    
+    return markdown_text
