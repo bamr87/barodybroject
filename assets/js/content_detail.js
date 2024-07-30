@@ -37,8 +37,21 @@ document.querySelectorAll('.edit-btn').forEach(button => {
                     editableText.id = `editable-content-${contentId}`;
                     editableText.style.resize = 'none'; // Prevent resizing
                     editableText.style.width = '100%'; // Full width
-                    editableText.style.height = '200px'; // Fixed height, adjust as needed
                     editableText.value = rawData; // Populate with raw data from the server
+
+                    // Measure the height of the current content
+                    const tempDiv = document.createElement('div');
+                    tempDiv.style.visibility = 'hidden';
+                    tempDiv.style.position = 'absolute';
+                    tempDiv.style.whiteSpace = 'pre-wrap';
+                    tempDiv.style.width = '100%';
+                    tempDiv.textContent = rawData;
+                    document.body.appendChild(tempDiv);
+                    const height = tempDiv.offsetHeight;
+                    document.body.removeChild(tempDiv);
+
+                    // Set the height of the textarea
+                    editableText.style.height = `${height}px`;
 
                     // Clear the contentDiv and append the textarea
                     contentDiv.innerHTML = '';

@@ -54,11 +54,7 @@
                     <input type="hidden" name="content_id" value="{{ item.content.id }}">
                     <button type="submit" class="btn btn-primary">Create New Message</button>
                 </form>
-                <!-- Edit Button -->
-                <button type="button" class="btn btn-secondary edit-btn" data-content-id="{{ item.content.id }}">Edit</button>
-                <!-- Save and Cancel Buttons (hidden by default) -->
-                <button type="button" class="btn btn-success save-btn" data-content-id="{{ item.content.id }}" style="display:none;">Save</button>
-                <button type="button" class="btn btn-warning cancel-btn" style="display:none;">Cancel</button>
+
             </div>
         </li>
         {% endfor %}
@@ -81,6 +77,11 @@
                                 <p><strong>Description:</strong> {{ selected_content.detail.description }}</p>
                                 <p><strong>Author:</strong> {{ selected_content.detail.author }}</p>
                                 <p><strong>Published At:</strong> {{ selected_content.detail.published_at }}</p>
+                                <!-- Edit Button -->
+                                <button type="button" class="btn btn-secondary edit-btn" data-content-id="{{ selected_content.id }}">Edit</button>
+                                <!-- Save and Cancel Buttons (hidden by default) -->
+                                <button type="button" class="btn btn-success save-btn" data-content-id="{{ selected_content.id }}" style="display:none;">Save</button>
+                                <button type="button" class="btn btn-warning cancel-btn" style="display:none;">Cancel</button>
                             </div>
                             <p><strong>Prompt:</strong> {{ selected_content.prompt|linebreaksbr }}</p>
                             <!-- Use the markdownify filter to render Markdown content as HTML -->
