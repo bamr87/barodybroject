@@ -1,5 +1,5 @@
 from django import forms
-from .models import Assistant, Content
+from .models import Assistant, Content, ContentDetail
 import json
 
 # Load model choices from the JSON file
@@ -37,9 +37,31 @@ class ContentForm(forms.ModelForm):
         model = Content
         fields = ['assistant', 'instructions', 'prompt']
 
+class ContentDetailForm(forms.ModelForm):
+    class Meta:
+        model = ContentDetail
+        fields = ['title', 'description', 'author', 'published_at']
+
+
 # Other form classes remain unchanged
-class AssistantForm(forms.Form):
-    name = forms.CharField(label='Assistant Name', max_length=100)
-    description = forms.CharField(label='Description', max_length=512, required=False)
-    instructions = forms.CharField(label='Instructions', widget=forms.Textarea)
-    model = forms.ChoiceField(label='Model', choices=MODEL_CHOICES, initial=MODEL_CHOICES[3][0] if MODEL_CHOICES else None)
+from django import forms
+from .models import Assistant, MODEL_CHOICES  # Import MODEL_CHOICES
+
+class AssistantForm(forms.ModelForm):
+    class Meta:
+        model = Assistant
+        fields = ['name', 'description', 'instructions', 'model']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.TextInput(attrs={'class': 'form-control'}),
+            'instructions': forms.Textarea(attrs={'class': 'form-control'}),
+            'model': forms.Select(attrs={'class': 'form-select'}),
+        }
+        initial = {
+            'model': 'gpt-3.5-turbo'
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(AssistantForm, self).__init__(*args, **kwargs)
+        self.fields['model'].choices = MODEL_CHOICES
+        self.fields['model'].initial = MODEL_CHOICES[0][0] if MODEL_CHOICES else None

@@ -26,20 +26,21 @@ from parodynews.views import ManageContentView
 
 
 urlpatterns = [
+    # Home page and admin page
     path('', views.index, name='index'),
     path('admin/', admin.site.urls),
+    
     # Content management
     path('content/', ManageContentView.as_view(), name='manage_content'),
     path('content/<int:content_id>', ManageContentView.as_view(), name='content_detail'),
-    path('content/update/<int:content_id>/', views.update_content, name='update_content_url'),
-    path('content/delete/<int:content_id>/', ManageContentView.as_view(), name='delete_content'),
-    path('content/save', views.save_edited_content, name='save_edited_content'),
+    path('content/update/<int:content_id>', views.update_content, name='update_content'),
+    path('content/delete/<int:content_id>', ManageContentView.as_view(), name='delete_content'),
     path('content/get-assistants/', views.get_assistants, name='get-assistants'),
     path('get-raw-content', views.get_raw_content, name='get_raw_content'),
 
     
     path('assistants/', views.manage_assistants, name='manage_assistants'),
-    path('delete_assistant/<str:assistant_id>/', views.delete_assistant, name='delete_assistant'),
+    path('assistants/delete/<str:assistant_id>/', views.delete_assistant, name='delete_assistant'),
     
     path('create_message/', views.create_message, name='create_message'),
     path('messages/', views.message_detail, name='list_messages'),

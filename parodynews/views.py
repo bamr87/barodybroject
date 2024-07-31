@@ -48,7 +48,7 @@ class ManageContentView(LoginRequiredMixin, View):
         # Create a list to hold content and their details
         content_with_details = []
         for content in generated_content:
-            content_detail = ContentDetail.objects.filter(id=content.detail_id).first()
+            content_detail = ContentDetail.objects.get(id=content.detail_id)
             content_with_details.append({
                 'content': content,
                 'content_detail': content_detail
@@ -68,7 +68,6 @@ class ManageContentView(LoginRequiredMixin, View):
         form = ContentForm(request.POST)
         if form.is_valid():
 
-
             # Generate content based on the form's role and prompt
             instructions = form.cleaned_data['instructions']
             prompt = form.cleaned_data['prompt']
@@ -76,10 +75,12 @@ class ManageContentView(LoginRequiredMixin, View):
             generated_content_response = generate_content(instructions, prompt)
             generated_content = json.loads(generated_content_response)
 
+            # Extract the title, description, and author from the generated content
             title = generated_content.get('title', 'Default Title')
             description = generated_content.get('description', 'Default Description')
-            
             author = form.cleaned_data.get('author', 'Default Author')
+
+            # Save the content details to the database
             content_detail = ContentDetail(title=title, description=description, author=author)
             content_detail.save()
             
@@ -88,15 +89,14 @@ class ManageContentView(LoginRequiredMixin, View):
             if content_text == "None":
                 content_text = json_to_markdown(generated_content_response)
             
+            # Save the content to the database
             content = form.save(commit=False)
             content.content = content_text
             content.detail_id = content_detail.id  # Set the detail_id field
-
             assistant = request.POST.get('assistant')
             assistant = Assistant.objects.get(assistant_id=assistant)
             content.assistant = assistant
             content.save()
-
 
             messages.success(request, "Content created successfully!")
             return redirect('content_detail', content_id=content.id)
@@ -110,10 +110,77 @@ class ManageContentView(LoginRequiredMixin, View):
     def delete(self, request):
         content_id = request.POST.get('content_id')
         content = get_object_or_404(Content, id=content_id)
+        
+        # Delete the associated ContentDetail
+        content_detail = get_object_or_404(ContentDetail, content=content)
+        content_detail.delete()
+        
+        # Delete the Content
         content.delete()
-        messages.success(request, "Content deleted successfully!")
+        
+        messages.success(request, "Content and its details deleted successfully!")
         return redirect('manage_content')
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import get_object_or_404, redirect, render
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.contrib import messages
+from .models import ContentDetail, Content
+from .forms import ContentDetailForm, ContentForm
+import json
+
+@csrf_exempt  # Use this decorator to exempt this view from CSRF verification, consider CSRF protection alternatives
+@require_http_methods(["GET", "POST"])  # Ensure that only GET and POST requests are accepted
+def update_content(request, content_id):
+    content_detail = get_object_or_404(ContentDetail, id=content_id)
+    content = get_object_or_404(Content, id=content_detail.content.id)  # Assuming ContentDetail has a ForeignKey to Content
+
+    if request.method == 'POST':
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':  # Check if the request is an AJAX request
+            try:
+                data = json.loads(request.body)
+                form_type = data.get('formType')  # Get the form type from the request data
+
+                if form_type == 'content-detail':
+                    content_detail_form = ContentDetailForm(data, instance=content_detail)
+                    if content_detail_form.is_valid():
+                        content_detail_form.save()
+                        return JsonResponse({'message': 'ContentDetail updated successfully'}, status=200)
+                    else:
+                        return JsonResponse({'error': content_detail_form.errors}, status=400)
+                elif form_type == 'content':
+                    content_form = ContentForm(data, instance=content)
+                    if content_form.is_valid():
+                        content_form.save()
+                        return JsonResponse({'message': 'Content updated successfully'}, status=200)
+                    else:
+                        return JsonResponse({'error': content_form.errors}, status=400)
+                else:
+                    return JsonResponse({'error': 'Invalid form type'}, status=400)
+            except ObjectDoesNotExist:
+                return JsonResponse({'error': 'Content not found'}, status=404)
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status=500)
+        else:
+            content_detail_form = ContentDetailForm(request.POST, instance=content_detail)
+            content_form = ContentForm(request.POST, instance=content)
+
+            if content_detail_form.is_valid() and content_form.is_valid():
+                content_detail_form.save()
+                content_form.save()
+                messages.success(request, "Content updated successfully!")
+                return redirect(reverse('content_detail', args=[content_id]))
+    else:
+        content_detail_form = ContentDetailForm(instance=content_detail)
+        content_form = ContentForm(instance=content)
+
+    return render(request, 'parodynews/content_detail.html', {
+        'content_detail_form': content_detail_form,
+        'content_form': content_form,
+        'selected_content': content_detail
+    })
 
 # View to get Assistant instructions
 @login_required
@@ -169,10 +236,16 @@ def manage_assistants(request):
                 response_format=my_assistant.response_format,
             )
             db_assistant.save()
-            messages.success(request, "Assistant created successfully.")
             
-            # Redirect to the same page or a confirmation page to prevent form resubmission
+            messages.success(request, "Assistant created successfully.")
             return redirect('manage_assistants')  # Replace 'manage_assistants' with the name of your view or URL pattern
+        else:
+            # If the form is not valid, render the form with errors
+            return render(request, 'parodynews/assistant_detail.html', {
+                'form': form,
+                'assistants_info': Assistant.objects.all()
+            })
+            # Redirect to the same page or a confirmation page to prevent form resubmission
 
     # This part is executed for GET requests and after redirecting
     form = AssistantForm()  # Always provide a fresh form for new entries
@@ -183,6 +256,7 @@ def manage_assistants(request):
         'form': form,
         'assistants_info': assistants_info
     })
+
 
 # View to delete an assistant
 @login_required
@@ -349,28 +423,6 @@ def add_message_to_db(request):
 
     return redirect('thread_detail')  # Redirect back to the thread detail page
 
-@login_required
-@require_POST
-def update_content(request, content_id):
-    try:
-        # Assuming 'content' is the field name of the text you want to update
-        # and 'YourContentModel' is the name of your model
-        content = Content.objects.get(id=content_id)
-        updated_text = request.POST.get('content', '')  # Get the updated content text from the request
-        
-        # Update the content text
-        content.content = updated_text
-        content.save()
-        
-        # Return a success response
-        return JsonResponse({'status': 'success', 'message': 'Content updated successfully.'})
-    except ObjectDoesNotExist:
-        # Return an error response if the content is not found
-        return JsonResponse({'status': 'error', 'message': 'Content not found.'}, status=404)
-    except Exception as e:
-        # Return a generic error response for any other exceptions
-        return JsonResponse({'status': 'error', 'message': 'An error occurred.'}, status=500)
-
 
 
 from django.http import HttpResponse, JsonResponse
@@ -387,28 +439,3 @@ def get_raw_content(request):
     # Assuming the raw content is stored in a field named 'content'
     return HttpResponse(content.content, content_type='text/plain')
 
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
-from .models import Content  # Adjust with your actual model
-from django.core.exceptions import ObjectDoesNotExist
-
-@csrf_exempt  # Use this decorator to exempt this view from CSRF verification, consider CSRF protection alternatives
-@require_http_methods(["POST"])  # Ensure that only POST requests are accepted
-def save_edited_content(request):
-    try:
-        # Assuming the request body is JSON
-        data = json.loads(request.body)
-        content_id = data.get('contentId')
-        edited_content = data.get('editedContent')
-
-        # Update the content in the database
-        content = Content.objects.get(pk=content_id)
-        content.content = edited_content  
-        content.save()
-
-        return JsonResponse({'message': 'Content updated successfully'}, status=200)
-    except ObjectDoesNotExist:
-        return JsonResponse({'error': 'Content not found'}, status=404)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)

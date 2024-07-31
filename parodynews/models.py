@@ -14,7 +14,7 @@ class Assistant(models.Model):
     description = models.CharField(max_length=512, null=True, blank=True, default="Describe the assistant.")
     instructions = models.TextField(max_length=256000, default="you are a helpful assistant.")
     object = models.CharField(max_length=50, default="assistant")
-    model = models.CharField(max_length=100, default="gpt-3.5-turbo")
+    model = models.CharField(max_length=100, choices=MODEL_CHOICES, default='gpt-3.5-turbo')
     created_at = models.DateTimeField(default=timezone.now)
     tools = models.JSONField(default=list)
     metadata = models.JSONField(default=dict)

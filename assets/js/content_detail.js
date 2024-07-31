@@ -15,91 +15,76 @@ document.addEventListener("DOMContentLoaded", function() {
             .catch(error => console.error('Error fetching assistants:', error));
     });
 });
+
 // Edit content functionality
 document.querySelectorAll('.edit-btn').forEach(button => {
     button.addEventListener('click', function() {
         const contentId = this.getAttribute('data-content-id');
-        // Step 1: Fetch raw data from the server
-        fetch(`/get-raw-content?id=${contentId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+        const formType = this.getAttribute('data-form-type'); // Get the form type (content or content-detail)
+        const form = document.getElementById(`${formType}-form-${contentId}`);
+        if (form) {
+            // Enable form fields for editing
+            form.querySelectorAll('input, textarea').forEach(input => {
+                if (input.id !== 'content-textarea' && input.id !== 'prompt-textarea') {
+                    input.removeAttribute('readonly');
                 }
-                return response.text(); // Assuming the server returns raw text
-            })
-            .then(rawData => {
-                // Find the div that will hold the editable textarea
-                const contentDiv = document.querySelector(`div[data-content-id="${contentId}"]`);
-                if (contentDiv) {
-                    // Step 2: Create and configure the textarea
-                    const editableText = document.createElement('textarea');
-                    editableText.classList.add('form-control');
-                    editableText.id = `editable-content-${contentId}`;
-                    editableText.style.resize = 'none'; // Prevent resizing
-                    editableText.style.width = '100%'; // Full width
-                    editableText.value = rawData; // Populate with raw data from the server
-
-                    // Measure the height of the current content
-                    const tempDiv = document.createElement('div');
-                    tempDiv.style.visibility = 'hidden';
-                    tempDiv.style.position = 'absolute';
-                    tempDiv.style.whiteSpace = 'pre-wrap';
-                    tempDiv.style.width = '100%';
-                    tempDiv.textContent = rawData;
-                    document.body.appendChild(tempDiv);
-                    const height = tempDiv.offsetHeight;
-                    document.body.removeChild(tempDiv);
-
-                    // Set the height of the textarea
-                    editableText.style.height = `${height}px`;
-
-                    // Clear the contentDiv and append the textarea
-                    contentDiv.innerHTML = '';
-                    contentDiv.appendChild(editableText);
-
-                    // Step 3: Adjust button visibility
-                    this.style.display = 'none'; // Hide edit button
-                    this.nextElementSibling.style.display = 'inline'; // Show save button
-                    this.nextElementSibling.nextElementSibling.style.display = 'inline'; // Show cancel button
-                } else {
-                    console.error('Content div not found for contentId:', contentId);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching raw content:', error);
-                alert('There was an error fetching the content. Please try again.');
             });
+
+            // Adjust button visibility
+            this.style.display = 'none'; // Hide edit button
+            form.querySelector('.save-btn').style.display = 'inline'; // Show save button
+            form.querySelector('.cancel-btn').style.display = 'inline'; // Show cancel button
+        } else {
+            console.error('Form not found for contentId:', contentId);
+        }
     });
 });
 
-// Function to decode HTML entities
-function decodeHTMLEntities(text) {
-    var textArea = document.createElement('textarea');
-    textArea.innerHTML = text;
-    return textArea.value;
-}
-
+// Cancel edit functionality
 document.querySelectorAll('.cancel-btn').forEach(button => {
     button.addEventListener('click', function() {
-        location.reload(); // Simple way to discard changes
+        const contentId = this.previousElementSibling.getAttribute('data-content-id');
+        const formType = this.previousElementSibling.getAttribute('data-form-type'); // Get the form type (content or content-detail)
+        const form = document.getElementById(`${formType}-form-${contentId}`);
+        if (form) {
+            // Disable form fields to prevent editing
+            form.querySelectorAll('input, textarea').forEach(input => {
+                input.setAttribute('readonly', 'readonly');
+            });
+
+            // Adjust button visibility
+            this.style.display = 'none'; // Hide cancel button
+            form.querySelector('.save-btn').style.display = 'none'; // Hide save button
+            form.querySelector('.edit-btn').style.display = 'inline'; // Show edit button
+        } else {
+            console.error('Form not found for contentId:', contentId);
+        }
     });
 });
 
+// Save content functionality
 document.querySelectorAll('.save-btn').forEach(button => {
-    button.addEventListener('click', function() {
+    button.addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent the default form submission
         const contentId = this.getAttribute('data-content-id');
-        const editedContentElement = document.getElementById(`editable-content-${contentId}`);
-        if (editedContentElement) {
-            const editedContent = editedContentElement.value;
-            // Step 2: Send Data to Server
-            fetch(`/content/save`, {
+        const formType = this.getAttribute('data-form-type'); // Get the form type (content or content-detail)
+        const form = document.getElementById(`${formType}-form-${contentId}`);
+        if (form) {
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+            data['formType'] = formType; // Add formType to the data
+
+            // Send Data to Server
+            fetch(`/content/update/${contentId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Include CSRF token header if needed for Django
                     'X-CSRFToken': getCookie('csrftoken') // Function to get CSRF token from cookies
                 },
-                body: JSON.stringify({ contentId: contentId, editedContent: editedContent })
+                body: JSON.stringify(data)
             })
             .then(response => {
                 if (!response.ok) {
@@ -108,7 +93,7 @@ document.querySelectorAll('.save-btn').forEach(button => {
                 return response.json(); // Assuming the server responds with JSON
             })
             .then(data => {
-                // Step 3: Handle Server Response
+                // Handle Server Response
                 console.log('Success:', data);
                 alert('Content saved successfully!');
                 location.reload(); // Optionally reload the page to show the updated content
@@ -118,7 +103,7 @@ document.querySelectorAll('.save-btn').forEach(button => {
                 alert('Error saving content. Please try again.');
             });
         } else {
-            console.error('Edited content element not found for contentId:', contentId);
+            console.error('Form not found for contentId:', contentId);
         }
     });
 });
