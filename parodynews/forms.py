@@ -65,3 +65,12 @@ class AssistantForm(forms.ModelForm):
         super(AssistantForm, self).__init__(*args, **kwargs)
         self.fields['model'].choices = MODEL_CHOICES
         self.fields['model'].initial = MODEL_CHOICES[0][0] if MODEL_CHOICES else None
+
+
+from django import forms
+from .models import MyObject
+
+class MyObjectForm(forms.ModelForm):
+    class Meta:
+        model = MyObject
+        fields = ['name', 'description']

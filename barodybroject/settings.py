@@ -131,9 +131,14 @@ STATIC_URL = '/static/'
 # Add your static files directory
 STATICFILES_DIRS = [
     BASE_DIR / "assets",
+    BASE_DIR / "_site",
     # Add other directories if needed
 ]
 
 # Define STATIC_ROOT for collectstatic
 STATIC_ROOT = BASE_DIR / "static"
 
+# Post Root - where generated post files are stored
+
+PAGES_DIR = BASE_DIR / "pages"
+POST_DIR = PAGES_DIR / "_posts"

@@ -165,3 +165,16 @@ cython_debug/
 .DS_Store
 parodynews/.DS_Store
 static
+
+# Jekyll
+
+_site
+.sass-cache
+.jekyll-cache
+.jekyll-metadata
+_algolia_api_key
+Gemfile.lock
+.obsidian
+pages/_notes/.DS_Store
+*.DS_Store
+.env

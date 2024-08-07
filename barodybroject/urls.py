@@ -21,7 +21,7 @@ from parodynews import views
 from django.contrib.auth.views import LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
-from parodynews.views import ManageContentView
+from parodynews.views import ManageContentView, MyObjectView
 
 
 
@@ -40,6 +40,7 @@ urlpatterns = [
 
     
     path('assistants/', views.manage_assistants, name='manage_assistants'),
+    path('assistants/<str:assistant_id>', views.manage_assistants, name='manage_assistants'),
     path('assistants/delete/<str:assistant_id>/', views.delete_assistant, name='delete_assistant'),
     
     path('create_message/', views.create_message, name='create_message'),
@@ -57,6 +58,14 @@ urlpatterns = [
     path('login/', views.UserLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     
+    path('objects/', MyObjectView.as_view(), name='object-list'),
+    path('objects/create/', MyObjectView.as_view(), {'action': 'create'}, name='object-create'),
+    path('objects/<int:pk>/', MyObjectView.as_view(), name='object-detail'),
+    path('objects/<int:pk>/update/', MyObjectView.as_view(), {'action': 'update'}, name='object-update'),
+    path('objects/<int:pk>/delete/', MyObjectView.as_view(), {'action': 'delete'}, name='object-delete'),
+
+    path('generate_markdown/', views.generate_markdown_view, name='generate_markdown'),
+
 
     # path('posts/', views.manage_posts, name='manage_posts'),
 
@@ -66,5 +75,4 @@ urlpatterns = [
     # Assuming you have a view for assistant details
     # path('assistants/<int:assistant_id>/', views.assistant_detail, name='assistant_detail'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
 

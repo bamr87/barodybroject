@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Satirical News Content",
+  "type": "object",
+  "properties": {
+    "Metadata": {
+        "type": "object",
+        "properties": {
+          "author": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": ["name"],
+            "additionalProperties": false
+          },
+          "publication_date": {
+            "type": "string",
+            "description": "The date and time the content was published."
+          },
+          "title": {
+            "type": "string",
+            "description": "Craft an eye-catching, humorous, and exaggerated headline."
+          },
+          "description": {
+            "type": "string",
+            "description": "A brief description of the content."
+          }
+        },
+        "required": ["author", "publication_date", "title", "description"],
+        "additionalProperties": false
+      },
+    "Style": {
+      "type": "object",
+      "properties": {
+        "Tone": {
+          "type": "object",
+          "properties": {
+            "begin": {
+              "type": "string",
+              "description": "The initial tone of the content."
+            },
+            "transition": {
+              "type": "string",
+              "description": "How the tone should transition."
+            },
+            "maintain": {
+              "type": "string",
+              "description": "The overall tone to maintain."
+            }
+          },
+          "required": ["begin", "transition", "maintain"],
+          "additionalProperties": false
+        },
+        "Structure": {
+          "type": "object",
+          "properties": {
+            "Introduction": {
+              "type": "string",
+              "description": "Set the scene with a grim and dire description of the situation."
+            },
+            "Body": {
+              "type": "object",
+              "properties": {
+                "DarkHumor": {
+                  "type": "string",
+                  "description": "Use sharp wit and dark humor to explore the issue"
+                },
+                "Facts": {
+                  "type": "string",
+                  "description": "Incorporate relevant educational facts or statistics."
+                },
+                "OptimisticTurn": {
+                  "type": "string",
+                  "description": "Gradually shift to a more positive outlook."
+                }
+              },
+              "required": ["DarkHumor", "Facts", "OptimisticTurn"],
+              "additionalProperties": false
+            },
+            "Conclusion": {
+              "type": "string",
+              "description": "End with an inspirational message and practical steps the reader can take to improve the situation or their own life."
+            }
+          },
+          "required": ["Introduction", "Body", "Conclusion"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["Tone", "Structure"],
+      "additionalProperties": false
+    },
+    "Content": {
+      "type": "object",
+      "properties": {
+        "Headline": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Short satirical headline of the article."
+        },
+        "Introduction": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Introduction of the article."
+        },
+        "Body": {
+          "type": "object",
+          "properties": {
+            "DarkHumor": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Paragraphs of the article with dark humor."
+            },
+            "Facts": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Paragraphs of the article with fun facts."
+            },
+            "OptimisticTurn": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Paragraphs of the article that take an optimistic turn."
+            }
+          },
+          "required": ["DarkHumor", "Facts", "OptimisticTurn"],
+          "additionalProperties": false
+        },
+        "Conclusion": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Paragraphs that conclude the article."
+        }
+      },
+      "required": ["Headline", "Introduction", "Body", "Conclusion"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["Metadata", "Style", "Content"],
+  "additionalProperties": false
+}

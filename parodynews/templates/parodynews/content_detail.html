@@ -100,6 +100,8 @@
                             <!-- Save and Cancel Buttons (hidden by default) -->
                             <button type="submit" class="btn btn-success save-btn" data-content-id="{{ selected_content.detail.id }}" data-form-type="content-detail" style="display:none;">Save</button>
                             <button type="button" class="btn btn-warning cancel-btn" data-content-id="{{ selected_content.detail.id }}" data-form-type="content-detail" style="display:none;">Cancel</button>
+                            <!-- New Button to Generate Markdown File -->
+                            <button type="button" class="btn btn-primary mt-3" onclick="generateMarkdownFile({{ selected_content.detail.id }})">Generate Markdown File</button>
                         </form>
                     </div>
                 </div>
@@ -138,4 +140,9 @@
 {% load static %}
 <script src="{% static 'js/content_detail.js' %}"></script>
 
+<script>
+    function generateMarkdownFile(contentId) {
+        window.location.href = "{% url 'generate_markdown' %}?content_id=" + contentId;
+    }
+</script>
 {% endblock %}

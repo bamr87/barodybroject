@@ -1,23 +1,26 @@
 import json
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from datetime import datetime
-from django import utils
-from django.contrib import messages
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django import utils
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed, JsonResponse
 from django.views.decorators.http import require_POST
 from django.views import View
-from django.db import DatabaseError
-from datetime import timezone, datetime
-from .forms import AssistantForm, ContentForm
+from datetime import datetime
+from .forms import AssistantForm, ContentForm, ContentDetailForm
 from .models import Assistant, Content, ContentDetail, Message, Thread
 from .utils import (
     create_assistant, 
-    create_run, 
+    update_assistant,
     delete_assistant, 
+    create_run, 
     generate_content, 
     openai_list_messages, 
     retrieve_assistants_info,
@@ -65,6 +68,9 @@ class ManageContentView(LoginRequiredMixin, View):
         if request.POST.get('_method') == 'delete':
             return self.delete(request)
         
+        if request.POST.get('_method') == 'update':
+            return self.update(request)
+
         form = ContentForm(request.POST)
         if form.is_valid():
 
@@ -74,17 +80,19 @@ class ManageContentView(LoginRequiredMixin, View):
 
             generated_content_response = generate_content(instructions, prompt)
             generated_content = json.loads(generated_content_response)
-
+            
             # Extract the title, description, and author from the generated content
-            title = generated_content.get('title', 'Default Title')
-            description = generated_content.get('description', 'Default Description')
-            author = form.cleaned_data.get('author', 'Default Author')
+            
+            metadata = generated_content.get('Metadata', {})
+            title = metadata.get('title', 'Default Title')
+            description = metadata.get('description', 'Default Description')
+            author = metadata.get( author.name, 'Default Author')
 
             # Save the content details to the database
             content_detail = ContentDetail(title=title, description=description, author=author)
             content_detail.save()
             
-            content_text = json_to_markdown(generated_content.get('content'))
+            content_text = json_to_markdown(generated_content.get('Content'))
 
             if content_text == "None":
                 content_text = json_to_markdown(generated_content_response)
@@ -106,7 +114,9 @@ class ManageContentView(LoginRequiredMixin, View):
             'form': form,
             'generated_content': generated_content
         })
-    
+
+
+
     def delete(self, request):
         content_id = request.POST.get('content_id')
         content = get_object_or_404(Content, id=content_id)
@@ -121,15 +131,7 @@ class ManageContentView(LoginRequiredMixin, View):
         messages.success(request, "Content and its details deleted successfully!")
         return redirect('manage_content')
 
-from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import get_object_or_404, redirect, render
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from django.contrib import messages
-from .models import ContentDetail, Content
-from .forms import ContentDetailForm, ContentForm
-import json
+
 
 @csrf_exempt  # Use this decorator to exempt this view from CSRF verification, consider CSRF protection alternatives
 @require_http_methods(["GET", "POST"])  # Ensure that only GET and POST requests are accepted
@@ -201,14 +203,34 @@ def get_assistants(request):
 
 # View to manage assistants
 @login_required
-def manage_assistants(request):
+def manage_assistants(request, assistant_id=None):
+    if assistant_id:
+        assistant = get_object_or_404(Assistant, pk=assistant_id)
+        is_edit = True
+    else:
+        assistant = None
+        is_edit = False
     if request.method == 'POST':
-        form = AssistantForm(request.POST)
+        form = AssistantForm(request.POST, instance=assistant)
         if form.is_valid():
             name = form.cleaned_data['name']
             description = form.cleaned_data['description']
             instructions = form.cleaned_data['instructions']
             model = form.cleaned_data['model']
+
+            if is_edit:
+                # Update the existing assistant
+                assistant.name = name
+                assistant.description = description
+                assistant.instructions = instructions
+                assistant.model = model
+                assistant.save()
+
+                # Update the assistant on OpenAI
+                update_assistant(assistant.assistant_id, name, instructions, model)
+
+                messages.success(request, "Assistant updated successfully.")
+                return redirect('manage_assistants')  # Replace 'manage_assistants' with the name of your view or URL pattern
 
             # Create an assistant using your custom function
             assistant = create_assistant(name, description, instructions, model)
@@ -243,8 +265,16 @@ def manage_assistants(request):
             # If the form is not valid, render the form with errors
             return render(request, 'parodynews/assistant_detail.html', {
                 'form': form,
-                'assistants_info': Assistant.objects.all()
+                'assistants_info': Assistant.objects.all(),
+                'is_edit': is_edit
             })
+    else:
+        form = AssistantForm(instance=assistant)
+    return render(request, 'parodynews/assistant_detail.html', {
+        'form': form,
+        'assistants_info': Assistant.objects.all(),
+        'is_edit': is_edit
+    })
             # Redirect to the same page or a confirmation page to prevent form resubmission
 
     # This part is executed for GET requests and after redirecting
@@ -424,10 +454,6 @@ def add_message_to_db(request):
     return redirect('thread_detail')  # Redirect back to the thread detail page
 
 
-
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404
-
 def get_raw_content(request):
     content_id = request.GET.get('id')
     if not content_id:
@@ -439,3 +465,99 @@ def get_raw_content(request):
     # Assuming the raw content is stored in a field named 'content'
     return HttpResponse(content.content, content_type='text/plain')
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse_lazy
+from django.views import View
+from .models import MyObject
+from .forms import MyObjectForm
+
+class MyObjectView(View):
+    template_name = 'object_template.html'
+    success_url = reverse_lazy('object-list')
+
+    def get(self, request, pk=None, action=None):
+        if action == 'delete' and pk:
+            obj = get_object_or_404(MyObject, pk=pk)
+            return render(request, self.template_name, {
+                'object': obj,
+                'object_list': MyObject.objects.all(),
+                'action': 'delete'
+            })
+
+        if pk:
+            obj = get_object_or_404(MyObject, pk=pk)
+            form = MyObjectForm(instance=obj)
+            action = 'update'
+        else:
+            form = MyObjectForm()
+            obj = None
+            action = 'create'
+
+        objects = MyObject.objects.all()
+        return render(request, self.template_name, {
+            'form': form,
+            'object': obj,
+            'object_list': objects,
+            'action': action,
+        })
+
+    def post(self, request, pk=None, action=None):
+        if action == 'delete' and pk:
+            obj = get_object_or_404(MyObject, pk=pk)
+            obj.delete()
+            return redirect(self.success_url)
+
+        if pk:
+            obj = get_object_or_404(MyObject, pk=pk)
+            form = MyObjectForm(request.POST, instance=obj)
+            action = 'update'
+        else:
+            form = MyObjectForm(request.POST)
+            obj = None
+            action = 'create'
+
+        if form.is_valid():
+            form.save()
+            return redirect(self.success_url)
+
+        objects = MyObject.objects.all()
+        return render(request, self.template_name, {
+            'form': form,
+            'object': obj,
+            'object_list': objects,
+            'action': action,
+        })
+    
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse
+from .models import ContentDetail, Content
+from .utils import generate_markdown_file
+import yaml
+
+def generate_markdown_view(request):
+    content_id = request.GET.get('content_id')
+    content_detail = get_object_or_404(ContentDetail, id=content_id)
+    
+    # Fetch the related Content object
+    content = get_object_or_404(Content, detail_id=content_detail.id)
+    
+    # Create the frontmatter as a dictionary
+    frontmatter = {
+        'title': content_detail.title,
+        'description': content_detail.description,
+        'author': content_detail.author,
+        'published_at': content_detail.published_at.strftime("%Y-%m-%d")
+    }
+    
+    # Convert the frontmatter dictionary to a YAML string
+    frontmatter_yaml = yaml.dump(frontmatter, default_flow_style=False)
+    
+    # Combine the frontmatter and the main content
+    data = f"---\n{frontmatter_yaml}---\n\n{content.content}"
+    
+    # Generate the markdown file
+    file_path = generate_markdown_file(data, content_detail.title)
+    
+    # Provide feedback to the user
+    return HttpResponse(f"Markdown file generated at: {file_path}")

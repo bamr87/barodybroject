@@ -45,7 +45,14 @@
                     </div>
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary">Create Assistant</button>
+            {% if is_edit %}
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a href="{% url 'manage_assistants' %}" class="btn btn-success">
+                Create New Assistant
+            </a>
+            {% else %}
+            <button type="submit" class="btn btn-success">Create</button>
+            {% endif %}
         </form>
                 
         <!-- Additional section to list other assistants in a table format -->
@@ -54,18 +61,21 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Name</th>
                         <th>Description</th>
+                        <th>Model</th>
+                        <th>ID</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for assistant in assistants_info %}
                         <tr>
-                            <td>{{ assistant.assistant_id }}</td>
-                            <td>{{ assistant.name }}</td>
+                            <td ><a href="{% url 'manage_assistants' assistant.assistant_id %}">{{ assistant.name }}
+                            </a></td>
                             <td>{{ assistant.description }}</td>
+                            <td>{{ assistant.model }}</td>
+                            <td>{{ assistant.assistant_id }}</td>
                             <td>
                                 <!-- Delete button form -->
                                 <form action="/assistants/delete/{{ assistant.assistant_id }}/" method="post">

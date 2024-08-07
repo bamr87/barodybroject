@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>{% if action == 'create' %}Create{% elif action == 'update' %}Update{% elif action == 'delete' %}Delete{% else %}Detail{% endif %} Object</h2>
+  {% if action == 'delete' %}
+    <p>Are you sure you want to delete "{{ object.name }}"?</p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit">Confirm Delete</button>
+    </form>
+    <a href="{% url 'object-list' %}">Cancel</a>
+  {% else %}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">{% if action == 'create' %}Create{% else %}Update{% endif %}</button>
+    </form>
+  {% endif %}
+
+  <h2>Object List</h2>
+  <ul>
+    {% for obj in object_list %}
+      <li>
+        <a href="{% url 'object-detail' obj.pk %}">{{ obj.name }}</a>
+        (<a href="{% url 'object-update' obj.pk %}">Edit</a>, 
+        <a href="{% url 'object-delete' obj.pk %}">Delete</a>)
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}
