@@ -2,6 +2,8 @@ import json
 from django.db import models
 from django.utils import timezone
 
+print("Loading models.py")
+
 # Load model choices from the JSON file
 try:
     with open('model_choices.json', 'r') as f:
@@ -30,6 +32,7 @@ class ContentDetail(models.Model):
     description = models.TextField(blank=True)
     author = models.CharField(max_length=100, default="NEED AUTHOR.")
     published_at = models.DateTimeField(default=timezone.now)
+    slug = models.SlugField(max_length=255, unique=False, default="slug")
 
     def __str__(self):
         return self.title

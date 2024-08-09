@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "properties": {
+    "author": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": ["name"],
+      "additionalProperties": false
+    },
+    "publication_date": {
+      "type": "string",
+      "description": "The date and time the content was published."
+    },
+    "title": {
+      "type": "string",
+      "description": "Craft an eye-catching, humorous, and exaggerated headline. No more than 7 words long."
+    },
+    "description": {
+      "type": "string",
+      "description": "A brief description of the content."
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly title that briefly describes the contents. This is to be used as a filename and permalink."
+    }
+  },
+  "required": ["author", "publication_date", "title", "description", "slug"],
+  "additionalProperties": false
+}

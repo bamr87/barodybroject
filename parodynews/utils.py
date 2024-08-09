@@ -5,6 +5,8 @@ from .models import AppConfig
 from openai import OpenAI
 # utils.py (modified usage example)
 
+print("Loading utils.py")
+
 # Start up and load the OpenAI API key
 def get_config_value(key):
     try:
@@ -121,16 +123,70 @@ logging.basicConfig(
     level=logging.INFO, 
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
-
 import json
+import jsonref
 import os
 
-# Define the path to the JSON file
-json_file_path = os.path.join(os.path.dirname(__file__), 'schema/parody_news_article_schema.json')
+def load_schemas():
+    # Define the path to the schema directory
+    schema_dir = os.path.join(os.path.dirname(__file__), 'schema')
+    
+    # Dictionary to hold all loaded schemas
+    schemas = {}
 
-# Read and parse the JSON file
-with open(json_file_path, 'r') as file:
-    news_article_schema = json.load(file)
+    try:
+        # Iterate over all files in the schema directory
+        for filename in os.listdir(schema_dir):
+            if filename.endswith('.json'):
+                # Construct the full file path
+                json_file_path = os.path.join(schema_dir, filename)
+                
+                # Read and parse the JSON file with reference resolution
+                with open(json_file_path, 'r') as file:
+                    base_uri = f'file://{schema_dir}/'
+                    schema = jsonref.load(file, base_uri=base_uri, jsonschema=True)
+                    # Add the schema to the dictionary
+                    schemas[os.path.splitext(filename)[0]] = schema
+    except FileNotFoundError:
+        print(f"Error: The directory {schema_dir} was not found.")
+    except json.JSONDecodeError as e:
+        print(f"Error: Failed to decode JSON from a file in {schema_dir}. Error: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred while reading files in {schema_dir}. Error: {e}")
+
+    # Optionally, you can add a check to ensure at least one schema was loaded correctly
+    if schemas:
+        print("JSON schemas loaded successfully with references resolved.")
+    else:
+        print("Failed to load JSON schemas.")
+
+    return schemas
+
+import json
+import jsonref
+
+def resolve_refs(obj):
+    if isinstance(obj, jsonref.JsonRef):
+        # If it's a JsonRef object, resolve it
+        return resolve_refs(obj.__subject__)
+    elif isinstance(obj, dict):
+        # Recursively apply to dictionary values
+        return {k: resolve_refs(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        # Recursively apply to list items
+        return [resolve_refs(i) for i in obj]
+    else:
+        # Return the object as is if it's not a reference or collection
+        return obj
+
+# Load all schemas and store them in a variable
+all_schemas = load_schemas()
+
+parody_schema = resolve_refs(all_schemas.get('parody_news_article_schema'))
+content_detail_schema = resolve_refs(all_schemas.get('content_detail_schema'))
+
+print(json.dumps(parody_schema, indent=4))  # This should now work without TypeError
+print(parody_schema)
 
 def generate_content(role, prompt):
     response = client.chat.completions.create(
@@ -155,7 +211,7 @@ def generate_content(role, prompt):
             "json_schema": {
                 "name": "News_Article",
                 "description": "A JSON object representing a news article.",
-                "schema": news_article_schema,
+                "schema": parody_schema,
                 "strict": True,
            }
         }
@@ -240,19 +296,51 @@ def generate_markdown_file(data, filename):
     :param filename: The name of the markdown file to be generated.
     :return: The path to the generated markdown file.
     """
-    # Fetch the published_at field from the ContentDetail model
-    content_detail = ContentDetail.objects.get(title=filename)
-    published_at = content_detail.published_at
-
-    # Format the date and title for the filename
-    date_str = published_at.strftime("%Y-%m-%d")
-    formatted_filename = f"{date_str}-{filename}.md"
 
     # Define the file path
-    file_path = os.path.join(settings.POST_DIR, formatted_filename)
+    file_path = os.path.join(settings.POST_DIR, filename)
 
     # Write the markdown content to the file
     with open(file_path, 'w') as file:
         file.write(data)
     
     return file_path
+
+
+
+def generate_content_detail(content):
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "generate content detail",
+                    },
+                ],
+            },
+            {
+                "role": "user",
+                "content": content,
+            }
+        ],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "Metadata",
+                "description": "A JSON object representing details of a news article.",
+                "schema": content_detail_schema,
+                "strict": True,
+           }
+        }
+    )
+    # Get the content of the last message in the response
+    data = response.choices[0].message.content
+    
+    # Log the response
+    logging.info("Response: %s", data)
+    
+    return data

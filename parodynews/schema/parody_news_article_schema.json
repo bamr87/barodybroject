@@ -4,34 +4,8 @@
   "type": "object",
   "properties": {
     "Metadata": {
-        "type": "object",
-        "properties": {
-          "author": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              }
-            },
-            "required": ["name"],
-            "additionalProperties": false
-          },
-          "publication_date": {
-            "type": "string",
-            "description": "The date and time the content was published."
-          },
-          "title": {
-            "type": "string",
-            "description": "Craft an eye-catching, humorous, and exaggerated headline."
-          },
-          "description": {
-            "type": "string",
-            "description": "A brief description of the content."
-          }
-        },
-        "required": ["author", "publication_date", "title", "description"],
-        "additionalProperties": false
-      },
+      "$ref": "./content_detail_schema.json"
+    },
     "Style": {
       "type": "object",
       "properties": {

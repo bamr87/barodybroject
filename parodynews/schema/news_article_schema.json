@@ -26,7 +26,8 @@
           "type": "string"
         }
       },
-      "required": ["author", "publication_date", "title"]
+      "required": ["author", "publication_date", "title"],
+      "additionalProperties": false
     },
     "Metadata": {
       "type": "object",
@@ -59,7 +60,8 @@
           }
         }
       },
-      "required": ["description", "slug", "excerpt", "prompt", "categories", "keywords", "tags"]
+      "required": ["description", "slug", "excerpt", "prompt", "categories", "keywords", "tags"],
+      "additionalProperties": false
     },
     "Content": {
       "type": "object",
@@ -75,8 +77,10 @@
           }
         }
       },
-      "required": ["body"]
+      "required": ["body"],
+      "additionalProperties": false
     }
   },
-  "required": ["Header", "Metadata", "Content"]
+  "required": ["Header", "Metadata", "Content"],
+  "additionalProperties": false
 }

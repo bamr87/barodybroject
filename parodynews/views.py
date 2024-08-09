@@ -25,8 +25,12 @@ from .utils import (
     openai_list_messages, 
     retrieve_assistants_info,
     create_message,
-    json_to_markdown
+    json_to_markdown,
+    generate_content_detail
 )
+
+print("Loading views.py")
+
 from openai import OpenAI
 
 # Custom LoginView to render a custom login page
@@ -86,10 +90,12 @@ class ManageContentView(LoginRequiredMixin, View):
             metadata = generated_content.get('Metadata', {})
             title = metadata.get('title', 'Default Title')
             description = metadata.get('description', 'Default Description')
-            author = metadata.get( author.name, 'Default Author')
+            author = metadata.get('author', {})
+            author_name = author.get('name', 'Default Author')
+            slug = metadata.get('slug', metadata)
 
             # Save the content details to the database
-            content_detail = ContentDetail(title=title, description=description, author=author)
+            content_detail = ContentDetail(title=title, description=description, author=author_name, slug=slug)
             content_detail.save()
             
             content_text = json_to_markdown(generated_content.get('Content'))
@@ -348,14 +354,19 @@ def message_detail(request, message_id=None):
         # Return a 405 Method Not Allowed response if not a GET request
         return HttpResponseNotAllowed(['GET'])
 
-    message_list = Message.objects.all()  # Retrieve all messages
+    message_list = Message.objects.select_related('content__detail').all()
     assistants = Assistant.objects.all()  # Fetch all assistants
     current_message = None
 
     if message_id:
         current_message = get_object_or_404(Message, pk=message_id)
 
-    return render(request, 'parodynews/message_detail.html', {'message_list': message_list, 'current_message': current_message, 'assistants': assistants})
+    return render(request, 'parodynews/message_detail.html', {
+        'message_list': message_list,
+        'current_message': current_message,
+        'assistants': assistants
+        }
+    )
 
 
 # View to assign an assistant to a message
@@ -421,13 +432,14 @@ def add_message_to_db(request):
     thread_id = request.POST.get('thread_id')
     assistant_id = request.POST.get('assistant_id')
 
+    generated_content_detail = json.loads(generate_content_detail(message_content))
     # First, create the ContentDetail object
     content_detail = ContentDetail.objects.create(
-        title="Generated Title",  # Placeholder title, adjust as needed
-        description="Generated Description",  # Placeholder description, adjust as needed
-        author="Generated Author",  # Placeholder author, adjust as needed
+        title=generated_content_detail.get('title'),  # Placeholder title, adjust as needed
+        description=generated_content_detail['description'],  # Placeholder description, adjust as needed
+        author=generated_content_detail['author']['name'],  # Access the nested 'name' key within 'author'
         published_at=datetime.now(),  # Use the current time for published_at
-    )
+        slug = generated_content_detail.get('slug'))
     # Retrieve the ContentDetail instance using the ID
     content_detail_instance = ContentDetail.objects.get(id=content_detail.id)
 
@@ -547,7 +559,8 @@ def generate_markdown_view(request):
         'title': content_detail.title,
         'description': content_detail.description,
         'author': content_detail.author,
-        'published_at': content_detail.published_at.strftime("%Y-%m-%d")
+        'published_at': content_detail.published_at.strftime("%Y-%m-%d"),
+        'slug': content_detail.slug,
     }
     
     # Convert the frontmatter dictionary to a YAML string
@@ -556,8 +569,15 @@ def generate_markdown_view(request):
     # Combine the frontmatter and the main content
     data = f"---\n{frontmatter_yaml}---\n\n{content.content}"
     
+    # Format the date and title for the filename
+    filename = content_detail.slug.lower().replace(" ", "-")
+    date_str = content_detail.published_at.strftime("%Y-%m-%d")
+    formatted_filename = f"{date_str}-{filename}.md"
+
     # Generate the markdown file
-    file_path = generate_markdown_file(data, content_detail.title)
+    file_path = generate_markdown_file(data, formatted_filename)
     
     # Provide feedback to the user
     return HttpResponse(f"Markdown file generated at: {file_path}")
+
+

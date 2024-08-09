@@ -2,6 +2,8 @@ from django import forms
 from .models import Assistant, Content, ContentDetail
 import json
 
+print("Loading forms...")
+
 # Load model choices from the JSON file
 try:
     with open('model_choices.json', 'r') as f:
