@@ -47,6 +47,9 @@
                             <a class="nav-link" href="http://localhost:4002/posts/">Posts</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="/schemas/">Schemas</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="/admin/">Admin</a>
                         </li>
                     </ul>
@@ -64,6 +67,21 @@
                 </div>
             </nav>
         </header>
+<!-- Messages -->
+        <div class="container">
+            {% if messages %}
+                <div class="mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
         {% if form.errors %}
         <div class="container-xl error">
             <p>Please correct the following errors:</p>
@@ -82,15 +100,7 @@
             {% endblock %}
         </main>
         
-        {% if messages %}
-        <div class="container-xl mt-5">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-            {% endif %}
+
 
     <!-- jQuery CDN for AJAX and other functionalities -->
     <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>    

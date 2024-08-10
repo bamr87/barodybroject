@@ -132,7 +132,7 @@ STATIC_URL = '/static/'
 # Add your static files directory
 STATICFILES_DIRS = [
     BASE_DIR / "assets",
-    BASE_DIR / "_site",
+    BASE_DIR / "_site/assets",
     # Add other directories if needed
 ]
 

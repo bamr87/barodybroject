@@ -80,3 +80,15 @@ class MyObjectForm(forms.ModelForm):
 
 # JSON Schema model form
 
+# forms.py
+from django import forms
+from django_json_widget.widgets import JSONEditorWidget
+from .models import JSONSchema
+
+class JSONSchemaForm(forms.ModelForm):
+    class Meta:
+        model = JSONSchema
+        fields = ['name', 'schema']
+        widgets = {
+            'schema': JSONEditorWidget
+        }

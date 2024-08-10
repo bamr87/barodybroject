@@ -66,6 +66,13 @@ urlpatterns = [
 
     path('generate_markdown/', views.generate_markdown_view, name='generate_markdown'),
 
+    path('schemas/', views.list_schemas, name='list_schemas'),
+    path('schemas/create/', views.create_schema, name='create_schema'),
+    path('schemas/edit/<int:pk>/', views.edit_schema, name='edit_schema'),
+    path('schemas/export/<int:pk>/', views.export_schema, name='export_schema'),
+    path('schemas/delete/<int:pk>/', views.delete_schema, name='delete_schema'),
+
+
 
     # path('posts/', views.manage_posts, name='manage_posts'),
 

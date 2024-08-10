@@ -581,3 +581,49 @@ def generate_markdown_view(request):
     return HttpResponse(f"Markdown file generated at: {file_path}")
 
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse
+from django.contrib import messages
+from .models import JSONSchema
+from .forms import JSONSchemaForm
+
+def list_schemas(request):
+    schemas = JSONSchema.objects.all()
+    return render(request, 'parodynews/schema_detail.html', {'schemas': schemas})
+
+def create_schema(request):
+    if request.method == 'POST':
+        form = JSONSchemaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Schema created successfully.')
+            return redirect('list_schemas')
+    else:
+        form = JSONSchemaForm()
+    return render(request, 'parodynews/schema_form.html', {'form': form})
+
+def edit_schema(request, pk):
+    schema = get_object_or_404(JSONSchema, pk=pk)
+    if request.method == 'POST':
+        form = JSONSchemaForm(request.POST, instance=schema)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Schema updated successfully.')
+            return redirect('list_schemas')
+    else:
+        form = JSONSchemaForm(instance=schema)
+    return render(request, 'parodynews/schema_form.html', {'form': form})
+
+def export_schema(request, pk):
+    schema = get_object_or_404(JSONSchema, pk=pk)
+    response = JsonResponse(schema.schema)
+    response['Content-Disposition'] = f'attachment; filename="{schema.name}.json"'
+    return response
+
+def delete_schema(request, pk):
+    schema = get_object_or_404(JSONSchema, pk=pk)
+    if request.method == 'POST':
+        schema.delete()
+        messages.success(request, 'Schema deleted successfully.')
+        return redirect('list_schemas')
+    return redirect('list_schemas')
