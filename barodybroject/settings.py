@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'parodynews',  # Add this line to include the app in the project
     'markdownify',  # Add this line to include the markdownify app in the project
+    'django_json_widget',  # Add this line to include the JSON widget app in the project
 ]
 
 MIDDLEWARE = [

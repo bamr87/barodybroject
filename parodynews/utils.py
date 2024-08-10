@@ -185,9 +185,6 @@ all_schemas = load_schemas()
 parody_schema = resolve_refs(all_schemas.get('parody_news_article_schema'))
 content_detail_schema = resolve_refs(all_schemas.get('content_detail_schema'))
 
-print(json.dumps(parody_schema, indent=4))  # This should now work without TypeError
-print(parody_schema)
-
 def generate_content(role, prompt):
     response = client.chat.completions.create(
         model="gpt-4o-2024-08-06",

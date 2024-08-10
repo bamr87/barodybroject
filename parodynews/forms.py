@@ -76,3 +76,7 @@ class MyObjectForm(forms.ModelForm):
     class Meta:
         model = MyObject
         fields = ['name', 'description']
+
+
+# JSON Schema model form
+

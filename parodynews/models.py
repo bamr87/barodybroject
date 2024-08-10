@@ -83,3 +83,15 @@ from django.db import models
 class MyObject(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
+
+
+# JSON Schema model
+from django.db import models
+
+class JSONSchema(models.Model):
+    name = models.CharField(max_length=255)
+    schema = models.JSONField()
+
+    def __str__(self):
+        return self.name
+    
