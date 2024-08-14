@@ -57,21 +57,39 @@ except Exception as e:
 
 # Assistant Creation and Management
 
-def create_assistant(name, description, instructions, model):
+def create_assistant(name, description, instructions, model, json_schema):
     assistant = client.beta.assistants.create(
         name=name,
         description=description,
         instructions=instructions,
         model=model,
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "News_Article",
+                "description": "A JSON object representing a news article.",
+                "schema": json_schema,
+                "strict": True,
+            }
+        }
     )
     return assistant
 
-def update_assistant(assistant_id, name, instructions, model):
+def update_assistant(assistant_id, name, instructions, model, json_schema):
     assistant = client.beta.assistants.update(
         assistant_id,
         name=name,
         instructions=instructions,
         model=model,
+            response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "News_Article",
+                "description": "A JSON object representing a news article.",
+                "schema": json_schema,
+                "strict": True,
+            }
+        }
     )
     return assistant
 
@@ -185,7 +203,7 @@ all_schemas = load_schemas()
 parody_schema = resolve_refs(all_schemas.get('parody_news_article_schema'))
 content_detail_schema = resolve_refs(all_schemas.get('content_detail_schema'))
 
-def generate_content(role, prompt):
+def generate_content(instructions, prompt, json_schema):
     response = client.chat.completions.create(
         model="gpt-4o-2024-08-06",
         messages=[
@@ -194,7 +212,7 @@ def generate_content(role, prompt):
                 "content": [
                     {
                         "type": "text",
-                        "text": role,
+                        "text": instructions,
                     },
                 ],
             },
@@ -208,7 +226,7 @@ def generate_content(role, prompt):
             "json_schema": {
                 "name": "News_Article",
                 "description": "A JSON object representing a news article.",
-                "schema": parody_schema,
+                "schema": json_schema,
                 "strict": True,
            }
         }
@@ -324,6 +342,10 @@ def generate_content_detail(content):
                 "content": content,
             }
         ],
+        metadata={
+            "type": "Content Detail",
+            "category": "Parody",
+        },
         response_format={
             "type": "json_schema",
             "json_schema": {

@@ -44,14 +44,22 @@ def index(request):
 
 # View to manage content creation and deletion
 class ManageContentView(LoginRequiredMixin, View):
+    # This view will handle both GET and POST requests for content management
     def get(self, request, content_id=None):
-        form = ContentForm()
+        # Check if the request method is GET and render the content_detail.html template with the form and content details
         selected_content = None
         if content_id:
             selected_content = get_object_or_404(Content, id=content_id)
+            content_detail_form = ContentDetailForm(instance=selected_content.detail)
+            content_form = ContentForm(instance=selected_content)
+            assistant_form = AssistantForm(instance=selected_content.assistant)
 
+        else:
+            content_form = ContentForm()
+            content_detail_form = ContentDetailForm()
+            assistant_form = AssistantForm()
         generated_content = Content.objects.all()
-
+        
         # Create a list to hold content and their details
         content_with_details = []
         for content in generated_content:
@@ -62,65 +70,59 @@ class ManageContentView(LoginRequiredMixin, View):
             })
         
         return render(request, 'parodynews/content_detail.html', {
-            'form': form,
+            'content_form': content_form,
+            'content_detail_form': content_detail_form,
+            'content_with_details': content_with_details,
             'selected_content': selected_content,
-            'generated_content': generated_content,
-            'content_with_details': content_with_details
+            'assistant_form': assistant_form,
         })
 
-    def post(self, request):
+    def post(self, request, content_id=None):
+
         if request.POST.get('_method') == 'delete':
             return self.delete(request)
         
-        if request.POST.get('_method') == 'update':
-            return self.update(request)
+        selected_content = None
 
-        form = ContentForm(request.POST)
-        if form.is_valid():
+        if content_id:
+            selected_content = get_object_or_404(Content, id=content_id)
+            content_form = ContentForm(request.POST, instance=selected_content)
+            content_detail_form = ContentDetailForm(request.POST, instance=selected_content.detail)
+        else:
+            content_form = ContentForm(request.POST)
+            content_detail_form = ContentDetailForm(request.POST)
 
-            # Generate content based on the form's role and prompt
-            instructions = form.cleaned_data['instructions']
-            prompt = form.cleaned_data['prompt']
-
-            generated_content_response = generate_content(instructions, prompt)
-            generated_content = json.loads(generated_content_response)
-            
-            # Extract the title, description, and author from the generated content
-            
-            metadata = generated_content.get('Metadata', {})
-            title = metadata.get('title', 'Default Title')
-            description = metadata.get('description', 'Default Description')
-            author = metadata.get('author', {})
-            author_name = author.get('name', 'Default Author')
-            slug = metadata.get('slug', metadata)
-
-            # Save the content details to the database
-            content_detail = ContentDetail(title=title, description=description, author=author_name, slug=slug)
-            content_detail.save()
-            
-            content_text = json_to_markdown(generated_content.get('Content'))
-
-            if content_text == "None":
-                content_text = json_to_markdown(generated_content_response)
-            
-            # Save the content to the database
-            content = form.save(commit=False)
-            content.content = content_text
-            content.detail_id = content_detail.id  # Set the detail_id field
-            assistant = request.POST.get('assistant')
-            assistant = Assistant.objects.get(assistant_id=assistant)
-            content.assistant = assistant
-            content.save()
-
-            messages.success(request, "Content created successfully!")
-            return redirect('content_detail', content_id=content.id)
+        if content_form.is_valid() and content_detail_form.is_valid():
+            assistant_id = content_form.cleaned_data.get('assistant_id')
+            if assistant_id:
+                try:
+                    assistant = Assistant.objects.get(pk=assistant_id)
+                    content_form.instance.assistant_id = assistant.id
+                    content_form.instance.instructions = assistant.instructions
+                except Assistant.DoesNotExist:
+                    content_form.instance.assistant_id = None
+                    content_form.instance.instructions = ''
+            content_form.save()
+            content_detail_form.save()
+            return redirect('manage_content')  # Redirect to the same view or another view
 
         generated_content = Content.objects.all()
+        
+        # Create a list to hold content and their details
+        content_with_details = []
+        for content in generated_content:
+            content_detail = ContentDetail.objects.get(id=content.detail_id)
+            content_with_details.append({
+                'content': content,
+                'content_detail': content_detail
+            })
+        
         return render(request, 'parodynews/content_detail.html', {
-            'form': form,
-            'generated_content': generated_content
+            'content_form': content_form,
+            'content_detail_form': content_detail_form,
+            'content_with_details': content_with_details,
+            'selected_content': selected_content,
         })
-
 
 
     def delete(self, request):
@@ -207,6 +209,15 @@ def get_assistants(request):
             assistant = None  # Set assistant to None or an appropriate value if the assistant does not exist
     return JsonResponse({'instructions': instructions, 'assistant': assistant})
 
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from .models import Assistant
+
+def get_instructions(request, assistant_id):
+    assistant = get_object_or_404(Assistant, assistant_id=assistant_id)
+    instructions = assistant.instructions  # Assuming the Assistant model has an instructions field
+    return JsonResponse({'instructions': instructions})
+
 # View to manage assistants
 @login_required
 def manage_assistants(request, assistant_id=None):
@@ -216,6 +227,7 @@ def manage_assistants(request, assistant_id=None):
     else:
         assistant = None
         is_edit = False
+
     if request.method == 'POST':
         form = AssistantForm(request.POST, instance=assistant)
         if form.is_valid():
@@ -223,6 +235,10 @@ def manage_assistants(request, assistant_id=None):
             description = form.cleaned_data['description']
             instructions = form.cleaned_data['instructions']
             model = form.cleaned_data['model']
+            json_schema = form.cleaned_data['json_schema']
+
+            # Retrieve the JSONSchema instance
+            json_schema_instance = get_object_or_404(JSONSchema, pk=json_schema.id)
 
             if is_edit:
                 # Update the existing assistant
@@ -230,16 +246,17 @@ def manage_assistants(request, assistant_id=None):
                 assistant.description = description
                 assistant.instructions = instructions
                 assistant.model = model
+                assistant.json_schema = json_schema_instance
                 assistant.save()
 
                 # Update the assistant on OpenAI
-                update_assistant(assistant.assistant_id, name, instructions, model)
+                update_assistant(assistant.assistant_id, name, instructions, model, json_schema_instance.schema)
 
                 messages.success(request, "Assistant updated successfully.")
                 return redirect('manage_assistants')  # Replace 'manage_assistants' with the name of your view or URL pattern
 
             # Create an assistant using your custom function
-            assistant = create_assistant(name, description, instructions, model)
+            assistant = create_assistant(name, description, instructions, model, json_schema_instance.schema)
 
             # Initialize the OpenAI client
             client = OpenAI()
@@ -256,15 +273,14 @@ def manage_assistants(request, assistant_id=None):
                 instructions=instructions,
                 object=my_assistant.object,
                 model=my_assistant.model,
+                json_schema=json_schema_instance,
                 created_at=datetime.fromtimestamp(my_assistant.created_at),
                 tools=my_assistant.tools,
                 metadata=my_assistant.metadata,
                 temperature=my_assistant.temperature,
-                top_p=my_assistant.top_p,
-                response_format=my_assistant.response_format,
             )
             db_assistant.save()
-            
+
             messages.success(request, "Assistant created successfully.")
             return redirect('manage_assistants')  # Replace 'manage_assistants' with the name of your view or URL pattern
         else:

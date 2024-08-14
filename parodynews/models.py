@@ -1,8 +1,22 @@
 import json
 from django.db import models
 from django.utils import timezone
+from django import forms
+
 
 print("Loading models.py")
+
+# JSON Schema model
+from django.db import models
+
+class JSONSchema(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+    schema = models.JSONField()
+
+    def __str__(self):
+        return self.name
+    
 
 # Load model choices from the JSON file
 try:
@@ -23,9 +37,11 @@ class Assistant(models.Model):
     temperature = models.FloatField(null=True, blank=True)
     top_p = models.FloatField(null=True, blank=True)
     response_format = models.JSONField(default=dict)
+    json_schema = models.ForeignKey(JSONSchema, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.name
+
 
 class ContentDetail(models.Model):
     title = models.CharField(max_length=255, default="NEED TITLE.")
@@ -85,13 +101,3 @@ class MyObject(models.Model):
     description = models.TextField()
 
 
-# JSON Schema model
-from django.db import models
-
-class JSONSchema(models.Model):
-    name = models.CharField(max_length=255)
-    schema = models.JSONField()
-
-    def __str__(self):
-        return self.name
-    
