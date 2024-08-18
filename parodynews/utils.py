@@ -1,6 +1,6 @@
 # Chat GPT-4o API
 # https://platform.openai.com/docs/api-reference/chat-gpt-4o
-
+from django.db import connection
 from .models import AppConfig
 from openai import OpenAI
 # utils.py (modified usage example)
@@ -8,6 +8,11 @@ from openai import OpenAI
 print("Loading utils.py")
 
 # Start up and load the OpenAI API key
+def table_exists(table_name):
+    with connection.cursor() as cursor:
+        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}';")
+        return cursor.fetchone() is not None
+
 def get_config_value(key):
     try:
         config = AppConfig.objects.first()  # Assuming only one config is needed
@@ -15,24 +20,27 @@ def get_config_value(key):
     except AppConfig.DoesNotExist:
         return None
 
-api_key = get_config_value('api_key')
-project_id = get_config_value('project_id')
-org_id = get_config_value('org_id')
+if table_exists('parodynews_appconfig'):
+    api_key = get_config_value('api_key')
+    project_id = get_config_value('project_id')
+    org_id = get_config_value('org_id')
 
-if api_key:
-    print("OPENAI_API_KEY loaded successfully.")
-else:
-    print("Failed to load OPENAI_API_KEY.")
+    if api_key:
+        print("OPENAI_API_KEY loaded successfully.")
+    else:
+        print("Failed to load OPENAI_API_KEY.")
 
-if project_id:
-    print("PROJECT_ID loaded successfully.")
-else:
-    print("Failed to load PROJECT_ID.")
+    if project_id:
+        print("PROJECT_ID loaded successfully.")
+    else:
+        print("Failed to load PROJECT_ID.")
 
-if org_id:
-    print("ORG_ID loaded successfully.")
+    if org_id:
+        print("ORG_ID loaded successfully.")
+    else:
+        print("Failed to load ORG_ID.")
 else:
-    print("Failed to load ORG_ID.")
+    print("Table 'parodynews_appconfig' does not exist.")
 
 try:
     client = OpenAI(
@@ -57,13 +65,9 @@ except Exception as e:
 
 # Assistant Creation and Management
 
-def create_assistant(name, description, instructions, model, json_schema):
-    assistant = client.beta.assistants.create(
-        name=name,
-        description=description,
-        instructions=instructions,
-        model=model,
-        response_format={
+def save_assistant(name, description, instructions, model, json_schema, assistant_id=None):
+    if json_schema is not None:
+        response_format = {
             "type": "json_schema",
             "json_schema": {
                 "name": "News_Article",
@@ -72,25 +76,26 @@ def create_assistant(name, description, instructions, model, json_schema):
                 "strict": True,
             }
         }
-    )
-    return assistant
+    else:
+        response_format = None
 
-def update_assistant(assistant_id, name, instructions, model, json_schema):
-    assistant = client.beta.assistants.update(
-        assistant_id,
-        name=name,
-        instructions=instructions,
-        model=model,
-            response_format={
-            "type": "json_schema",
-            "json_schema": {
-                "name": "News_Article",
-                "description": "A JSON object representing a news article.",
-                "schema": json_schema,
-                "strict": True,
-            }
-        }
-    )
+    if assistant_id:
+        assistant = client.beta.assistants.update(
+            assistant_id,
+            name=name,
+            instructions=instructions,
+            model=model,
+            response_format=response_format
+        )
+    else:
+        assistant = client.beta.assistants.create(
+            name=name,
+            description=description,
+            instructions=instructions,
+            model=model,
+            response_format=response_format
+        )
+    
     return assistant
 
 # Core Assistant Functions
@@ -363,3 +368,4 @@ def generate_content_detail(content):
     logging.info("Response: %s", data)
     
     return data
+

@@ -19,7 +19,7 @@
                 <h3>Content Detail</h3>
                 <div class="form-group">
                     {{ content_detail_form.as_p }}
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" name="_method" value="save" class="btn btn-primary">Save</button>
                 </div>
                 
             </div>
@@ -27,14 +27,12 @@
             <div class="col-md-6">
                 <h3>Content and Prompt</h3>
                 <div class="form-group">
-                    {{ assistant_form.as_p }}
-                </div>
-                <div class="form-group">
                     {{ content_form.as_p }}
+                    <button type="submit" name="_method" value="run" class="btn btn-primary mt-3">Generate Content</button>
                 </div>
             </div>
         </div>
-        <button type="submit" class="btn btn-primary mt-3">Generate Content</button>
+
     </form>
 </div>
 <!-- Content List -->
@@ -55,7 +53,7 @@
                     {{ item.content.detail.id }}
                 </td>
                 <td>
-                    <a href="{% url 'content_detail' item.content.id %}#selected-content">{{ item.content_detail.title }}</a>
+                    <a href="{% url 'content_detail' item.content.id %}">{{ item.content_detail.title }}</a>
                 </td>
                 <td>
                     <div class="d-flex justify-content-end">

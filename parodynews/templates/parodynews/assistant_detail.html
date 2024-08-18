@@ -7,51 +7,9 @@
     <h1>Create an Assistant</h1>
     <form method="post" class="needs-validation" novalidate>
         {% csrf_token %}
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <div class="mb-3">
-                        <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
-                        {{ form.name }}
-                        {{ form.assistant_id }}
-                        <div class="invalid-feedback">
-                            {{ form.name.errors }}
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
-                        {{ form.description }}
-                        <div class="invalid-feedback">
-                            {{ form.description.errors }}
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.model.id_for_label }}" class="form-label">{{ form.model.label }}</label>
-                        {{ form.model }}
-                        <div class="invalid-feedback">
-                            {{ form.model.errors }}
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.json_schema.id_for_label }}" class="form-label">{{ form.json_schema.label }}</label>
-                        {{ form.json_schema }}
-                        <div class="invalid-feedback">
-                            {{ form.json_schema.errors }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    <div class="mb-3">
-                        <label for="{{ form.instructions.id_for_label }}" class="form-label">{{ form.instructions.label }}</label>
-                        {{ form.instructions }}
-                        <div class="invalid-feedback">
-                            {{ form.instructions.errors }}
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="form-group">
+            {{ form.as_p }}
+            <button type="submit" name="_method" value="save" class="btn btn-primary">Save</button>
         </div>
         {% if is_edit %}
         <button type="submit" class="btn btn-primary">Update</button>
@@ -81,7 +39,7 @@
                 <tbody>
                     {% for assistant in assistants_info %}
                         <tr>
-                            <td ><a href="{% url 'manage_assistants' assistant.assistant_id %}">{{ assistant.name }}
+                            <td ><a href="{% url 'manage_assistants' %}">{{ assistant.name }}
                             </a></td>
                             <td>{{ assistant.description }}</td>
                             <td>{{ assistant.model }}</td>

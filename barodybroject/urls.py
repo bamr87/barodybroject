@@ -33,10 +33,9 @@ urlpatterns = [
     # Content management
     path('content/', ManageContentView.as_view(), name='manage_content'),
     path('content/<int:content_id>', ManageContentView.as_view(), name='content_detail'),
-    path('content/update/<int:content_id>', views.update_content, name='update_content'),
+    path('content/update/<int:content_id>', ManageContentView.as_view(), name='update_content'),
     path('content/delete/<int:content_id>', ManageContentView.as_view(), name='delete_content'),
-    path('content/get-assistants/', views.get_assistants, name='get-assistants'),
-    path('get_instructions/<int:assistant_id>/', views.get_instructions, name='get-instructions'),
+    path('get_assistant_details/<str:assistant_id>/', views.get_assistant_details, name='get_assistant_details'),
     path('get-raw-content', views.get_raw_content, name='get_raw_content'),
 
     

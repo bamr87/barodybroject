@@ -1,5 +1,8 @@
 from django.contrib import admin
+from django import forms
 from .models import AppConfig
+from django_json_widget.widgets import JSONEditorWidget
+from .models import JSONSchema
 
 print("Registering AppConfig model")
 
@@ -7,10 +10,6 @@ print("Registering AppConfig model")
 admin.site.register(AppConfig)
 
 # JSON Schema model
-from django.contrib import admin
-from django import forms
-from django_json_widget.widgets import JSONEditorWidget
-from .models import JSONSchema
 
 class JSONSchemaForm(forms.ModelForm):
     class Meta:
