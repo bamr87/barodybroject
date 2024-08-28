@@ -31,7 +31,7 @@ except FileNotFoundError:
     MODEL_CHOICES = []
 
 class Assistant(models.Model):
-    assistant_id = models.CharField(max_length=225, primary_key=True)
+    id = models.CharField(max_length=225, primary_key=True)
     name = models.CharField(max_length=256, null=True, blank=True, default="system default")
     description = models.CharField(max_length=512, null=True, blank=True, default="Describe the assistant.")
     instructions = models.TextField(max_length=256000, default="you are a helpful assistant.")
@@ -45,25 +45,39 @@ class Assistant(models.Model):
     response_format = models.JSONField(default=dict)
     json_schema = models.ForeignKey(JSONSchema, on_delete=models.SET_NULL, null=True, blank=True)
 
+    def get_display_fields(self):
+        # List the fields you want to display
+        return ['id', 'name', 'description', 'instructions', 'model', 'json_schema']
+    
     def __str__(self):
         return self.name
 
 
 class ContentDetail(models.Model):
+    id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=255, default="NEED TITLE.")
     description = models.TextField(blank=True)
     author = models.CharField(max_length=100, default="NEED AUTHOR.")
     published_at = models.DateTimeField(default=timezone.now)
     slug = models.SlugField(max_length=255, unique=False, default="slug")
 
+    def get_display_fields(self):
+        # List the fields you want to display
+        return ['id', 'title', 'description', 'author', 'published_at']
+
     def __str__(self):
         return self.title
 class Content(models.Model):
-    assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, related_name='contents')
+    id = models.AutoField(primary_key=True)
+    assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, blank=True, related_name='content')
     prompt = models.TextField(default="say this is a test")
     content = models.TextField()
-    detail = models.ForeignKey(ContentDetail, on_delete=models.CASCADE, related_name='contents')
+    detail = models.ForeignKey(ContentDetail, on_delete=models.CASCADE, related_name='content')
 
+    def get_display_fields(self):
+        # List the fields you want to display
+        return ['id', 'assistant', 'prompt', 'content', 'detail']
+    
     def __str__(self):
         return self.prompt
 

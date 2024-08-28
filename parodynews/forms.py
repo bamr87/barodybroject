@@ -1,5 +1,5 @@
 from django import forms
-from .models import Assistant, Content, ContentDetail
+from .models import Assistant, Content, ContentDetail, MyObject, JSONSchema
 import json
 
 print("Loading forms...")
@@ -29,15 +29,16 @@ class ContentForm(forms.ModelForm):
 
     assistant = forms.ModelChoiceField(
         queryset=Assistant.objects.all(),
-        empty_label="Select an Assistant",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        label="Assistant Name",
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        to_field_name="name"  # This will display the 'name' field in the dropdown
     )
-
+    
     instructions = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'readonly': 'readonly'}), required=False)
 
     class Meta:
         model = Content
-        fields = [ 'assistant', 'prompt']
+        fields = [ 'assistant', 'instructions', 'prompt']
         widgets = {
             'prompt': forms.Textarea(attrs={'class': 'form-control'}),
         }
@@ -45,21 +46,6 @@ class ContentForm(forms.ModelForm):
             'prompt': 'Prompt',
         }
         field_order = ['prompt']  # Specify the order of fields
-
-
-    def __init__(self, *args, **kwargs):
-        assistant_id = kwargs.pop('assistant_id', None)
-        super(ContentForm, self).__init__(*args, **kwargs)
-        
-        if assistant_id:
-            try:
-                assistant = Assistant.objects.get(pk=assistant_id)
-                self.fields['assistant'].initial = assistant.assistant_id
-                self.fields['instructions'].initial = assistant.instructions
-                self.fields['assistant_id'].initial = assistant_id
-
-            except Assistant.DoesNotExist:
-                pass
 
 # Fetch all Assistant objects and create a list of tuples for the dropdown choices
 
@@ -75,31 +61,21 @@ class AssistantForm(forms.ModelForm):
             'model': forms.Select(attrs={'class': 'form-select', 'id': 'id_model'}),
             'json_schema': forms.Select(attrs={'class': 'form-control', 'id': 'id_json_schema'}),
         }
-        initial = {
-            'model': 'gpt-3.5-turbo'
-        }
+
 
     def __init__(self, *args, **kwargs):
         super(AssistantForm, self).__init__(*args, **kwargs)
         self.fields['model'].choices = MODEL_CHOICES
-        self.fields['model'].initial = MODEL_CHOICES[0][0] if MODEL_CHOICES else None
-
-
-from django import forms
-from .models import MyObject
+        self.fields['model'].initial = Assistant._meta.get_field('model').default
 
 class MyObjectForm(forms.ModelForm):
     class Meta:
         model = MyObject
         fields = ['name', 'description']
 
-
 # JSON Schema model form
 
-# forms.py
-from django import forms
 from django_json_widget.widgets import JSONEditorWidget
-from .models import JSONSchema
 
 class JSONSchemaForm(forms.ModelForm):
     class Meta:

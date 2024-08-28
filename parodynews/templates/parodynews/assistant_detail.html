@@ -1,63 +1,72 @@
 <!-- assistant_detail.html -->
 {% extends "base.html" %}
+{% load custom_filters %}
+
+
 
 {% block content %}
-<div class="container mt-5">
-    <!-- Assistant Creation Form -->
-    <h1>Create an Assistant</h1>
-    <form method="post" class="needs-validation" novalidate>
+
+<!-- Assistant Form -->
+<div class="container mt-5" id="assistant-form">
+    <h2>Assistant Form</h2>
+    {% if selected_asssistant%}
+    <form method="post" action="{% url 'assistant_detail' assistant_id=selected_assistant.id %}" class="needs-validation" novalidate>
+    {% else %}
+    <form method="post" action="{% url 'manage_assistants' %}" class="needs-validation" novalidate>
+    {% endif %}
         {% csrf_token %}
+        <div class="row">
+            <!-- Assistant Form -->
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ assistant_detail_form.as_p }}
+                </div>
+            </div>
         <div class="form-group">
             {{ form.as_p }}
             <button type="submit" name="_method" value="save" class="btn btn-primary">Save</button>
         </div>
-        {% if is_edit %}
-        <button type="submit" class="btn btn-primary">Update</button>
-        <a href="{% url 'manage_assistants' %}" class="btn btn-success">
-            Create New Assistant
-        </a>
-        {% else %}
-        <button type="submit" class="btn btn-primary">Create</button>
-        {% endif %}
+        <button type="submit" name="_method" value="create" class="btn btn-primary">Create</button>
     </form>
 </div>
 
-    <div class="container mt-5">
-        <!-- Additional section to list other assistants in a table format -->
-        <h2>All Assistants</h2>
-        {% if assistants_info %}
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Model</th>
-                        <th>ID</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for assistant in assistants_info %}
-                        <tr>
-                            <td ><a href="{% url 'manage_assistants' %}">{{ assistant.name }}
-                            </a></td>
-                            <td>{{ assistant.description }}</td>
-                            <td>{{ assistant.model }}</td>
-                            <td>{{ assistant.assistant_id }}</td>
-                            <td>
-                                <!-- Delete button form -->
-                                <form action="/assistants/delete/{{ assistant.assistant_id }}/" method="post">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
+<!-- Assistant list -->
+<div class="container mt-5">
+    {% load custom_filters %}
+    
+    <h2>Assistant List</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    {% for field in fields %}
+                        {% if field.name in display_fields %}
+                            <th>{{ field.verbose_name }}</th>
+                        {% endif %}
                     {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No other assistants found.</p>
-        {% endif %}
-    </div>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assistant in assistants_info %}
+                    <tr>
+                        {% for field in fields %}
+                            {% if field.name in display_fields %}
+                                <td>{{ assistant|get_field_value:field.name }}</td>
+                            {% endif %}
+                        {% endfor %}
+                        <td>
+                            <!-- Delete button form -->
+                            <form action="/assistants/delete/{{ assistant.id }}/" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                            <!-- Edit button -->
+                            <a href="/assistants/edit/{{ assistant.id }}/" class="btn btn-primary">Edit</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+</div>
 
 {% endblock %}

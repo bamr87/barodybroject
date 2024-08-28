@@ -21,7 +21,7 @@ from parodynews import views
 from django.contrib.auth.views import LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
-from parodynews.views import ManageContentView, MyObjectView
+from parodynews.views import ManageContentView, ManageAssistantsView, MyObjectView
 
 
 
@@ -33,16 +33,17 @@ urlpatterns = [
     # Content management
     path('content/', ManageContentView.as_view(), name='manage_content'),
     path('content/<int:content_id>', ManageContentView.as_view(), name='content_detail'),
-    path('content/update/<int:content_id>', ManageContentView.as_view(), name='update_content'),
+    path('content/edit/<int:content_id>', ManageContentView.as_view(), name='edit_content'),
     path('content/delete/<int:content_id>', ManageContentView.as_view(), name='delete_content'),
     path('get_assistant_details/<str:assistant_id>/', views.get_assistant_details, name='get_assistant_details'),
     path('get-raw-content', views.get_raw_content, name='get_raw_content'),
 
+    # Assistant management
+    path('assistants/', ManageAssistantsView.as_view(), name='manage_assistants'),
+    path('assistants/edit/<str:assistant_id>/', ManageAssistantsView.as_view(), name='edit_assistant'),
+    path('assistants/delete/<str:assistant_id>/', ManageAssistantsView.as_view(), name='delete_assistant'),
     
-    path('assistants/', views.manage_assistants, name='manage_assistants'),
-    path('assistants/<str:assistant_id>', views.manage_assistants, name='manage_assistants'),
-    path('assistants/delete/<str:assistant_id>/', views.delete_assistant, name='delete_assistant'),
-    
+    # Message management
     path('create_message/', views.create_message, name='create_message'),
     path('messages/', views.message_detail, name='list_messages'),
     path('messages/<str:message_id>/', views.message_detail, name='message_detail'),
@@ -51,35 +52,31 @@ urlpatterns = [
     path('messages/run/<str:message_id>/', views.run_messages, name='run_message'),
     path('add_message_to_db/', views.add_message_to_db, name='add_message_to_db'),
     
+    # Thread management
     path('threads/', views.thread_detail, name='thread_detail'),
     path('threads/<str:thread_id>/', views.thread_detail, name='thread_detail'),
     path('threads/delete/<str:thread_id>/', views.delete_thread, name='delete_thread'),
     
+    # User management
     path('login/', views.UserLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     
+    # Object management
     path('objects/', MyObjectView.as_view(), name='object-list'),
     path('objects/create/', MyObjectView.as_view(), {'action': 'create'}, name='object-create'),
     path('objects/<int:pk>/', MyObjectView.as_view(), name='object-detail'),
     path('objects/<int:pk>/update/', MyObjectView.as_view(), {'action': 'update'}, name='object-update'),
     path('objects/<int:pk>/delete/', MyObjectView.as_view(), {'action': 'delete'}, name='object-delete'),
 
-    path('generate_markdown/', views.generate_markdown_view, name='generate_markdown'),
-
+    # JSON Schema management
     path('schemas/', views.list_schemas, name='list_schemas'),
     path('schemas/create/', views.create_schema, name='create_schema'),
     path('schemas/edit/<int:pk>/', views.edit_schema, name='edit_schema'),
     path('schemas/export/<int:pk>/', views.export_schema, name='export_schema'),
     path('schemas/delete/<int:pk>/', views.delete_schema, name='delete_schema'),
 
+    # Markdown generation
+    path('generate_markdown/', views.generate_markdown_view, name='generate_markdown'),
 
-
-    # path('posts/', views.manage_posts, name='manage_posts'),
-
-    # Uncomment the following lines if the views are defined and you plan to use them
-    # path('create_post/', views.post_create, name='create_post'),
-    # path('post/fail/', views.post_fail, name='post_fail'),
-    # Assuming you have a view for assistant details
-    # path('assistants/<int:assistant_id>/', views.assistant_detail, name='assistant_detail'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

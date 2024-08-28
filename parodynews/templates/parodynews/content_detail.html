@@ -1,66 +1,70 @@
 <!-- content_detail.html -->
 {% extends "base.html" %}
+{% load custom_filters %}
+
 {% load markdownify %}
 
 {% block content %}
 
-<!-- Content Detail Form -->
-<div class="container mt-4" id="content-create">
+<!-- Content and Detail Form -->
+<div class="container mt-5" id="content-form">
     <h2>Content Detail and Prompt</h2>
     {% if selected_content %}
-    <form method="post" action="{% url 'content_detail' content_id=selected_content.id %}">
+    <form method="post" action="{% url 'content_detail' content_id=selected_content.id %}" class="needs-validation" novalidate>
     {% else %}
-    <form method="post" action="{% url 'manage_content' %}">
+    <form method="post" action="{% url 'manage_content' %}" class="needs-validation" novalidate>
     {% endif %}
         {% csrf_token %}
         <div class="row">
-            <!-- Content Detail Section -->
+            <!-- Content Detail Form -->
             <div class="col-md-6">
-                <h3>Content Detail</h3>
+                <h3>Content Detail Form</h3>
                 <div class="form-group">
                     {{ content_detail_form.as_p }}
-                    <button type="submit" name="_method" value="save" class="btn btn-primary">Save</button>
                 </div>
-                
             </div>
-            <!-- Content and Prompt Section -->
+            <!-- Content Form -->
             <div class="col-md-6">
-                <h3>Content and Prompt</h3>
+                <h3>Content Form</h3>
                 <div class="form-group">
                     {{ content_form.as_p }}
-                    <button type="submit" name="_method" value="run" class="btn btn-primary mt-3">Generate Content</button>
                 </div>
             </div>
+            <button type="submit" name="_method" value="save" class="btn btn-primary">Save</button>
+            <button type="submit" name="_method" value="run" class="btn btn-primary mt-3">Generate Content</button>
         </div>
-
     </form>
 </div>
 <!-- Content List -->
-<div class="container mp-3">
+<div class="container mt-5">
+    {% load custom_filters %}
+
     <h2>Content List</h2>
     <table class="table" id="content-table">
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Title</th>
+                {% for field in fields %}
+                    {% if field.name in display_fields %}
+                        <th>{{ field.verbose_name }}</th>
+                    {% endif %}
+                {% endfor %}
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            {% for item in content_with_details %}
+            {% for content_detail in content_detail_info %}
             <tr>
-                <td>
-                    {{ item.content.detail.id }}
-                </td>
-                <td>
-                    <a href="{% url 'content_detail' item.content.id %}">{{ item.content_detail.title }}</a>
-                </td>
-                <td>
+                {% for field in fields %}
+                    {% if field.name in display_fields %}
+                    <td>{{ content_detail|get_field_value:field.name }}</td>
+                    {% endif %}
+                {% endfor %}
+            <td>
                     <div class="d-flex justify-content-end">
                         <!-- Delete Button Form -->
                         <form action="{% url 'manage_content' %}" method="post" class="delete-form mr-2">
                             {% csrf_token %}
-                            <input type="hidden" name="content_id" value="{{ item.content.id }}">
+                            <input type="hidden" name="content_detail_id" value="{{ content_detail.id }}">
                             <input type="hidden" name="_method" value="delete">
                             <input type="hidden" name="action" value="delete">
                             <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this content?');">Delete</button>
@@ -68,8 +72,13 @@
                         <!-- Create Message Button -->
                         <form action="{% url 'create_message' %}" method="POST">
                             {% csrf_token %}
-                            <input type="hidden" name="content_id" value="{{ item.content.id }}">
+                            <input type="hidden" name="content_id" value="{{ content.id }}">
                             <button type="submit" class="btn btn-primary">Create New Message</button>
+                        </form>
+                        <!-- Edit Button Form -->
+                        <form action="{% url 'edit_content' content_detail.id %}" method="GET" class="edit-form ml-2">
+                            <input type="hidden" name="content_detail_id" value="{{ content_detail.id }}">
+                            <button type="submit" class="btn btn-warning">Edit</button>
                         </form>
                     </div>
                 </td>
