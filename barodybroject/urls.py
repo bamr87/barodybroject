@@ -32,14 +32,15 @@ urlpatterns = [
     
     # Content management
     path('content/', ManageContentView.as_view(), name='manage_content'),
-    path('content/<int:content_id>', ManageContentView.as_view(), name='content_detail'),
-    path('content/edit/<int:content_id>', ManageContentView.as_view(), name='edit_content'),
-    path('content/delete/<int:content_id>', ManageContentView.as_view(), name='delete_content'),
+    path('content/<int:content_detail_id>', ManageContentView.as_view(), name='content_detail'),
+    path('content/edit/<int:content_detail_id>', ManageContentView.as_view(), name='edit_content'),
+    path('content/delete/<int:content_detail_id>', ManageContentView.as_view(), name='delete_content'),
     path('get_assistant_details/<str:assistant_id>/', views.get_assistant_details, name='get_assistant_details'),
     path('get-raw-content', views.get_raw_content, name='get_raw_content'),
 
     # Assistant management
     path('assistants/', ManageAssistantsView.as_view(), name='manage_assistants'),
+    path('assistants/<str:assistant_id>', ManageAssistantsView.as_view(), name='assistant_detail'),
     path('assistants/edit/<str:assistant_id>/', ManageAssistantsView.as_view(), name='edit_assistant'),
     path('assistants/delete/<str:assistant_id>/', ManageAssistantsView.as_view(), name='delete_assistant'),
     

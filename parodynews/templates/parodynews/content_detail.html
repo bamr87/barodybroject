@@ -9,8 +9,8 @@
 <!-- Content and Detail Form -->
 <div class="container mt-5" id="content-form">
     <h2>Content Detail and Prompt</h2>
-    {% if selected_content %}
-    <form method="post" action="{% url 'content_detail' content_id=selected_content.id %}" class="needs-validation" novalidate>
+    {% if content_detail %}
+    <form method="post" action="{% url 'content_detail' content_detail_id=content_detail.id %}" class="needs-validation" novalidate>
     {% else %}
     <form method="post" action="{% url 'manage_content' %}" class="needs-validation" novalidate>
     {% endif %}

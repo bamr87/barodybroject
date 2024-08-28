@@ -131,7 +131,7 @@ def retrieve_assistants_info():
 def delete_assistant(assistant_id):
     # Assuming you have a Django model named Assistant
     from .models import Assistant
-    Assistant.objects.filter(assistant_id=assistant_id).delete()
+    Assistant.objects.get(id=assistant_id).delete()
     client.beta.assistants.delete(assistant_id)
 
     return f"Assistant with ID {assistant_id} deleted successfully."

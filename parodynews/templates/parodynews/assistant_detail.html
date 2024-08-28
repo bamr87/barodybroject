@@ -58,8 +58,11 @@
                             <!-- Delete button form -->
                             <form action="/assistants/delete/{{ assistant.id }}/" method="post">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-danger">Delete</button>
-                            </form>
+                                <input type="hidden" name="assistant_id" value="{{ assistant.id }}">
+                                <input type="hidden" name="_method" value="delete">
+                                <input type="hidden" name="action" value="delete">
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this content?');">Delete</button>
+                                </form>
                             <!-- Edit button -->
                             <a href="/assistants/edit/{{ assistant.id }}/" class="btn btn-primary">Edit</a>
                         </td>

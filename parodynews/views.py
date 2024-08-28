@@ -45,11 +45,12 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
     model=ContentDetail
     template_name = 'parodynews/content_detail.html'
 
-    def get(self, request, content_id=None):
+    def get(self, request, content_detail_id=None, content_id=None):
         # Check if content_id is provided
-        if content_id:
-            content = Content.objects.get(pk=content_id)
-            content_detail = ContentDetail.objects.get(pk=content.detail.id)
+        if content_detail_id:
+            content_detail = ContentDetail.objects.get(pk=content_detail_id)
+            content = Content.objects.get(detail_id=content_detail_id)
+            content_id = content.id
             assistant = content.assistant.name
             is_edit = True
         else:
@@ -59,7 +60,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
             is_edit = False
 
         # Initialize the forms
-        content_form = ContentForm(instance=content, initial={'assistant': assistant})
+        content_form = ContentForm(instance=content)
         content_detail_form = ContentDetailForm(instance=content_detail)
 
         # Get the fields and display fields for the model
@@ -71,12 +72,14 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
             'content_form': content_form,
             'content_detail_form': content_detail_form,
             'content_detail_info': content_detail_info,
+            'content_detail_id': content_detail_id,
             'content_id': content_id,
+            'assistant': assistant,
             'fields': fields,
             'display_fields': display_fields
         })
 
-    def post(self, request, content_id=None, selected_content=None):
+    def post(self, request, content_detail_id=None):
         if request.POST.get('_method') == 'delete':
             return self.delete(request)
         
@@ -86,10 +89,10 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         if request.POST.get('_method') == 'run':
             return self.run(request)
         
-        return redirect('content_detail', content_id=content_id)
+        return redirect('content_detail', content_detail_id=content_detail_id)
     
-    def save(self, request, selected_content=None, content_id=None):
-        selected_content = request.POST.get('content_id')
+    def save(self, request, content_detail=None):
+        content_detail = request.POST.get('content_detail_id')
         content_form = ContentForm(request.POST)
         content_detail_form = ContentDetailForm(request.POST)
 
@@ -100,7 +103,6 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
             content = content_form.save(commit=False)
             content.detail = content_detail
             content.save()
-            selected_content = content.id if content else selected_content
             
             messages.success(request, "Content and its details saved successfully!")
         else:
@@ -122,23 +124,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         return redirect('manage_content')
 
 
-from django.http import JsonResponse
-from .models import Assistant
 
-def get_assistant_details(request, assistant_id):
-    try:
-        assistant = Assistant.objects.get(assistant_id=assistant_id)
-        data = {
-            'assistant_id': assistant.assistant_id,
-            'name': assistant.name,
-            'description': assistant.description,
-            'model': assistant.model,
-            'instructions': assistant.instructions,
-            'json_schema': assistant.json_schema,
-        }
-        return JsonResponse(data)
-    except Assistant.DoesNotExist:
-        return JsonResponse({'error': 'Assistant not found'}, status=404)
 
 from django.views import View
 from django.shortcuts import render, redirect, get_object_or_404
@@ -148,7 +134,6 @@ from django.contrib import messages
 from .models import Assistant, JSONSchema
 from .forms import AssistantForm
 
-@method_decorator(login_required, name='dispatch')
 class ManageAssistantsView(ModelFieldsMixin, View):
     model = Assistant
     template_name = 'parodynews/assistant_detail.html'
@@ -179,14 +164,18 @@ class ManageAssistantsView(ModelFieldsMixin, View):
         })
 
     def post(self, request, assistant_id=None):
-        if assistant_id:
-            assistant = Assistant.objects.get(pk=assistant_id)
-            is_edit = True
-        else:
-            assistant = None
-            is_edit = False
+        if request.POST.get('_method') == 'delete':
+            return self.delete(request)
 
-        form = AssistantForm(request.POST, instance=assistant)
+        if request.POST.get('_method') == 'save':
+            return self.save(request)
+
+        return redirect('assistant_detail', assistant_id=assistant_id)
+
+    def save(self, request, assistant_id=None):
+        selected_assistant = request.POST.get('content_id')
+
+        form = AssistantForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
             description = form.cleaned_data['description']
@@ -229,12 +218,31 @@ class ManageAssistantsView(ModelFieldsMixin, View):
                 'is_edit': is_edit,
             })
 
-    @method_decorator(login_required)
-    def delete(self, request, assistant_id):
+    def delete(self, request, assistant_id=None):
+        assistant_id = request.POST.get('assistant_id')
+        assistant = Assistant.objects.get(pk=assistant_id)
+        assistant.delete()
+        messages.success(request, "Assistant deleted from database successfully.")
         response_message = delete_assistant(assistant_id)
         messages.success(request, response_message)
         return redirect('manage_assistants')
 
+def get_assistant_details(request, assistant_id):
+    try:
+        assistant = Assistant.objects.get(id=assistant_id)
+        instructions = assistant.instructions  # Assuming 'instructions' is a field in the Assistant model
+
+        data = {
+            'assistant_id': assistant.id,
+            'name': assistant.name,
+            'description': assistant.description,
+            'model': assistant.model,
+            'instructions': assistant.instructions,
+            'json_schema': assistant.json_schema,
+        }
+        return JsonResponse(data)
+    except Assistant.DoesNotExist:
+        return JsonResponse({'error': 'Assistant not found'}, status=404)
 
 # View to create a new message
 @login_required

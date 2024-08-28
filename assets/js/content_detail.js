@@ -1,20 +1,3 @@
-// Assistant Selection change event
-document.addEventListener("DOMContentLoaded", function() {
-    const roleSelect = document.querySelector("#id_name_list");
-    const instructionsBox = document.querySelector("#id_assist_instructions");
-    const assistantField = document.querySelector("#id_assistant");
-
-    roleSelect.addEventListener("change", function() {
-        const selectedAssistantId = this.value;
-        fetch(`/get_assistant_details/?assistant_id=${selectedAssistantId}`)
-            .then(response => response.json())
-            .then(data => {
-                instructionsBox.value = data.instructions;
-                assistantField.value = selectedAssistantId; // Update the assistant field with the selected ID
-            })
-            .catch(error => console.error('Error fetching assistants:', error));
-    });
-});
 
 // Function to get CSRF token from cookies (needed for Django)
 function getCookie(name) {
@@ -31,3 +14,23 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+$(document).ready(function() {
+    $('#id_assistant').change(function() {
+        var assistantId = $(this).val();
+        if (assistantId) {
+            $.ajax({
+                url: '/get_assistant_details/' + assistantId + '/',
+                method: 'GET',
+                success: function(data) {
+                    if (data.instructions) {
+                        $('#id_instructions').val(data.instructions);
+                    }
+                },
+                error: function() {
+                    alert('Error fetching instructions');
+                }
+            });
+        }
+    });
+});

@@ -31,10 +31,14 @@ class ContentForm(forms.ModelForm):
         queryset=Assistant.objects.all(),
         label="Assistant Name",
         widget=forms.Select(attrs={'class': 'form-select'}),
-        to_field_name="name"  # This will display the 'name' field in the dropdown
+        to_field_name="id"  # This will display the 'name' field in the dropdown
     )
     
-    instructions = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'readonly': 'readonly'}), required=False)
+    instructions = forms.CharField(
+        widget=forms.Textarea(
+            attrs={'class': 'form-control',
+                   'readonly': 'readonly'}), 
+        required=False)
 
     class Meta:
         model = Content
@@ -46,6 +50,16 @@ class ContentForm(forms.ModelForm):
             'prompt': 'Prompt',
         }
         field_order = ['prompt']  # Specify the order of fields
+
+    # Set the assistant field choices to the names of all Assistant objects. Needed for AJAX request
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['assistant'].widget.choices = [
+            (assistant.id, assistant.name) for assistant in Assistant.objects.all()
+        ]
+        self.fields['assistant'].widget.attrs.update({
+            'data-id': lambda choice: choice[0]
+        })
 
 # Fetch all Assistant objects and create a list of tuples for the dropdown choices
 
