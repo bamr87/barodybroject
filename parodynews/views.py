@@ -70,7 +70,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         fields, display_fields = self.get_model_fields()
 
         # Render the content detail page with the forms and content details
-        return render(request, 'parodynews/content_detail.html', {
+        return render(request, self.template_name, {
             'content_form': content_form,
             'content_detail_form': content_detail_form,
             'content_detail_info': content_detail_info,
@@ -159,7 +159,7 @@ class ManageAssistantsView(ModelFieldsMixin, View):
             is_edit = False
 
         # Initialize the form
-        form = AssistantForm(instance=assistant)
+        assistant_form = AssistantForm(instance=assistant)
 
         # Get the fields and display fields for the model
         assistants_info = Assistant.objects.all()
@@ -167,8 +167,9 @@ class ManageAssistantsView(ModelFieldsMixin, View):
 
         # Render the assistant detail page with the form and assistant details
         return render(request, self.template_name, {
-            'form': form,
+            'assistant_form': assistant_form,
             'assistants_info': assistants_info,
+            'assistant_id': assistant_id,
             'is_edit': is_edit,
             'fields' : fields,
             'display_fields': display_fields
@@ -183,35 +184,21 @@ class ManageAssistantsView(ModelFieldsMixin, View):
 
         return redirect('assistant_detail', assistant_id=assistant_id)
 
-    def save(self, request, assistant_id=None):
-        selected_assistant = request.POST.get('content_id')
+    def save(self, request, assistant=None):
+        assistant_id = request.POST.get('assistant_id')
 
-        form = AssistantForm(request.POST)
-        if form.is_valid():
-            name = form.cleaned_data['name']
-            description = form.cleaned_data['description']
-            instructions = form.cleaned_data['instructions']
-            model = form.cleaned_data['model']
-            json_schema = form.cleaned_data['json_schema']
+        assistant_form = AssistantForm(request.POST)
 
-            if json_schema:
-                json_schema_instance = JSONSchema.objects.get(pk=json_schema)
-                json_schema = json_schema_instance.schema
-            else:
-                json_schema = None
+        if assistant_id:
+            assistant = Assistant.objects.get(pk=assistant_id)
+            assistant_form = AssistantForm(request.POST, instance=assistant)
+
+        if assistant_form.is_valid():
+            assistant = assistant_form.save(commit=False)
 
             # Create or update the assistant in OpenAI
-            assistant_ai = save_assistant(name, description, instructions, model, json_schema, assistant_id)
-            assistant_id = assistant_ai.id
-
-            assistant = Assistant(
-                id=assistant_id,
-                name=name,
-                description=description,
-                instructions=instructions,
-                model=model,
-                json_schema=json_schema
-            )
+            assistant_ai = save_assistant(assistant.name, assistant.description, assistant.instructions, assistant.model, assistant.json_schema, assistant.id)
+            assistant.id = assistant_ai.id
             assistant.save()
 
             messages.success(request, "Assistant created successfully.")
@@ -222,18 +209,15 @@ class ManageAssistantsView(ModelFieldsMixin, View):
             fields = Assistant._meta.get_fields()
             display_fields = Assistant().get_display_fields()
             return render(request, self.template_name, {
-                'form': form,
+                'assistant_form': assistant_form,
                 'assistants_info': assistants_info,
                 'fields': fields,
                 'display_fields': display_fields,
-                'is_edit': is_edit,
+
             })
 
     def delete(self, request, assistant_id=None):
         assistant_id = request.POST.get('assistant_id')
-        assistant = Assistant.objects.get(pk=assistant_id)
-        assistant.delete()
-        messages.success(request, "Assistant deleted from database successfully.")
         response_message = delete_assistant(assistant_id)
         messages.success(request, response_message)
         return redirect('manage_assistants')
