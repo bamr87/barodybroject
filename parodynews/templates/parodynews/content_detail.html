@@ -9,11 +9,7 @@
 <!-- Content and Detail Form -->
 <div class="container mt-5" id="content-form">
     <h2>Content Detail and Prompt</h2>
-    {% if content_detail %}
-    <form method="post" action="{% url 'content_detail' content_detail_id=content_detail.id %}" class="needs-validation" novalidate>
-    {% else %}
     <form method="post" action="{% url 'manage_content' %}" class="needs-validation" novalidate>
-    {% endif %}
         {% csrf_token %}
         <div class="row">
             <!-- Content Detail Form -->
@@ -30,7 +26,22 @@
                     {{ content_form.as_p }}
                 </div>
             </div>
-            <button type="submit" name="_method" value="save" class="btn btn-primary">Save</button>
+            {% if content_detail_id %}
+            <form action="{% url 'edit_content' content_detail_id %}" method="POST" class="save-form mr-2">
+                {% csrf_token %}
+                <input type="hidden" name="content_detail_id" value="{{ content_detail_id }}">
+                <input type="hidden" name="_method" value="save">
+                <input type="hidden" name="action" value="save">
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Save</button>
+            </form>
+            {% else %}
+            <form action="{% url 'manage_content' %}" method="POST" class="save-form mr-2">
+                {% csrf_token %}
+                <input type="hidden" name="_method" value="save">
+                <input type="hidden" name="action" value="save">
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
+            </form>
+            {% endif %}
             <button type="submit" name="_method" value="run" class="btn btn-primary mt-3">Generate Content</button>
         </div>
     </form>
@@ -62,7 +73,7 @@
             <td>
                     <div class="d-flex justify-content-end">
                         <!-- Delete Button Form -->
-                        <form action="{% url 'manage_content' %}" method="post" class="delete-form mr-2">
+                        <form action="{% url 'delete_content' content_detail.id %}" method="POST" class="delete-form mr-2">
                             {% csrf_token %}
                             <input type="hidden" name="content_detail_id" value="{{ content_detail.id }}">
                             <input type="hidden" name="_method" value="delete">
@@ -73,11 +84,15 @@
                         <form action="{% url 'create_message' %}" method="POST">
                             {% csrf_token %}
                             <input type="hidden" name="content_id" value="{{ content.id }}">
+                            <input type="hidden" name="_method" value="create">
+                            <input type="hidden" name="action" value="create">
                             <button type="submit" class="btn btn-primary">Create New Message</button>
                         </form>
                         <!-- Edit Button Form -->
                         <form action="{% url 'edit_content' content_detail.id %}" method="GET" class="edit-form ml-2">
                             <input type="hidden" name="content_detail_id" value="{{ content_detail.id }}">
+                            <input type="hidden" name="_method" value="get">
+                            <input type="hidden" name="action" value="save">
                             <button type="submit" class="btn btn-warning">Edit</button>
                         </form>
                     </div>

@@ -52,15 +52,17 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
             content = Content.objects.get(detail_id=content_detail_id)
             content_id = content.id
             assistant = content.assistant.name
+            instructions = content.assistant.instructions
             is_edit = True
         else:
             content = None
             content_detail = None
             assistant = None
+            instructions = None
             is_edit = False
 
         # Initialize the forms
-        content_form = ContentForm(instance=content)
+        content_form = ContentForm(instance=content, initial={'assistant': assistant, 'instructions': instructions})
         content_detail_form = ContentDetailForm(instance=content_detail)
 
         # Get the fields and display fields for the model
@@ -92,12 +94,20 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         return redirect('content_detail', content_detail_id=content_detail_id)
     
     def save(self, request, content_detail=None):
-        content_detail = request.POST.get('content_detail_id')
+        content_detail_id = request.POST.get('content_detail_id')
+
         content_form = ContentForm(request.POST)
         content_detail_form = ContentDetailForm(request.POST)
 
-        if content_form.is_valid() and content_detail_form.is_valid():
+        if content_detail_id:
+            content_detail = ContentDetail.objects.get(pk=content_detail_id)
+            content = Content.objects.get(detail_id=content_detail)
 
+            content_form = ContentForm(request.POST, instance=content)
+            content_detail_form = ContentDetailForm(request.POST, instance=content_detail)
+
+
+        if content_form.is_valid() and content_detail_form.is_valid():
             content_detail = content_detail_form.save(commit=False)
             content_detail.save()
             content = content_form.save(commit=False)
@@ -105,6 +115,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
             content.save()
             
             messages.success(request, "Content and its details saved successfully!")
+            return redirect('content_detail', content_detail_id=content_detail.id)
         else:
             error_messages = f"Content form errors: {content_form.errors}, Content detail form errors: {content_detail_form.errors}"
             messages.error(request, f"Error saving content and its details! {error_messages}")
