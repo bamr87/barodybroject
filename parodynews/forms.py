@@ -42,9 +42,10 @@ class ContentForm(forms.ModelForm):
 
     class Meta:
         model = Content
-        fields = [ 'assistant', 'instructions', 'prompt']
+        fields = [ 'assistant', 'instructions', 'prompt', 'content']
         widgets = {
             'prompt': forms.Textarea(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'class': 'form-control'}),
         }
         labels = {
             'prompt': 'Prompt',
@@ -57,9 +58,8 @@ class ContentForm(forms.ModelForm):
         self.fields['assistant'].widget.choices = [
             (assistant.id, assistant.name) for assistant in Assistant.objects.all()
         ]
-        self.fields['assistant'].widget.attrs.update({
-            'data-id': lambda choice: choice[0]
-        })
+        super(ContentForm, self).__init__(*args, **kwargs)
+        self.fields['content'].required = False  # Make content field optional
 
 # Fetch all Assistant objects and create a list of tuples for the dropdown choices
 

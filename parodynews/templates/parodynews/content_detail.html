@@ -27,6 +27,7 @@
                 </div>
             </div>
             {% if content_detail_id %}
+            <!-- Save Button Form -->
             <form action="{% url 'edit_content' content_detail_id %}" method="POST" class="save-form mr-2">
                 {% csrf_token %}
                 <input type="hidden" name="content_detail_id" value="{{ content_detail_id }}">
@@ -35,6 +36,7 @@
                 <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Save</button>
             </form>
             {% else %}
+            <!-- Create Button Form -->
             <form action="{% url 'manage_content' %}" method="POST" class="save-form mr-2">
                 {% csrf_token %}
                 <input type="hidden" name="_method" value="save">

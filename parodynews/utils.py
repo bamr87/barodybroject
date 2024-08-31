@@ -1,9 +1,9 @@
 # Chat GPT-4o API
 # https://platform.openai.com/docs/api-reference/chat-gpt-4o
+
 from django.db import connection
 from .models import AppConfig
 from openai import OpenAI
-# utils.py (modified usage example)
 
 print("Loading utils.py")
 
@@ -72,10 +72,11 @@ def save_assistant(name, description, instructions, model, json_schema, assistan
             "json_schema": {
                 "name": "News_Article",
                 "description": "A JSON object representing a news article.",
-                "schema": json_schema,
+                "schema": json_schema.schema,
                 "strict": True,
             }
         }
+
     else:
         response_format = None
 
@@ -98,15 +99,9 @@ def save_assistant(name, description, instructions, model, json_schema, assistan
     
     return assistant
 
-# Core Assistant Functions
-
-## Meta Data 
-
 def get_assistant(assistant_id):
     assistant = client.beta.assistants.retrieve(assistant_id)
     return assistant
-
-
 
 # Function to retrieve assistant information
 
@@ -208,22 +203,26 @@ all_schemas = load_schemas()
 parody_schema = resolve_refs(all_schemas.get('parody_news_article_schema'))
 content_detail_schema = resolve_refs(all_schemas.get('content_detail_schema'))
 
-def generate_content(instructions, prompt, json_schema):
+def generate_content(content_form):
+
+    if content_form.is_valid():
+        model = content_form.cleaned_data['assistant'].model
+
     response = client.chat.completions.create(
-        model="gpt-4o-2024-08-06",
+        model=model,
         messages=[
             {
                 "role": "system",
                 "content": [
                     {
                         "type": "text",
-                        "text": instructions,
+                        "text": content_form.cleaned_data['assistant'].instructions,
                     },
                 ],
             },
             {
                 "role": "user",
-                "content": prompt,
+                "content": content_form.cleaned_data['prompt'],
             }
         ],
         response_format={
@@ -231,13 +230,13 @@ def generate_content(instructions, prompt, json_schema):
             "json_schema": {
                 "name": "News_Article",
                 "description": "A JSON object representing a news article.",
-                "schema": json_schema,
+                "schema": content_form.cleaned_data['assistant'].json_schema.schema,
                 "strict": True,
            }
         }
     )
     # Get the content of the last message in the response
-    data = response.choices[0].message.content.strip()
+    data = response.choices[0].message.content
     
     # Log the response
     logging.info("Response: %s", data)

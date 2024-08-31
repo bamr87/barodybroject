@@ -13,11 +13,11 @@
               "type": "string"
             }
           },
-          "required": ["name"]
+          "required": ["name"],
+          "additionalProperties": false
         },
         "publication_date": {
-          "type": "string",
-          "format": "date-time"
+          "type": "string"
         },
         "title": {
           "type": "string"
@@ -26,7 +26,7 @@
           "type": "string"
         }
       },
-      "required": ["author", "publication_date", "title"],
+      "required": ["author", "publication_date", "title", "subtitle"],
       "additionalProperties": false
     },
     "Metadata": {
@@ -51,7 +51,7 @@
           }
         },
         "keywords": {
-          "type": "object"
+          "type": "string"
         },
         "tags": {
           "type": "array",
@@ -72,12 +72,11 @@
         "images": {
           "type": "array",
           "items": {
-            "type": "string",
-            "format": "uri"
+            "type": "string"
           }
         }
       },
-      "required": ["body"],
+      "required": ["body", "images"],
       "additionalProperties": false
     }
   },

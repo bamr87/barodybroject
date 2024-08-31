@@ -51,8 +51,8 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
             content_detail = ContentDetail.objects.get(pk=content_detail_id)
             content = Content.objects.get(detail_id=content_detail_id)
             content_id = content.id
-            assistant = content.assistant.name
-            instructions = content.assistant.instructions
+            assistant = content.assistant.name if content.assistant else None
+            instructions = content.assistant.instructions if content.assistant else None
             is_edit = True
         else:
             content = None
@@ -99,6 +99,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         content_form = ContentForm(request.POST)
         content_detail_form = ContentDetailForm(request.POST)
 
+        # Check if content_detail_id is provided
         if content_detail_id:
             content_detail = ContentDetail.objects.get(pk=content_detail_id)
             content = Content.objects.get(detail_id=content_detail)
@@ -106,7 +107,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
             content_form = ContentForm(request.POST, instance=content)
             content_detail_form = ContentDetailForm(request.POST, instance=content_detail)
 
-
+        # Save the forms if they are valid
         if content_form.is_valid() and content_detail_form.is_valid():
             content_detail = content_detail_form.save(commit=False)
             content_detail.save()
@@ -122,8 +123,31 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
         return self.get(request)
 
-    def run(self, request):
-        return HttpResponse("Run method called")
+    def run(self, request, content_detail=None):
+        content_form = ContentForm(request.POST)
+        data = generate_content(content_form)
+        content_detail_id = request.POST.get('content_detail_id')
+        content = Content.objects.get(detail_id=content_detail_id)
+        content_detail = ContentDetail.objects.get(pk=content_detail_id)
+        json_data = json.loads(data)
+        content_section = json_data['Content']['body']
+        content.content = content_section
+        content.save()
+
+        content_detail_section = json_data['Header']
+        content_detail.title = content_detail_section['title']
+        content_detail.author = content_detail_section['author']['name']
+        content_detail.published_at = datetime.now()
+
+        content_detail_metadata = json_data['Metadata']
+        content_detail.description = content_detail_metadata['description']
+        content_detail.slug = content_detail_metadata['slug']
+
+        content_detail.save()
+
+        messages.success(request, "Content generated successfully")
+
+        return redirect('content_detail', content_detail_id=content_detail_id)
 
     def delete(self, request, content_detail_id=None):
         content_detail_id = request.POST.get('content_detail_id')
@@ -229,11 +253,7 @@ def get_assistant_details(request, assistant_id):
 
         data = {
             'assistant_id': assistant.id,
-            'name': assistant.name,
-            'description': assistant.description,
-            'model': assistant.model,
-            'instructions': assistant.instructions,
-            'json_schema': assistant.json_schema,
+            'instructions': instructions,
         }
         return JsonResponse(data)
     except Assistant.DoesNotExist:
