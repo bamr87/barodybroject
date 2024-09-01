@@ -346,10 +346,6 @@ def generate_content_detail(content):
                 "content": content,
             }
         ],
-        metadata={
-            "type": "Content Detail",
-            "category": "Parody",
-        },
         response_format={
             "type": "json_schema",
             "json_schema": {

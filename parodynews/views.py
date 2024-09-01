@@ -158,6 +158,52 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         messages.success(request, "Content and its details deleted successfully!")
         return redirect('manage_content')
 
+class ManageMessageView(LoginRequiredMixin, View):
+    template_name = 'parodynews/message_detail.html'
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('_method') == 'create_message':
+            return self.create_message(request)
+
+    def get(self, request, message_id=None):
+
+        message_list = Message.objects.select_related('content__detail').all()
+        assistants = Assistant.objects.all()  # Fetch all assistants
+        current_message = None
+
+        if message_id:
+            current_message = get_object_or_404(Message, pk=message_id)
+
+        return render(request, 'parodynews/message_detail.html', {
+            'message_list': message_list,
+            'current_message': current_message,
+            'assistants': assistants
+            }
+        )
+
+        
+    def create_message(self, request):
+        content_detail_id = request.POST.get('content_detail_id')
+
+        content = Content.objects.get(detail_id=content_detail_id)
+        content_id = content.id
+
+        # Call utils.create_message to get message and thread_id
+        message, thread_id = create_message(content.content)
+
+        # Create a new Thread instance and save it
+        new_thread = Thread(thread_id=thread_id)  # Assuming Thread model doesn't require any mandatory fields
+        new_thread.save()
+
+        print(f"New thread created with ID: {content_id}")
+
+        # Create and save the new Message instance with the thread_id
+        new_message = Message(message_id=message.id, content_id=content_id, thread_id=new_thread.thread_id)
+        new_message.save()
+
+        messages.success(request, "Message created successfully.")
+        return redirect(reverse_lazy('message_detail', kwargs={'message_id': new_message.message_id}))
+
 
 
 
@@ -259,32 +305,7 @@ def get_assistant_details(request, assistant_id):
     except Assistant.DoesNotExist:
         return JsonResponse({'error': 'Assistant not found'}, status=404)
 
-# View to create a new message
-@login_required
-@require_POST
-def create_message(request):
-    from .utils import create_message  # Import the utils module
-    content_id = request.POST.get('content_id')
-    try:
-        content = Content.objects.get(id=content_id)
-    except Content.DoesNotExist:
-        return HttpResponseBadRequest("The requested content does not exist.")
 
-    # Call utils.create_message to get message and thread_id
-    message, thread_id = create_message(content.content)
-
-    # Create a new Thread instance and save it
-    new_thread = Thread(thread_id=thread_id)  # Assuming Thread model doesn't require any mandatory fields
-    new_thread.save()
-
-    print(f"New thread created with ID: {content_id}")
-
-    # Create and save the new Message instance with the thread_id
-    new_message = Message(message_id=message.id, content_id=content_id, thread_id=new_thread.thread_id)
-    new_message.save()
-
-    messages.success(request, "Message created successfully.")
-    return redirect('list_messages')
 
 # View to delete a message
 @login_required
@@ -299,28 +320,8 @@ def delete_message(request, message_id):
     message.delete()
 
     messages.success(request, "Message deleted successfully.")
-    return redirect('list_messages')
+    return redirect('manage_message')  # Redirect to the messages list page or wherever appropriate
 
-@login_required
-def message_detail(request, message_id=None):
-    # Check if the request method is GET
-    if request.method != 'GET':
-        # Return a 405 Method Not Allowed response if not a GET request
-        return HttpResponseNotAllowed(['GET'])
-
-    message_list = Message.objects.select_related('content__detail').all()
-    assistants = Assistant.objects.all()  # Fetch all assistants
-    current_message = None
-
-    if message_id:
-        current_message = get_object_or_404(Message, pk=message_id)
-
-    return render(request, 'parodynews/message_detail.html', {
-        'message_list': message_list,
-        'current_message': current_message,
-        'assistants': assistants
-        }
-    )
 
 
 # View to assign an assistant to a message
@@ -399,14 +400,14 @@ def add_message_to_db(request):
 
     # Then, create or update the Content object with the content_detail instance
     content, _ = Content.objects.update_or_create(
-        prompt= Assistant.objects.get(assistant_id=assistant_id).instructions,  # Assuming you want to use the message_content as the prompt
-        assistant= Assistant.objects.get(assistant_id=assistant_id),  # Assuming you want to use the message_content as the prompt
+        prompt= Assistant.objects.get(id=assistant_id).instructions,  # Assuming you want to use the message_content as the prompt
+        assistant= Assistant.objects.get(id=assistant_id),  # Assuming you want to use the message_content as the prompt
         content=message_content,
         detail=content_detail_instance  # Use the ContentDetail instance here
     )
 
     # Update content_detail to link to the newly created or updated content
-    content_detail.content = content
+    content_detail.content.set([content])
     content_detail.save()
 
     # Create or update the Message object

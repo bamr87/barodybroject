@@ -21,7 +21,7 @@ from parodynews import views
 from django.contrib.auth.views import LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
-from parodynews.views import ManageContentView, ManageAssistantsView, MyObjectView
+from parodynews.views import ManageContentView, ManageAssistantsView, ManageMessageView, MyObjectView
 
 
 
@@ -35,6 +35,8 @@ urlpatterns = [
     path('content/<int:content_detail_id>', ManageContentView.as_view(), name='content_detail'),
     path('content/edit/<int:content_detail_id>', ManageContentView.as_view(), name='edit_content'),
     path('content/delete/<int:content_detail_id>', ManageContentView.as_view(), name='delete_content'),
+
+    # Sub routines for AJAX requests
     path('get_assistant_details/<str:assistant_id>/', views.get_assistant_details, name='get_assistant_details'),
     path('get-raw-content', views.get_raw_content, name='get_raw_content'),
 
@@ -45,9 +47,10 @@ urlpatterns = [
     path('assistants/delete/<str:assistant_id>/', ManageAssistantsView.as_view(), name='delete_assistant'),
     
     # Message management
-    path('create_message/', views.create_message, name='create_message'),
-    path('messages/', views.message_detail, name='list_messages'),
-    path('messages/<str:message_id>/', views.message_detail, name='message_detail'),
+    path('messages/', ManageMessageView.as_view(), name='manage_message'),
+    path('messages/create/', ManageMessageView.as_view(), name='create_message'),
+    path('messages/create/<int:content_id>/', ManageMessageView.as_view(), name='create_message'),
+    path('messages/<str:message_id>/', ManageMessageView.as_view(), name='message_detail'),
     path('messages/delete/<str:message_id>/', views.delete_message, name='delete_message'),
     path('messages/assign/<str:message_id>/', views.assign_assistant_to_message, name='assign_assistant_to_message'),
     path('messages/run/<str:message_id>/', views.run_messages, name='run_message'),
