@@ -5,26 +5,26 @@ from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import JsonResponse
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.views.decorators.http import require_POST
 from django.views import View
 from datetime import datetime
-from .forms import AssistantForm, ContentForm, ContentDetailForm
-from .models import Assistant, Content, ContentDetail, Message, Thread
+from .forms import AssistantForm, ContentItemForm, ContentDetailForm
+from .models import Assistant, ContentItem, ContentDetail, Message, Thread
 from .utils import (
     save_assistant, 
-    delete_assistant, 
+    openai_delete_assistant, 
     create_run, 
     generate_content, 
+    openai_create_message,
+    openai_delete_message,
     openai_list_messages, 
     retrieve_assistants_info,
-    create_message,
     json_to_markdown,
     generate_content_detail
 )
 
 from .mixins import ModelFieldsMixin
-
 
 print("Loading views.py")
 
@@ -49,7 +49,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         # Check if content_id is provided
         if content_detail_id:
             content_detail = ContentDetail.objects.get(pk=content_detail_id)
-            content = Content.objects.get(detail_id=content_detail_id)
+            content = ContentItem.objects.get(detail_id=content_detail_id)
             content_id = content.id
             assistant = content.assistant.name if content.assistant else None
             instructions = content.assistant.instructions if content.assistant else None
@@ -62,7 +62,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
             is_edit = False
 
         # Initialize the forms
-        content_form = ContentForm(instance=content, initial={'assistant': assistant, 'instructions': instructions})
+        content_form = ContentItemForm(instance=content)
         content_detail_form = ContentDetailForm(instance=content_detail)
 
         # Get the fields and display fields for the model
@@ -78,7 +78,8 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
             'content_id': content_id,
             'assistant': assistant,
             'fields': fields,
-            'display_fields': display_fields
+            'display_fields': display_fields,
+            'instructions': instructions,
         })
 
     def post(self, request, content_detail_id=None):
@@ -88,23 +89,26 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         if request.POST.get('_method') == 'save':
             return self.save(request)
 
-        if request.POST.get('_method') == 'run':
-            return self.run(request)
+        if request.POST.get('_method') == 'generate_content':
+            return self.generate_content(request)
         
-        return redirect('content_detail', content_detail_id=content_detail_id)
+        if request.POST.get('_method') == 'create_thread':
+            return self.create_thread(request)
+
+        return redirect('manage_content')
     
     def save(self, request, content_detail=None):
         content_detail_id = request.POST.get('content_detail_id')
 
-        content_form = ContentForm(request.POST)
+        content_form = ContentItemForm(request.POST)
         content_detail_form = ContentDetailForm(request.POST)
 
         # Check if content_detail_id is provided
         if content_detail_id:
             content_detail = ContentDetail.objects.get(pk=content_detail_id)
-            content = Content.objects.get(detail_id=content_detail)
+            content = ContentItem.objects.get(detail_id=content_detail)
 
-            content_form = ContentForm(request.POST, instance=content)
+            content_form = ContentItemForm(request.POST, instance=content)
             content_detail_form = ContentDetailForm(request.POST, instance=content_detail)
 
         # Save the forms if they are valid
@@ -123,16 +127,15 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
         return self.get(request)
 
-    def run(self, request, content_detail=None):
-        content_form = ContentForm(request.POST)
-        data = generate_content(content_form)
+    def generate_content(self, request, content_detail=None):
         content_detail_id = request.POST.get('content_detail_id')
-        content = Content.objects.get(detail_id=content_detail_id)
+        content_form = ContentItem.objects.get(detail_id=content_detail_id)
         content_detail = ContentDetail.objects.get(pk=content_detail_id)
+        data = generate_content(content_form)
         json_data = json.loads(data)
         content_section = json_data['Content']['body']
-        content.content = content_section
-        content.save()
+        content_form.content = content_section
+        content_form.save()
 
         content_detail_section = json_data['Header']
         content_detail.title = content_detail_section['title']
@@ -149,21 +152,131 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
         return redirect('content_detail', content_detail_id=content_detail_id)
 
+    def create_thread(self, request):
+        content_detail_id = request.POST.get('content_detail_id')
+
+        content = ContentItem.objects.get(detail_id=content_detail_id)
+        content_id = content.id
+
+        # Call utils.create_message to get message and thread_id
+        message, thread_id = openai_create_message(content)
+
+        # Create a new Thread instance and save it
+        new_thread = Thread(id=thread_id, name=content.detail.title)
+        new_thread.save()
+
+        print(f"New thread created with ID: {content_id}")
+
+        # Create and save the new Message instance with the thread_id
+        new_message = Message(id=message.id, content_id=content_id, thread_id=new_thread.id)
+        new_message.save()
+
+        messages.success(request, "Message created successfully.")
+        return redirect('thread_message_detail', message_id=new_message.id, thread_id=new_thread.id)
+
+
     def delete(self, request, content_detail_id=None):
         content_detail_id = request.POST.get('content_detail_id')
         content_detail = ContentDetail.objects.get(pk=content_detail_id)
-        content = Content.objects.filter(detail_id=content_detail_id)
+        content = ContentItem.objects.filter(detail_id=content_detail_id)
         content_detail.delete()
         content.delete()
         messages.success(request, "Content and its details deleted successfully!")
         return redirect('manage_content')
 
+class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
+    template_name = 'parodynews/content_processing.html'
+    model = Thread
+    # View to list all threads and messages
+
+    def get(self, request, message_id=None, thread_id=None):
+        threads = Thread.objects.all()  # Retrieve all threads
+        thread_messages = []
+        current_thread = None
+        current_message = None
+        fields, display_fields = self.get_model_fields()
+
+        if thread_id:
+            current_thread = Thread.objects.get(pk=thread_id)
+            thread_messages = openai_list_messages(thread_id)
+            for message in thread_messages:
+                message_id = message.get('id')
+                msg_obj = Message.objects.get(id=message_id)
+                message['assistant_id'] = msg_obj.assistant_id
+
+        if message_id:
+            current_message = Message.objects.get(pk=message_id)
+
+        message_list = Message.objects.all()
+        assistants = Assistant.objects.all()  # Fetch all assistants
+
+        return render(request, 'parodynews/content_processing.html', {
+            'threads': threads,
+            'message_list': message_list,
+            'current_thread': current_thread,
+            'assistants': assistants,
+            'thread_messages': thread_messages,
+            'current_message': current_message,
+            'fields': fields,
+            'display_fields': display_fields
+            })
+
+    def post(self, request, thread_id=None, message_id=None):
+        if request.POST.get('_method') == 'delete':
+            return self.delete_thread(request, thread_id)
+
+        if request.POST.get('_method') == 'delete_thread_message':
+            return self.delete_thread_message(request, message_id, thread_id)
+        
+        if request.POST.get('_method') == 'run_message':
+            return self.run_message(request)
+        
+
+    # View to delete a thread
+
+    def delete_thread(self, request, thread_id=None):
+        # Fetch the thread from the database
+        thread = Thread.objects.get(pk=thread_id)
+        # Delete the thread
+        thread.delete()
+        client = OpenAI()
+
+        client.beta.threads.delete(thread_id)
+        messages.success(request, "Thread deleted successfully.")
+
+        # Redirect to a suitable page after deletion, e.g., the threads list page
+        return redirect('process_content')  # Replace 'threads_list' with the name of your threads list view
+
+    def delete_thread_message(self, request, message_id, thread_id):
+        # Retrieve the message instance
+        message = Message.objects.get(id=message_id)
+
+        # Delete the message
+        message.delete()
+
+        # Delete the message from OpenAI
+        openai_delete_message(message_id, thread_id)
+
+        messages.success(request, "Message deleted successfully.")
+        return redirect('thread_detail', thread_id=thread_id)
+
+    # View to run messages
+    def run_message(self, request, message_id=None, thread_id=None):
+        message_id = request.POST.get('message_id')
+        message = Message.objects.get(id=message_id)  # Retrieve the message by its ID or return 404
+        assistant_id = request.POST.get('assistant_id')  # Assuming assistant_id is passed in the request
+        thread_id = message.thread_id  # Access the thread_id associated with the message
+        create_run(thread_id, assistant_id)  # Pass thread_id instead of message_id
+        
+        # Redirect to the thread_detail.html of the message
+        return redirect('thread_message_detail', message_id=message_id, thread_id=thread_id)
+
+
+
+
+
 class ManageMessageView(LoginRequiredMixin, View):
     template_name = 'parodynews/message_detail.html'
-
-    def post(self, request, *args, **kwargs):
-        if request.POST.get('_method') == 'create_message':
-            return self.create_message(request)
 
     def get(self, request, message_id=None):
 
@@ -172,7 +285,7 @@ class ManageMessageView(LoginRequiredMixin, View):
         current_message = None
 
         if message_id:
-            current_message = get_object_or_404(Message, pk=message_id)
+            current_message = Message.objects.get(pk=message_id)
 
         return render(request, 'parodynews/message_detail.html', {
             'message_list': message_list,
@@ -181,39 +294,46 @@ class ManageMessageView(LoginRequiredMixin, View):
             }
         )
 
+    def post(self, request, message_id=None, thread_id=None, assigned_assistant_id=None):
+        if request.POST.get('_method') == 'create_message':
+            return self.create_message(request)
         
-    def create_message(self, request):
-        content_detail_id = request.POST.get('content_detail_id')
+        if request.POST.get('_method') == 'delete_message':
+            return self.delete_message(request, message_id, thread_id)
+        
+        if request.POST.get('_method') == 'assign_assistant_to_message':
+            return self.assign_assistant_to_message(request, message_id)
 
-        content = Content.objects.get(detail_id=content_detail_id)
-        content_id = content.id
+    def delete_message(self, request, message_id, thread_id):
+        # Retrieve the message instance
+        message = Message.objects.get(id=message_id)
 
-        # Call utils.create_message to get message and thread_id
-        message, thread_id = create_message(content.content)
+        # Delete the message
+        message.delete()
 
-        # Create a new Thread instance and save it
-        new_thread = Thread(thread_id=thread_id)  # Assuming Thread model doesn't require any mandatory fields
-        new_thread.save()
+        # Delete the message from OpenAI
+        openai_delete_message(message_id, thread_id)
 
-        print(f"New thread created with ID: {content_id}")
+        messages.success(request, "Message deleted successfully.")
+        return redirect('manage_message')  # Redirect to the messages list page or wherever appropriate
+    # View to assign an assistant to a message
 
-        # Create and save the new Message instance with the thread_id
-        new_message = Message(message_id=message.id, content_id=content_id, thread_id=new_thread.thread_id)
-        new_message.save()
+    def assign_assistant_to_message(self, request, message_id, thread_id=None):
+        assigned_assistant_id= request.POST.get('assigned_assistant_id')
+        thread_id= request.POST.get('thread_id')
+        
+        message = Message.objects.get(pk=message_id)
+        assistant = Assistant.objects.get(pk=assigned_assistant_id)
+        message.assistant_id = assistant  # Assuming your Message model has a ForeignKey to Assistant
+        
+        message.save()
+        
+        messages.success(request, "Message Assigned successfully.")
 
-        messages.success(request, "Message created successfully.")
-        return redirect(reverse_lazy('message_detail', kwargs={'message_id': new_message.message_id}))
+        if thread_id:
+            return redirect('thread_message_detail', thread_id=thread_id, message_id=message_id)
+        return redirect('message_detail', message_id=message_id)  # Redirect to the messages list page or wherever appropriate
 
-
-
-
-from django.views import View
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.contrib import messages
-from .models import Assistant, JSONSchema
-from .forms import AssistantForm
 
 class ManageAssistantsView(ModelFieldsMixin, View):
     model = Assistant
@@ -288,7 +408,8 @@ class ManageAssistantsView(ModelFieldsMixin, View):
 
     def delete(self, request, assistant_id=None):
         assistant_id = request.POST.get('assistant_id')
-        response_message = delete_assistant(assistant_id)
+        Assistant.objects.get(id=assistant_id).delete()
+        response_message = openai_delete_assistant(assistant_id)
         messages.success(request, response_message)
         return redirect('manage_assistants')
 
@@ -305,78 +426,6 @@ def get_assistant_details(request, assistant_id):
     except Assistant.DoesNotExist:
         return JsonResponse({'error': 'Assistant not found'}, status=404)
 
-
-
-# View to delete a message
-@login_required
-def delete_message(request, message_id):
-    # Retrieve the message instance
-    try:
-        message = Message.objects.get(message_id=message_id)
-    except Message.DoesNotExist:
-        return HttpResponseBadRequest("The requested message does not exist.")
-
-    # Delete the message
-    message.delete()
-
-    messages.success(request, "Message deleted successfully.")
-    return redirect('manage_message')  # Redirect to the messages list page or wherever appropriate
-
-
-
-# View to assign an assistant to a message
-@login_required
-def assign_assistant_to_message(request, message_id):
-    if request.method == 'POST':
-        message_ai = get_object_or_404(Message, pk=message_id)
-        assistant_id = request.POST.get('assistant_id')
-        assistant = get_object_or_404(Assistant, pk=assistant_id)
-        message_ai.assistant_id = assistant  # Assuming your Message model has a ForeignKey to Assistant
-        message_ai.save()
-
-        messages.success(request, "Message Assigned successfully.")
-        return redirect('message_detail', message_id=message_id)  # Redirect to the messages list page or wherever appropriate
-    else:
-        return HttpResponse("Method not allowed", status=405)
-
-# View to run messages
-@login_required
-def run_messages(request, message_id):
-    from .models import Message  # Import the Message model
-
-    if request.method == "POST":
-        message = get_object_or_404(Message, message_id=message_id)  # Retrieve the message by its ID or return 404
-        thread_id = message.thread_id  # Access the thread_id associated with the message
-        assistant_id = request.POST.get('assistant_id')  # Assuming assistant_id is passed in the request
-        create_run(thread_id, assistant_id)  # Pass thread_id instead of message_id
-        
-        # Redirect to the thread_detail.html of the message
-        return redirect('thread_detail', thread_id=thread_id)
-    else:
-        return HttpResponse("Invalid request", status=400)
-
-# View to list all threads and messages
-@login_required
-def thread_detail(request, thread_id=None):
-    threads = Thread.objects.all()  # Retrieve all threads
-    thread_messages = []
-    current_thread = None
-
-    if thread_id:
-        current_thread = get_object_or_404(Thread, pk=thread_id)
-        thread_messages = openai_list_messages(thread_id)
-
-    return render(request, 'parodynews/thread_detail.html', {'threads': threads, 'current_thread': current_thread, 'thread_messages': thread_messages})
-
-# View to delete a thread
-@require_POST
-def delete_thread(request, thread_id):
-    # Fetch the thread from the database or return a 404 error if not found
-    thread = get_object_or_404(Thread, pk=thread_id)
-    # Delete the thread
-    thread.delete()
-    # Redirect to a suitable page after deletion, e.g., the threads list page
-    return redirect('thread_detail')  # Replace 'threads_list' with the name of your threads list view
 
 # View to add a message to the database
 @login_required
@@ -399,7 +448,7 @@ def add_message_to_db(request):
     content_detail_instance = ContentDetail.objects.get(id=content_detail.id)
 
     # Then, create or update the Content object with the content_detail instance
-    content, _ = Content.objects.update_or_create(
+    content, _ = ContentItem.objects.update_or_create(
         prompt= Assistant.objects.get(id=assistant_id).instructions,  # Assuming you want to use the message_content as the prompt
         assistant= Assistant.objects.get(id=assistant_id),  # Assuming you want to use the message_content as the prompt
         content=message_content,
@@ -427,7 +476,7 @@ def get_raw_content(request):
         return JsonResponse({'error': 'Missing content ID'}, status=400)
 
     # Fetch the raw content from the database
-    content = get_object_or_404(Content, pk=content_id)  # Adjust query as needed
+    content = get_object_or_404(ContentItem, pk=content_id)  # Adjust query as needed
 
     # Assuming the raw content is stored in a field named 'content'
     return HttpResponse(content.content, content_type='text/plain')
@@ -498,7 +547,7 @@ class MyObjectView(View):
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
-from .models import ContentDetail, Content
+from .models import ContentDetail, ContentItem
 from .utils import generate_markdown_file
 import yaml
 
@@ -507,7 +556,7 @@ def generate_markdown_view(request):
     content_detail = get_object_or_404(ContentDetail, id=content_id)
     
     # Fetch the related Content object
-    content = get_object_or_404(Content, detail_id=content_detail.id)
+    content = get_object_or_404(ContentItem, detail_id=content_detail.id)
     
     # Create the frontmatter as a dictionary
     frontmatter = {

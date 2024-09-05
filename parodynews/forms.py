@@ -1,6 +1,8 @@
 from django import forms
-from .models import Assistant, Content, ContentDetail, MyObject, JSONSchema
+from .models import Assistant, ContentItem, ContentDetail, MyObject, JSONSchema, Thread
 import json
+from django.db.models import Count
+
 
 print("Loading forms...")
 
@@ -25,13 +27,14 @@ try:
 except FileNotFoundError:
     MODEL_CHOICES = []
 
-class ContentForm(forms.ModelForm):
+class ContentItemForm(forms.ModelForm):
 
     assistant = forms.ModelChoiceField(
         queryset=Assistant.objects.all(),
         label="Assistant Name",
         widget=forms.Select(attrs={'class': 'form-select'}),
         to_field_name="id"  # This will display the 'name' field in the dropdown
+
     )
     
     instructions = forms.CharField(
@@ -41,7 +44,7 @@ class ContentForm(forms.ModelForm):
         required=False)
 
     class Meta:
-        model = Content
+        model = ContentItem
         fields = [ 'assistant', 'instructions', 'prompt', 'content']
         widgets = {
             'prompt': forms.Textarea(attrs={'class': 'form-control'}),
@@ -58,8 +61,15 @@ class ContentForm(forms.ModelForm):
         self.fields['assistant'].widget.choices = [
             (assistant.id, assistant.name) for assistant in Assistant.objects.all()
         ]
-        super(ContentForm, self).__init__(*args, **kwargs)
+
         self.fields['content'].required = False  # Make content field optional
+
+        # Set the assistant field to a random record in the Assistant model
+        random_assistant = Assistant.objects.annotate(num=Count('id')).order_by('?').first()
+        if random_assistant:
+            self.fields['assistant'].initial = random_assistant.id
+            self.fields['instructions'].initial = random_assistant.instructions
+
 
 # Fetch all Assistant objects and create a list of tuples for the dropdown choices
 
@@ -80,7 +90,23 @@ class AssistantForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(AssistantForm, self).__init__(*args, **kwargs)
         self.fields['model'].choices = MODEL_CHOICES
-        self.fields['model'].initial = Assistant._meta.get_field('model').default
+        # self.fields['model'].initial = Assistant._meta.get_field('model').default
+
+class ContentProcessingForm(forms.Form):
+    thread_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    assistant_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    content_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    prompt = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
+    content = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
+
+class ThreadForm(forms.ModelForm):
+    class Meta:
+        model = Thread
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
 
 class MyObjectForm(forms.ModelForm):
     class Meta:

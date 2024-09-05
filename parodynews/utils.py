@@ -123,10 +123,9 @@ def retrieve_assistants_info():
 
 # Function to delete an assistant
 
-def delete_assistant(assistant_id):
+def openai_delete_assistant(assistant_id):
     # Assuming you have a Django model named Assistant
-    from .models import Assistant
-    Assistant.objects.get(id=assistant_id).delete()
+
     client.beta.assistants.delete(assistant_id)
 
     return f"Assistant with ID {assistant_id} deleted successfully."
@@ -180,9 +179,6 @@ def load_schemas():
 
     return schemas
 
-import json
-import jsonref
-
 def resolve_refs(obj):
     if isinstance(obj, jsonref.JsonRef):
         # If it's a JsonRef object, resolve it
@@ -205,8 +201,7 @@ content_detail_schema = resolve_refs(all_schemas.get('content_detail_schema'))
 
 def generate_content(content_form):
 
-    if content_form.is_valid():
-        model = content_form.cleaned_data['assistant'].model
+    model = content_form.assistant.model
 
     response = client.chat.completions.create(
         model=model,
@@ -216,13 +211,13 @@ def generate_content(content_form):
                 "content": [
                     {
                         "type": "text",
-                        "text": content_form.cleaned_data['assistant'].instructions,
+                        "text": content_form.assistant.instructions,
                     },
                 ],
             },
             {
                 "role": "user",
-                "content": content_form.cleaned_data['prompt'],
+                "content": content_form.prompt,
             }
         ],
         response_format={
@@ -230,27 +225,38 @@ def generate_content(content_form):
             "json_schema": {
                 "name": "News_Article",
                 "description": "A JSON object representing a news article.",
-                "schema": content_form.cleaned_data['assistant'].json_schema.schema,
+                "schema": content_form.assistant.json_schema.schema,
                 "strict": True,
            }
         }
     )
     # Get the content of the last message in the response
     data = response.choices[0].message.content
-    
+
     # Log the response
     logging.info("Response: %s", data)
     
     return data
 
-def create_message(content):
-    thread = client.beta.threads.create()
+def openai_create_message(content):
+    thread = client.beta.threads.create(
+        metadata={"type": "news_article_thread",
+                  "title": content.detail.title,
+                  "description": content.detail.description,},
+    )
     message = client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
-        content=content
+        content=content.content
     )
     return message, thread.id
+
+def openai_delete_message(message_id, thread_id):
+    deleted_message = client.beta.threads.messages.delete(
+    message_id=message_id,
+    thread_id=thread_id,
+    )
+    return deleted_message
 
 def create_run(thread_id, assistant_id):
     client = OpenAI()
@@ -260,6 +266,7 @@ def create_run(thread_id, assistant_id):
     assistant_id=assistant_id,
     )
     return run
+
 
 def openai_list_messages(thread_id):
     client = OpenAI()
@@ -273,15 +280,6 @@ def openai_list_messages(thread_id):
         {"id": message.id, "text": message.content[0].text.value, "assistant_id": message.assistant_id} for message in thread_messages
     ]
     return formatted_messages
-
-
-
-def delete_thread(thread_id):
-    client = OpenAI()
-
-    client.beta.threads.delete(thread_id)
-
-    return f"Thread with ID {thread_id} deleted successfully."
 
 # Function to convert JSON to Markdown
 
@@ -303,9 +301,7 @@ def json_to_markdown(data):
     return convert_to_md(data)
 
 
-import os
 from django.conf import settings
-from .models import ContentDetail
 
 def generate_markdown_file(data, filename):
     """

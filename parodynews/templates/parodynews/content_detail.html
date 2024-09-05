@@ -35,22 +35,28 @@
                 <input type="hidden" name="action" value="save">
                 <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Save</button>
             </form>
+            <!-- Generate Content Button Form -->
+            <form action="{% url 'generate_content' content_detail_id %}" method="POST" class="generate-form">
+                {% csrf_token %}
+                <input type="hidden" name="content_detail_id" value="{{ content_detail_id }}">
+                <input type="hidden" name="_method" value="generate_content">
+                <input type="hidden" name="action" value="generate_content">
+                <button type="submit" name="_method" value="generate_content" class="btn btn-primary">Generate Content</button>
+            </form>
             {% else %}
             <!-- Create Button Form -->
             <form action="{% url 'manage_content' %}" method="POST" class="save-form mr-2">
                 {% csrf_token %}
                 <input type="hidden" name="_method" value="save">
                 <input type="hidden" name="action" value="save">
-                <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
+                <button type="submit" class="btn btn-secondary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
             </form>
             {% endif %}
-            <button type="submit" name="_method" value="run" class="btn btn-primary mt-3">Generate Content</button>
         </div>
     </form>
 </div>
 <!-- Content List -->
 <div class="container mt-5">
-    {% load custom_filters %}
 
     <h2>Content List</h2>
     <table class="table" id="content-table">
@@ -90,12 +96,12 @@
                             <button type="submit" class="btn btn-warning">Edit</button>
                         </form>
                         <!-- Create Message Button -->
-                        <form action="{% url 'create_message' content_detail.id %}" method="POST">
+                        <form action="{% url 'create_thread' content_detail.id %}" method="POST">
                             {% csrf_token %}
                             <input type="hidden" name="content_detail_id" value="{{ content_detail.id }}">
-                            <input type="hidden" name="_method" value="create_message">
-                            <input type="hidden" name="action" value="create_message">
-                            <button type="submit" class="btn btn-primary">Create New Message</button>
+                            <input type="hidden" name="_method" value="create_thread">
+                            <input type="hidden" name="action" value="create_thread">
+                            <button type="submit" class="btn btn-primary">New Thread</button>
                         </form>
                     </div>
                 </td>

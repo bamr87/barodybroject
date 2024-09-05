@@ -67,7 +67,7 @@ class ContentDetail(models.Model):
 
     def __str__(self):
         return self.title
-class Content(models.Model):
+class ContentItem(models.Model):
     id = models.AutoField(primary_key=True)
     assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, blank=True, related_name='content')
     prompt = models.TextField(default="say this is a test")
@@ -83,29 +83,29 @@ class Content(models.Model):
 
 # New model for threads
 class Thread(models.Model):
-    thread_id = models.CharField(max_length=255, primary_key=True) 
+    id = models.CharField(max_length=255, primary_key=True) 
     name = models.CharField(max_length=100, default="New Thread")
     created_at = models.DateTimeField(default=timezone.now)
 
+    def get_display_fields(self):
+        # List the fields you want to display
+        return ['id', 'name', 'created_at']
+
     def __str__(self):
-        return f"Thread created at {self.created_at}"
+        return self.name
+    
 # New model for storing messages
 # https://platform.openai.com/docs/api-reference/messages
 class Message(models.Model):
-    message_id = models.CharField(max_length=255, primary_key=True)
+    id = models.CharField(max_length=255, primary_key=True)
     created_at = models.DateTimeField(default=timezone.now)
-    content = models.ForeignKey(Content, on_delete=models.SET_NULL, null=True, blank=True, related_name='messages')
+    content = models.ForeignKey(ContentItem, on_delete=models.SET_NULL, null=True, blank=True, related_name='messages')
     thread = models.ForeignKey(Thread, on_delete=models.SET_NULL, null=True, related_name='messages')
     assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, blank=True, related_name='messages')
-
+    run_id = models.CharField(max_length=255, null=True, blank=True)
     def __str__(self):
         content_id = f"Content ID {self.content.id}" if self.content else "No Content"
-        return f"Message for {content_id} with Thread ID {self.thread.thread_id} created at {self.created_at}"
-    
-# 
-
-
-from django.db import models
+        return f"Message for {content_id} with Thread ID {self.thread.id} created at {self.created_at}"
 
 class MyObject(models.Model):
     name = models.CharField(max_length=100)

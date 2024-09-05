@@ -3,13 +3,11 @@ from django.test import TestCase
 print("Performing tests...")
 # Create your tests here.
 from django.test import TestCase
-from .models import Content
-from .forms import ContentForm
+from .forms import ContentItemForm
 
 from django.test import TestCase, Client
 from django.urls import reverse
-from .models import Content, ContentDetail
-from .forms import ContentForm
+from .models import ContentItem, ContentDetail
 from django.contrib.auth.models import User
 
 class ManageContentViewTestCase(TestCase):
@@ -37,10 +35,10 @@ class ManageContentViewTestCase(TestCase):
 class ContentFormTestCase(TestCase):
     def test_valid_form(self):
         form_data = {'title': 'Valid Title', 'description': 'Valid Description'}
-        form = ContentForm(data=form_data)
+        form = ContentItemForm(data=form_data)
         self.assertTrue(form.is_valid())
     
     def test_invalid_form(self):
         form_data = {'title': '', 'description': 'Valid Description'}
-        form = ContentForm(data=form_data)
+        form = ContentItemForm(data=form_data)
         self.assertFalse(form.is_valid())
