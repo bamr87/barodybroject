@@ -1,33 +1,72 @@
 {
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Content Detail",
   "type": "object",
   "properties": {
-    "author": {
+    "Header": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
+        "author": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": ["name"],
+          "additionalProperties": false
+        },
+        "publication_date": {
+          "type": "string",
+          "description": "The date and time the content was published."
+        },
+        "title": {
+          "type": "string",
+          "description": "Craft an eye-catching, humorous, and exaggerated headline. No more than 7 words long."
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "A brief description of the content."
         }
       },
-      "required": ["name"],
+      "required": ["author", "publication_date", "title", "subtitle"],
       "additionalProperties": false
     },
-    "publication_date": {
-      "type": "string",
-      "description": "The date and time the content was published."
-    },
-    "title": {
-      "type": "string",
-      "description": "Craft an eye-catching, humorous, and exaggerated headline. No more than 7 words long."
-    },
-    "description": {
-      "type": "string",
-      "description": "A brief description of the content."
-    },
-    "slug": {
-      "type": "string",
-      "description": "URL-friendly title that briefly describes the contents. This is to be used as a filename and permalink."
+    "Metadata": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "keywords": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["description", "slug", "excerpt", "prompt", "categories", "keywords", "tags"],
+      "additionalProperties": false
     }
   },
-  "required": ["author", "publication_date", "title", "description", "slug"],
+  "required": ["Header", "Metadata"],
   "additionalProperties": false
 }

@@ -49,7 +49,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         # Check if content_id is provided
         if content_detail_id:
             content_detail = ContentDetail.objects.get(pk=content_detail_id)
-            content = ContentItem.objects.get(detail_id=content_detail_id)
+            content = ContentItem.objects.get(detail_id=content_detail_id, line_number=1)
             content_id = content.id
             assistant = content.assistant.name if content.assistant else None
             instructions = content.assistant.instructions if content.assistant else None
@@ -106,7 +106,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         # Check if content_detail_id is provided
         if content_detail_id:
             content_detail = ContentDetail.objects.get(pk=content_detail_id)
-            content = ContentItem.objects.get(detail_id=content_detail)
+            content = ContentItem.objects.get(detail_id=content_detail, line_number=1)
 
             content_form = ContentItemForm(request.POST, instance=content)
             content_detail_form = ContentDetailForm(request.POST, instance=content_detail)
@@ -131,9 +131,16 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         content_detail_id = request.POST.get('content_detail_id')
         content_form = ContentItem.objects.get(detail_id=content_detail_id)
         content_detail = ContentDetail.objects.get(pk=content_detail_id)
-        data = generate_content(content_form)
-        json_data = json.loads(data)
-        content_section = json_data['Content']['body']
+        data, content_detail_schema = generate_content(content_form)
+        json_data = json.loads(content_detail_schema)
+           # Check if data is in JSON format
+        try:
+            content_data = json.loads(data)
+        except json.JSONDecodeError:
+            content_data = data
+
+        content_section = content_data['Content']['body'] if isinstance(content_data, dict) else content_data
+
         content_form.content = content_section
         content_form.save()
 
@@ -155,7 +162,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
     def create_thread(self, request):
         content_detail_id = request.POST.get('content_detail_id')
 
-        content = ContentItem.objects.get(detail_id=content_detail_id)
+        content = ContentItem.objects.get(detail_id=content_detail_id, line_number=1)
         content_id = content.id
 
         # Call utils.create_message to get message and thread_id
@@ -198,11 +205,7 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
         if thread_id:
             current_thread = Thread.objects.get(pk=thread_id)
-            thread_messages = openai_list_messages(thread_id)
-            for message in thread_messages:
-                message_id = message.get('id')
-                msg_obj = Message.objects.get(id=message_id)
-                message['assistant_id'] = msg_obj.assistant_id
+            thread_messages = Message.objects.filter(thread_id=thread_id)
 
         if message_id:
             current_message = Message.objects.get(pk=message_id)
@@ -262,12 +265,44 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
     # View to run messages
     def run_message(self, request, message_id=None, thread_id=None):
+        # retrieve the message instance of the selected message
         message_id = request.POST.get('message_id')
         message = Message.objects.get(id=message_id)  # Retrieve the message by its ID or return 404
         assistant_id = request.POST.get('assistant_id')  # Assuming assistant_id is passed in the request
         thread_id = message.thread_id  # Access the thread_id associated with the message
-        create_run(thread_id, assistant_id)  # Pass thread_id instead of message_id
         
+        # Call the create_run function to create a run for the message
+        run, run_status, message_data = create_run(thread_id, assistant_id)  
+        
+        # Update the message status and run_id
+        message.status = run_status.status
+        message.run_id = run.id
+        message.save()
+
+        # Create a new content item instance with the response content
+        new_content = ContentItem.objects.create(
+            assistant_id=assistant_id,
+            prompt=Assistant.objects.get(id=assistant_id).instructions,
+            content=message_data['text'],
+            detail_id=message.content.detail_id,
+            content_type='message'
+        )
+
+        # Create a new message instance with the response content
+        new_message = Message.objects.create(
+            id=message_data['id'],
+            thread_id=thread_id,
+            assistant_id=None,
+            status=run_status.status,
+            run_id=run.id,
+            content_id=new_content.id,
+        )
+        
+        new_content.save()
+        new_message.save()
+
+        messages.success(request, "Message run successfully.")
+
         # Redirect to the thread_detail.html of the message
         return redirect('thread_message_detail', message_id=message_id, thread_id=thread_id)
 
@@ -280,7 +315,7 @@ class ManageMessageView(LoginRequiredMixin, View):
 
     def get(self, request, message_id=None):
 
-        message_list = Message.objects.select_related('content__detail').all()
+        message_list = Message.objects.all()
         assistants = Assistant.objects.all()  # Fetch all assistants
         current_message = None
 
@@ -438,12 +473,19 @@ def add_message_to_db(request):
 
     generated_content_detail = json.loads(generate_content_detail(message_content))
     # First, create the ContentDetail object
+    title = generated_content_detail['Header']['title'],  # Placeholder title, adjust as needed
+    description = generated_content_detail['Metadata']['description'],  # Placeholder description, adjust as needed
+    author = generated_content_detail['Header']['author']['name'],  # Access the nested 'name' key within 'author'
+    published_at = datetime.now().isoformat(),  # Use the current time for published_at
+    slug = generated_content_detail['Metadata']['slug']  # Access the 'slug' key)
+    
     content_detail = ContentDetail.objects.create(
-        title=generated_content_detail.get('title'),  # Placeholder title, adjust as needed
-        description=generated_content_detail['description'],  # Placeholder description, adjust as needed
-        author=generated_content_detail['author']['name'],  # Access the nested 'name' key within 'author'
-        published_at=datetime.now(),  # Use the current time for published_at
-        slug = generated_content_detail.get('slug'))
+        title=title[0],
+        description=description[0],
+        author=author[0],
+        published_at=published_at[0],
+        slug=slug[0]
+        )
     # Retrieve the ContentDetail instance using the ID
     content_detail_instance = ContentDetail.objects.get(id=content_detail.id)
 

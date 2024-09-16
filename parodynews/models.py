@@ -69,6 +69,9 @@ class ContentDetail(models.Model):
         return self.title
 class ContentItem(models.Model):
     id = models.AutoField(primary_key=True)
+    line_number = models.IntegerField(default=0)
+    content_type = models.CharField(max_length=100, default="text")
+
     assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, blank=True, related_name='content')
     prompt = models.TextField(default="say this is a test")
     content = models.TextField()
@@ -78,6 +81,15 @@ class ContentItem(models.Model):
         # List the fields you want to display
         return ['id', 'assistant', 'prompt', 'content', 'detail']
     
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Check if this is a new record
+            last_item = ContentItem.objects.filter(detail=self.detail).order_by('-line_number').first()
+            if last_item:
+                self.line_number = last_item.line_number + 1
+            else:
+                self.line_number = 1
+        super(ContentItem, self).save(*args, **kwargs)
+
     def __str__(self):
         return self.prompt
 
@@ -102,10 +114,10 @@ class Message(models.Model):
     content = models.ForeignKey(ContentItem, on_delete=models.SET_NULL, null=True, blank=True, related_name='messages')
     thread = models.ForeignKey(Thread, on_delete=models.SET_NULL, null=True, related_name='messages')
     assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, blank=True, related_name='messages')
+    status = models.CharField(max_length=100, default="initial")
     run_id = models.CharField(max_length=255, null=True, blank=True)
     def __str__(self):
-        content_id = f"Content ID {self.content.id}" if self.content else "No Content"
-        return f"Message for {content_id} with Thread ID {self.thread.id} created at {self.created_at}"
+        return self.id
 
 class MyObject(models.Model):
     name = models.CharField(max_length=100)

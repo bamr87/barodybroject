@@ -64,12 +64,20 @@ class ContentItemForm(forms.ModelForm):
 
         self.fields['content'].required = False  # Make content field optional
 
-        # Set the assistant field to a random record in the Assistant model
-        random_assistant = Assistant.objects.annotate(num=Count('id')).order_by('?').first()
-        if random_assistant:
-            self.fields['assistant'].initial = random_assistant.id
-            self.fields['instructions'].initial = random_assistant.instructions
-
+        # Only set the assistant field to a random record if the form is new
+        if not self.initial.get('assistant'):
+            random_assistant = Assistant.objects.annotate(num=Count('id')).order_by('?').first()
+            if random_assistant:
+                self.fields['assistant'].initial = random_assistant.id
+                self.fields['instructions'].initial = random_assistant.instructions
+        else:
+            # Populate the instructions field based on the selected assistant
+            assistant_id = self.initial.get('assistant')
+            try:
+                assistant = Assistant.objects.get(id=assistant_id)
+                self.fields['instructions'].initial = assistant.instructions
+            except Assistant.DoesNotExist:
+                self.fields['instructions'].initial = ''
 
 # Fetch all Assistant objects and create a list of tuples for the dropdown choices
 

@@ -55,9 +55,12 @@ urlpatterns = [
     path('messages/', ManageMessageView.as_view(), name='manage_message'),
     path('messages/create/', ManageMessageView.as_view(), name='create_message'),
     path('messages/delete/<str:message_id>/<str:thread_id>/', ManageMessageView.as_view(), name='delete_message'),
+    path('messages/delete/', ManageMessageView.as_view(), name='delete_message'),
+    path('messages/', ManageMessageView.as_view(), name='message_detail'),
     path('messages/<str:message_id>/', ManageMessageView.as_view(), name='message_detail'),
     path('messages/<str:message_id>/assign/<str:assigned_assistant_id>/', ManageMessageView.as_view(), name='assign_assistant_to_message'),
     path('messages/<str:message_id>/assign/', ManageMessageView.as_view(), name='assign_assistant_to_message'),
+    path('messages/assign/', ManageMessageView.as_view(), name='assign_assistant_to_message'),
     path('add_message_to_db/', views.add_message_to_db, name='add_message_to_db'),
 
     # Thread management

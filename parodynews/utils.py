@@ -193,15 +193,25 @@ def resolve_refs(obj):
         # Return the object as is if it's not a reference or collection
         return obj
 
-# Load all schemas and store them in a variable
-all_schemas = load_schemas()
 
-parody_schema = resolve_refs(all_schemas.get('parody_news_article_schema'))
-content_detail_schema = resolve_refs(all_schemas.get('content_detail_schema'))
 
 def generate_content(content_form):
 
     model = content_form.assistant.model
+
+    if content_form.assistant.json_schema is not None:
+        response_format = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "News_Article",
+                "description": "A JSON object representing a news article.",
+                "schema": content_form.assistant.json_schema.schema,
+                "strict": True,
+            }
+        }
+
+    else:
+        response_format = None
 
     response = client.chat.completions.create(
         model=model,
@@ -220,23 +230,60 @@ def generate_content(content_form):
                 "content": content_form.prompt,
             }
         ],
+        response_format=response_format
+    )
+    # Get the content of the last message in the response
+    data = response.choices[0].message.content
+
+    content_detail = generate_content_detail(data)
+
+    # Log the response
+    logging.info("Response: %s", data, content_detail)
+    
+    return data, content_detail
+
+# Load all schemas and store them in a variable
+all_schemas = load_schemas()
+
+parody_schema = resolve_refs(all_schemas.get('parody_news_article_schema'))
+content_detail_schema = resolve_refs(all_schemas.get('content_detail_schema'))
+
+def generate_content_detail(content):
+    response = client.chat.completions.create(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "generate content detail",
+                    },
+                ],
+            },
+            {
+                "role": "user",
+                "content": content,
+            }
+        ],
         response_format={
             "type": "json_schema",
             "json_schema": {
-                "name": "News_Article",
-                "description": "A JSON object representing a news article.",
-                "schema": content_form.assistant.json_schema.schema,
+                "name": "Metadata",
+                "description": "A JSON object representing details of a news article.",
+                "schema": content_detail_schema,
                 "strict": True,
            }
         }
     )
     # Get the content of the last message in the response
-    data = response.choices[0].message.content
-
+    content_detail = response.choices[0].message.content
+    
     # Log the response
     logging.info("Response: %s", data)
     
-    return data
+    return content_detail
+
 
 def openai_create_message(content):
     thread = client.beta.threads.create(
@@ -259,13 +306,41 @@ def openai_delete_message(message_id, thread_id):
     return deleted_message
 
 def create_run(thread_id, assistant_id):
+    import time
     client = OpenAI()
 
     run = client.beta.threads.runs.create(
     thread_id=thread_id,
     assistant_id=assistant_id,
     )
-    return run
+
+    
+    while True:
+        run_status = client.beta.threads.runs.retrieve(
+            thread_id=thread_id,
+            run_id=run.id,
+        )
+        
+        if run_status.status == "completed":
+            break
+        time.sleep(1)
+
+    new_message = client.beta.threads.messages.list(
+        thread_id=thread_id,
+        run_id=run.id
+        )
+
+    new_message_id = new_message.data[0].id
+
+    # https://platform.openai.com/docs/api-reference/messages/getMessage
+    message_content = client.beta.threads.messages.retrieve(
+    message_id=new_message_id,
+    thread_id=thread_id,
+    )
+
+    message_data = {"id": message_content.id, "text": message_content.content[0].text.value, "assistant_id": message_content.assistant_id}
+
+    return run, run_status, message_data
 
 
 def openai_list_messages(thread_id):
@@ -280,6 +355,7 @@ def openai_list_messages(thread_id):
         {"id": message.id, "text": message.content[0].text.value, "assistant_id": message.assistant_id} for message in thread_messages
     ]
     return formatted_messages
+
 
 # Function to convert JSON to Markdown
 
