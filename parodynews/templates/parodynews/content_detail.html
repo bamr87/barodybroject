@@ -46,11 +46,11 @@
                 </form>
                 {% else %}
                 <!-- Create Button Form -->
-                <form action="{% url 'manage_content' %}" method="POST" class="save-form mr-2">
+                <form id="create-new-content" action="{% url 'manage_content' %}" method="POST" class="save-form mr-2">
                     {% csrf_token %}
                     <input type="hidden" name="_method" value="save">
                     <input type="hidden" name="action" value="save">
-                    <button type="submit" class="btn btn-secondary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
+                    <button id="create-button" type="submit" class="btn btn-secondary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
                 </form>
                 {% endif %}
             </div>

@@ -63,7 +63,7 @@
                     <tr>
                         {% for field in fields %}
                             {% if field.name in display_fields %}
-                                <td>{{ assistant|get_field_value:field.name }}</td>
+                                <td>{{ assistant|get_field_value:field.name|truncate_chars:1024 }}</td>
                             {% endif %}
                         {% endfor %}
                         <td>
