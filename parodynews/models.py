@@ -4,6 +4,14 @@ from django.utils import timezone
 
 print("Loading models.py")
 
+class PoweredBy(models.Model):
+    name = models.CharField(max_length=100)
+    icon = models.CharField(max_length=100)
+    url = models.URLField()
+
+    def __str__(self):
+        return self.name
+
 class AppConfig(models.Model):
     api_key = models.CharField(max_length=255)
     project_id = models.CharField(max_length=255)

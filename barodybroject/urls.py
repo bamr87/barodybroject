@@ -21,7 +21,13 @@ from parodynews import views
 from django.contrib.auth.views import LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
-from parodynews.views import ManageContentView, ManageAssistantsView, ManageMessageView, ProcessContentView, MyObjectView
+from parodynews.views import (
+    FooterView,
+    ManageContentView,
+    ManageAssistantsView,
+    ManageMessageView,
+    ProcessContentView,
+    MyObjectView)
 
 
 
@@ -29,6 +35,8 @@ urlpatterns = [
     # Home page and admin page
     path('', views.index, name='index'),
     path('admin/', admin.site.urls),
+    path('footer/', FooterView.as_view(), name='footer'),
+
     
     # Content management
     path('content/', ManageContentView.as_view(), name='manage_content'),

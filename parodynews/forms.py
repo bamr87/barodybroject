@@ -128,7 +128,7 @@ from django_json_widget.widgets import JSONEditorWidget
 class JSONSchemaForm(forms.ModelForm):
     class Meta:
         model = JSONSchema
-        fields = ['name', 'schema']
+        fields = ['name', 'description', 'schema']
         widgets = {
             'schema': JSONEditorWidget
         }

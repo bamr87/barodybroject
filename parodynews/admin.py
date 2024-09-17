@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django import forms
-from .models import AppConfig
+from .models import AppConfig, PoweredBy
 from django_json_widget.widgets import JSONEditorWidget
 from .models import JSONSchema
 
@@ -8,6 +8,7 @@ print("Registering AppConfig model")
 
 # Register your models here.
 admin.site.register(AppConfig)
+admin.site.register(PoweredBy)
 
 # JSON Schema model
 

@@ -14,6 +14,22 @@ Django application that integrates with OpenAI to generate content with the help
 - **Search Functionality**: Integrated search functionality for finding content within the site.
 - **Security Features**: Implements Django's built-in security features to protect against XSS, CSRF, SQL Injection, and more.
 
+## Powered By
+
+- **Django**: High-level Python Web framework that encourages rapid development and clean, pragmatic design.
+- **OpenAI**: API for accessing new AI models developed by OpenAI.
+- **Bootstrap**: Front-end open source toolkit for developing with HTML, CSS, and JS.
+<!-- - **Tailwind CSS**: Utility-first CSS framework packed with classes like flex, pt-4, text-center, and rotate-90 that can be composed to build any design, directly in your markup. -->
+- **SQLite**: Self-contained, serverless, zero-configuration, transactional SQL database engine.
+<!-- - **Sphinx**: Python documentation generator that converts reStructuredText files into HTML websites and PDFs. -->
+- **Docker**: Open platform for developing, shipping, and running applications.
+<!-- - **React**: JavaScript library for building user interfaces. -->
+- **Jekyll**: Simple, blog-aware static site generator for personal, project, or organization sites.
+
+## Tools
+
+<!-- - **Selenium**: Portable framework for testing web applications. -->
+
 ## Installation
 
 Follow these steps to set up a development environment for this Django project:
