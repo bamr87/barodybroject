@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 from django.views import View
 from datetime import datetime
 from .forms import AssistantForm, ContentItemForm, ContentDetailForm
-from .models import Assistant, ContentItem, ContentDetail, Message, Thread
+from .models import Assistant, ContentItem, ContentDetail, Message, Thread, PoweredBy
 from .utils import (
     save_assistant, 
     openai_delete_assistant, 
@@ -27,6 +27,16 @@ from .utils import (
 from .mixins import ModelFieldsMixin
 
 print("Loading views.py")
+
+from django.views.generic import TemplateView
+
+class FooterView(TemplateView):
+    template_name = 'footer.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['powered_by'] = PoweredBy.objects.all()
+        return context
 
 from openai import OpenAI
 

@@ -70,8 +70,8 @@ def save_assistant(name, description, instructions, model, json_schema, assistan
         response_format = {
             "type": "json_schema",
             "json_schema": {
-                "name": "News_Article",
-                "description": "A JSON object representing a news article.",
+                "name": json_schema.name,
+                "description": json_schema.description,
                 "schema": json_schema.schema,
                 "strict": True,
             }
