@@ -158,13 +158,15 @@
                     {{ current_message.content.content|dict_to_text_list|markdownify|linebreaksbr }}</div>
                 </p>
             <!-- Form to add message to database -->
-            <form action="{% url 'add_message_to_db' %}" method="post">
+            <form action="{% url 'create_content' current_thread.id current_message.id %}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="thread_id" value="{{ current_thread.id }}">
                 <input type="hidden" name="assistant_id" value="{{ current_message.assistant_id }}">
                 <input type="hidden" name="message_id" value="{{ current_message.id }}">
                 <input type="hidden" name="message_content" value="{{ current_message.text }}">
-                <button type="submit" class="btn btn-primary btn-sm">Add to Database</button>
+                <input type="hidden" name="_method" value="create_content">
+                <input type="hidden" name="action" value="create_content">
+                <button type="submit" class="btn btn-primary btn-sm">Add as new content</button>
             </form>
         {% else %}
         {% for message in thread_messages %}

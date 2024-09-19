@@ -273,6 +273,9 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         if request.POST.get('_method') == 'delete_thread_message':
             return self.delete_thread_message(request, message_id, thread_id)
         
+        if request.POST.get('_method') == 'create_content':
+            return self.create_content(request)
+        
         if request.POST.get('_method') == 'run_message':
             return self.run_message(request)
         
@@ -306,6 +309,47 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
         messages.success(request, "Message deleted successfully.")
         return redirect('thread_detail', thread_id=thread_id)
+
+    def create_content(self, request, thread_id=None, message_id=None):
+        message_id = request.POST.get('message_id')
+        message_content = Message.objects.get(id=message_id).content.content
+        thread_id = request.POST.get('thread_id')
+        assistant_id = request.POST.get('assistant_id')
+
+        generated_content_detail = json.loads(generate_content_detail(message_content))
+        # First, create the ContentDetail object
+        title = generated_content_detail['Header']['title'],  # Placeholder title, adjust as needed
+        description = generated_content_detail['Metadata']['description'],  # Placeholder description, adjust as needed
+        author = generated_content_detail['Header']['author']['name'],  # Access the nested 'name' key within 'author'
+        published_at = datetime.now().isoformat(),  # Use the current time for published_at
+        slug = generated_content_detail['Metadata']['slug']  # Access the 'slug' key)
+        
+        content_detail = ContentDetail.objects.create(
+            title=title[0],
+            description=description[0],
+            author=author[0],
+            published_at=published_at[0],
+            slug=slug[0]
+            )
+        # Retrieve the ContentDetail instance using the ID
+        content_detail_instance = ContentDetail.objects.get(id=content_detail.id)
+
+        # Then, create or update the Content object with the content_detail instance
+        content, _ = ContentItem.objects.update_or_create(
+            prompt= message_content,  # Assuming you want to use the message_content as the prompt
+            assistant= Assistant.objects.get(id=assistant_id),  # Assuming you want to use the message_content as the prompt
+            detail=content_detail_instance  # Use the ContentDetail instance here
+        )
+
+        # Update content_detail to link to the newly created or updated content
+        content_detail.content.set([content])
+        content_detail.save()
+
+        messages.success(request, "Message and content created successfully.")
+
+        return redirect('content_detail', content_detail_id=content_detail.id )  # Redirect back to the thread detail page
+
+
 
     # View to run messages
     def run_message(self, request, message_id=None, thread_id=None):
@@ -545,66 +589,7 @@ def get_assistant_details(request, assistant_id):
         return JsonResponse({'error': 'Assistant not found'}, status=404)
 
 
-# View to add a message to the database
-@login_required
-@require_POST
-def add_message_to_db(request):
-    message_id = request.POST.get('message_id')
-    message_content = request.POST.get('message_content')
-    thread_id = request.POST.get('thread_id')
-    assistant_id = request.POST.get('assistant_id')
 
-    generated_content_detail = json.loads(generate_content_detail(message_content))
-    # First, create the ContentDetail object
-    title = generated_content_detail['Header']['title'],  # Placeholder title, adjust as needed
-    description = generated_content_detail['Metadata']['description'],  # Placeholder description, adjust as needed
-    author = generated_content_detail['Header']['author']['name'],  # Access the nested 'name' key within 'author'
-    published_at = datetime.now().isoformat(),  # Use the current time for published_at
-    slug = generated_content_detail['Metadata']['slug']  # Access the 'slug' key)
-    
-    content_detail = ContentDetail.objects.create(
-        title=title[0],
-        description=description[0],
-        author=author[0],
-        published_at=published_at[0],
-        slug=slug[0]
-        )
-    # Retrieve the ContentDetail instance using the ID
-    content_detail_instance = ContentDetail.objects.get(id=content_detail.id)
-
-    # Then, create or update the Content object with the content_detail instance
-    content, _ = ContentItem.objects.update_or_create(
-        prompt= Assistant.objects.get(id=assistant_id).instructions,  # Assuming you want to use the message_content as the prompt
-        assistant= Assistant.objects.get(id=assistant_id),  # Assuming you want to use the message_content as the prompt
-        content=message_content,
-        detail=content_detail_instance  # Use the ContentDetail instance here
-    )
-
-    # Update content_detail to link to the newly created or updated content
-    content_detail.content.set([content])
-    content_detail.save()
-
-    # Create or update the Message object
-    message = Message.objects.update_or_create(
-        message_id=message_id,
-        thread_id=thread_id,
-        defaults={'content': content, 'created_at': datetime.now()}
-    )
-    messages.success(request, "Message and content created successfully.")
-
-    return redirect('thread_detail')  # Redirect back to the thread detail page
-
-
-def get_raw_content(request):
-    content_id = request.GET.get('id')
-    if not content_id:
-        return JsonResponse({'error': 'Missing content ID'}, status=400)
-
-    # Fetch the raw content from the database
-    content = get_object_or_404(ContentItem, pk=content_id)  # Adjust query as needed
-
-    # Assuming the raw content is stored in a field named 'content'
-    return HttpResponse(content.content, content_type='text/plain')
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
@@ -670,44 +655,7 @@ class MyObjectView(View):
         })
     
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
-from .models import ContentDetail, ContentItem
-from .utils import generate_markdown_file
-import yaml
 
-def generate_markdown_view(request):
-    content_id = request.GET.get('content_id')
-    content_detail = get_object_or_404(ContentDetail, id=content_id)
-    
-    # Fetch the related Content object
-    content = get_object_or_404(ContentItem, detail_id=content_detail.id)
-    
-    # Create the frontmatter as a dictionary
-    frontmatter = {
-        'title': content_detail.title,
-        'description': content_detail.description,
-        'author': content_detail.author,
-        'published_at': content_detail.published_at.strftime("%Y-%m-%d"),
-        'slug': content_detail.slug,
-    }
-    
-    # Convert the frontmatter dictionary to a YAML string
-    frontmatter_yaml = yaml.dump(frontmatter, default_flow_style=False)
-    
-    # Combine the frontmatter and the main content
-    data = f"---\n{frontmatter_yaml}---\n\n{content.content}"
-    
-    # Format the date and title for the filename
-    filename = content_detail.slug.lower().replace(" ", "-")
-    date_str = content_detail.published_at.strftime("%Y-%m-%d")
-    formatted_filename = f"{date_str}-{filename}.md"
-
-    # Generate the markdown file
-    file_path = generate_markdown_file(data, formatted_filename)
-    
-    # Provide feedback to the user
-    return HttpResponse(f"Markdown file generated at: {file_path}")
 
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -764,7 +712,8 @@ from django.shortcuts import render, redirect
 
 from .forms import PostForm, PostFrontMatterForm
 from .models import Post
-
+from .utils import generate_markdown_file
+import yaml
 class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
     model = Post
     template_name = 'parodynews/pages_post_detail.html'
@@ -772,17 +721,19 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
     def get(self, request, post_id=None):
         if post_id:
             post = Post.objects.get(pk=post_id)
+            post_frontmatter = PostFrontMatter.objects.get(post_id=post.id)
             form_post = PostForm(instance=post)
-            form_post_frontmatter = PostFrontMatterForm(instance=post)
+            form_post_frontmatter = PostFrontMatterForm(instance=post_frontmatter)
 
         else:
             post = None
+            post_frontmatter = None
             form_post = None
             form_post_frontmatter = None
 
         # Initialize the form
         form_post = PostForm(instance=post)
-        form_post_frontmatter = PostFrontMatterForm(instance=post)
+        form_post_frontmatter = PostFrontMatterForm(instance=post_frontmatter)
         
         # Get all posts and fields
         post_list = Post.objects.all()
@@ -807,6 +758,9 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
         
         if request.POST.get('_method') == 'save':
             return self.save(request)
+        
+        if request.POST.get('_method') == 'publish':
+            return self.publish(request)
         
         return redirect('manage_post')
     
@@ -837,7 +791,7 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
         # Check if post_id is provided
         if post_id:
             post = Post.objects.get(pk=post_id)
-            post_frontmatter = PostFrontMatter.objects.get(post_id=post_id)
+            post_frontmatter = PostFrontMatter.objects.get(post_id=post.id)
 
             form_post = PostForm(request.POST, instance=post)
             form_post_frontmatter = PostFrontMatterForm(request.POST, instance=post_frontmatter)
@@ -872,5 +826,36 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
 
             return render(request, self.template_name, context)
 
+    def publish(self, request, post_id=None):
+        post_id = request.POST.get('post_id')
+        post = Post.objects.get(id=post_id)
+        
+        # Fetch the related Post Frontmatter
+        post_frontmatter = PostFrontMatter.objects.get(post_id=post.id)
+        
+        # Create the frontmatter as a dictionary
+        frontmatter = {
+            'title': post_frontmatter.title,
+            'description': post_frontmatter.description,
+            'author': post_frontmatter.author,
+            'published_at': post_frontmatter.published_at.strftime("%Y-%m-%d"),
+            'slug': post_frontmatter.slug,
+        }
+        
+        # Convert the frontmatter dictionary to a YAML string
+        frontmatter_yaml = yaml.dump(frontmatter, default_flow_style=False)
+        
+        # Combine the frontmatter and the main content
+        data = f"---\n{frontmatter_yaml}---\n\n{post.content}"
+        
+        # Format the date and title for the filename
+        filename = post.slug.lower().replace(" ", "-")
+        date_str = post_frontmatter.published_at.strftime("%Y-%m-%d")
+        formatted_filename = f"{date_str}-{filename}.md"
 
+        # Generate the markdown file
+        file_path = generate_markdown_file(data, formatted_filename)
+        
+        # Provide feedback to the user
+        return HttpResponse(f"Markdown file generated at: {file_path}")
         

@@ -52,15 +52,16 @@ urlpatterns = [
 
     # Sub routines for AJAX requests
     path('get_assistant_details/<str:assistant_id>/', views.get_assistant_details, name='get_assistant_details'),
-    path('get-raw-content', views.get_raw_content, name='get_raw_content'),
+
 
     # Content Processing
     path('threads/', ProcessContentView.as_view(), name='process_content'),
     path('threads/<str:thread_id>/', ProcessContentView.as_view(), name='thread_detail'),
     path('threads/delete/<str:thread_id>/', ProcessContentView.as_view(), name='delete_thread'),
     path('threads/<str:thread_id>/messages/<str:message_id>/', ProcessContentView.as_view(), name='thread_message_detail'),
-    path('threads/<str:thread_id>/messages/run/<str:message_id>/', ProcessContentView.as_view(), name='run_message'),
     path('threads/<str:thread_id>/messages/delete/<str:message_id>/', ProcessContentView.as_view(), name='delete_thread_message'),
+    path('threads/<str:thread_id>/messages/create/<str:message_id>/', ProcessContentView.as_view(), name='create_content'),
+    path('threads/<str:thread_id>/messages/run/<str:message_id>/', ProcessContentView.as_view(), name='run_message'),
     path('threads/<str:thread_id>/messages/post/<str:message_id>/', ProcessContentView.as_view(), name='create_post'),
 
     # Message management
@@ -73,7 +74,6 @@ urlpatterns = [
     path('messages/<str:message_id>/assign/<str:assigned_assistant_id>/', ManageMessageView.as_view(), name='assign_assistant_to_message'),
     path('messages/<str:message_id>/assign/', ManageMessageView.as_view(), name='assign_assistant_to_message'),
     path('messages/assign/', ManageMessageView.as_view(), name='assign_assistant_to_message'),
-    path('add_message_to_db/', views.add_message_to_db, name='add_message_to_db'),
 
     # Post Management
 
@@ -83,6 +83,8 @@ urlpatterns = [
     path('posts/edit/<int:post_id>', ManagePostView.as_view(), name='edit_post'),
     path('posts/delete/', ManagePostView.as_view(), name='delete_post'),
     path('posts/delete/<int:post_id>', ManagePostView.as_view(), name='delete_post'),
+    path('posts/delete/', ManagePostView.as_view(), name='delete_post'),
+    path('posts/publish/<int:post_id>', ManagePostView.as_view(), name='publish_post'),
 
 
 
@@ -109,9 +111,6 @@ urlpatterns = [
     path('schemas/edit/<int:pk>/', views.edit_schema, name='edit_schema'),
     path('schemas/export/<int:pk>/', views.export_schema, name='export_schema'),
     path('schemas/delete/<int:pk>/', views.delete_schema, name='delete_schema'),
-
-    # Markdown generation
-    path('generate_markdown/', views.generate_markdown_view, name='generate_markdown'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

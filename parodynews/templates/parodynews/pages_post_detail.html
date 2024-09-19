@@ -21,6 +21,14 @@
             <input type="hidden" name="action" value="save">
             <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Save</button>
         </form>
+        <!-- Publish Button Form -->
+        <form action="{% url 'publish_post' post.id %}" method="POST" class="publish-form mr-2">
+            {% csrf_token %}
+            <input type="hidden" name="post_id" value="{{ post.id }}">
+            <input type="hidden" name="_method" value="publish">
+            <input type="hidden" name="action" value="publish">
+            <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">publish</button>
+        </form>
     </form>
 </div>
 {% endif %}

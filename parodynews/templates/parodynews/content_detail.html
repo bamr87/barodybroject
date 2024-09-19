@@ -118,9 +118,4 @@
 {% load static %}
 <script src="{% static 'js/content_detail.js' %}"></script>
 
-<script>
-    function generateMarkdownFile(contentId) {
-        window.location.href = "{% url 'generate_markdown' %}?content_id=" + contentId;
-    }
-</script>
 {% endblock %}
