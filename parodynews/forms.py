@@ -1,5 +1,14 @@
 from django import forms
-from .models import Assistant, ContentItem, ContentDetail, MyObject, JSONSchema, Thread
+from .models import (
+    Assistant,
+    ContentItem,
+    ContentDetail,
+    MyObject,
+    JSONSchema,
+    Thread,
+    Post,
+    PostFrontMatter
+    )
 import json
 from django.db.models import Count
 
@@ -115,6 +124,48 @@ class ThreadForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
+class ThreadRunFrom(forms.Form):
+    thread_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    assistant_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    content_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    prompt = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
+    content = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
+    
+from .models import Post, PostFrontMatter
+from django import forms
+
+# Post form 
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = [
+            'id', 'content_detail', 'thread', 'message', 'assistant', 'content', 
+            'created_at', 'filename', 'slug'
+        ]
+        widgets = {
+            'content_detail': forms.Select(attrs={'class': 'form-control'}),
+            'thread': forms.Select(attrs={'class': 'form-control'}),
+            'message': forms.Select(attrs={'class': 'form-control'}),
+            'assistant': forms.Select(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'class': 'form-control'}),
+            'created_at': forms.DateTimeInput(attrs={'class': 'form-control'}),
+            'filename': forms.TextInput(attrs={'class': 'form-control'}),
+            'slug': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        exclude = ['updated_at']
+
+class PostFrontMatterForm(forms.ModelForm):
+    class Meta:
+        model = PostFrontMatter
+        fields = ['id', 'title', 'description', 'author', 'published_at', 'slug']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+            'author': forms.TextInput(attrs={'class': 'form-control'}),
+            'published_at': forms.DateTimeInput(attrs={'class': 'form-control'}),
+            'slug': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
 
 class MyObjectForm(forms.ModelForm):
     class Meta:
@@ -124,6 +175,8 @@ class MyObjectForm(forms.ModelForm):
 # JSON Schema model form
 
 from django_json_widget.widgets import JSONEditorWidget
+import re
+from django.core.exceptions import ValidationError
 
 class JSONSchemaForm(forms.ModelForm):
     class Meta:
@@ -132,4 +185,10 @@ class JSONSchemaForm(forms.ModelForm):
         widgets = {
             'schema': JSONEditorWidget
         }
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if not re.match(r'^[a-zA-Z0-9_-]+$', name):
+            raise ValidationError('Name can only contain letters, numbers, underscores, and hyphens.')
+        return name
         

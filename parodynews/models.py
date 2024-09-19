@@ -43,6 +43,7 @@ class Assistant(models.Model):
     name = models.CharField(max_length=256, null=True, blank=True, default="system default")
     description = models.CharField(max_length=512, null=True, blank=True, default="Describe the assistant.")
     instructions = models.TextField(max_length=256000, default="you are a helpful assistant.")
+    prompt = models.TextField(max_length=256000, default="you are a helpful assistant.")
     object = models.CharField(max_length=50, default="assistant")
     model = models.CharField(max_length=100, choices=MODEL_CHOICES, default='gpt-3.5-turbo')
     created_at = models.DateTimeField(default=timezone.now)
@@ -68,6 +69,8 @@ class ContentDetail(models.Model):
     author = models.CharField(max_length=100, default="NEED AUTHOR.")
     published_at = models.DateTimeField(default=timezone.now)
     slug = models.SlugField(max_length=255, unique=False, default="slug")
+    keywords = models.JSONField(default=list)
+
 
     def get_display_fields(self):
         # List the fields you want to display
@@ -126,6 +129,38 @@ class Message(models.Model):
     run_id = models.CharField(max_length=255, null=True, blank=True)
     def __str__(self):
         return self.id
+
+# Post Model
+
+class Post(models.Model):
+    id = models.AutoField(primary_key = True)
+    content_detail = models.ForeignKey(ContentDetail, on_delete=models.CASCADE, related_name='posts')
+    thread = models.ForeignKey(Thread, on_delete=models.SET_NULL, null=True, related_name='posts')
+    message = models.ForeignKey(Message, on_delete=models.SET_NULL, null=True, related_name='posts')
+    assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, related_name='posts')
+    content = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    filename = models.CharField(max_length=255, blank=True, default="")
+    slug = models.SlugField(max_length=255, unique=False, default="slug")
+
+    def get_display_fields(self):
+        # List the fields you want to display
+        return ['id', 'filename', 'created_at', 'slug']
+
+    def __str__(self):
+        return self.content_detail.title
+
+class PostFrontMatter(models.Model):
+    post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name='front_matter')
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    author = models.CharField(max_length=100)
+    published_at = models.DateTimeField(default=timezone.now)
+    slug = models.SlugField(max_length=255, unique=False, default="slug")
+
+    def __str__(self):
+        return self.title
 
 class MyObject(models.Model):
     name = models.CharField(max_length=100)

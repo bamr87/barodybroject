@@ -44,6 +44,14 @@
                     <input type="hidden" name="action" value="generate_content">
                     <button type="submit" name="_method" value="generate_content" class="btn btn-primary">Generate Content</button>
                 </form>
+                <!-- Create Message Button -->
+                <form action="{% url 'create_thread' content_detail_id %}" method="POST" class="create-message mr-2 d-grid gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="content_detail_id" value="{{ content_detail_id }}">
+                    <input type="hidden" name="_method" value="create_thread">
+                    <input type="hidden" name="action" value="create_thread">
+                    <button type="submit" class="btn btn-primary">New Thread</button>
+                </form>
                 {% else %}
                 <!-- Create Button Form -->
                 <form id="create-new-content" action="{% url 'manage_content' %}" method="POST" class="save-form mr-2">
@@ -97,14 +105,7 @@
                             <input type="hidden" name="action" value="save">
                             <button type="submit" class="btn btn-warning">Edit</button>
                         </form>
-                        <!-- Create Message Button -->
-                        <form action="{% url 'create_thread' content_detail.id %}" method="POST">
-                            {% csrf_token %}
-                            <input type="hidden" name="content_detail_id" value="{{ content_detail.id }}">
-                            <input type="hidden" name="_method" value="create_thread">
-                            <input type="hidden" name="action" value="create_thread">
-                            <button type="submit" class="btn btn-primary">New Thread</button>
-                        </form>
+
                     </div>
                 </td>
             </tr>

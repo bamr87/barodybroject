@@ -10,7 +10,16 @@ from django.views.decorators.http import require_POST
 from django.views import View
 from datetime import datetime
 from .forms import AssistantForm, ContentItemForm, ContentDetailForm
-from .models import Assistant, ContentItem, ContentDetail, Message, Thread, PoweredBy
+from .models import (
+    Assistant,
+    ContentItem,
+    ContentDetail,
+    Message,
+    Thread,
+    PoweredBy,
+    Post,
+    PostFrontMatter,
+)
 from .utils import (
     save_assistant, 
     openai_delete_assistant, 
@@ -63,34 +72,36 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
             content_id = content.id
             assistant = content.assistant.name if content.assistant else None
             instructions = content.assistant.instructions if content.assistant else None
-            is_edit = True
+            content_form = ContentItemForm(instance=content)
+            content_detail_form = ContentDetailForm(instance=content_detail)
         else:
             content = None
             content_detail = None
             assistant = None
             instructions = None
-            is_edit = False
+            content_form = ContentItemForm()
+            content_detail_form = ContentDetailForm()
 
         # Initialize the forms
-        content_form = ContentItemForm(instance=content)
-        content_detail_form = ContentDetailForm(instance=content_detail)
 
         # Get the fields and display fields for the model
         content_detail_info = ContentDetail.objects.all()
         fields, display_fields = self.get_model_fields()
 
-        # Render the content detail page with the forms and content details
-        return render(request, self.template_name, {
+        context = {
             'content_form': content_form,
             'content_detail_form': content_detail_form,
-            'content_detail_info': content_detail_info,
-            'content_detail_id': content_detail_id,
             'content_id': content_id,
+            'content_detail_id': content_detail_id,
             'assistant': assistant,
+            'instructions': instructions,
+            'content_detail_info': content_detail_info,
             'fields': fields,
             'display_fields': display_fields,
-            'instructions': instructions,
-        })
+        }
+
+        # Render the content detail page with the forms and content details
+        return render(request, self.template_name, context)
 
     def post(self, request, content_detail_id=None):
         if request.POST.get('_method') == 'delete':
@@ -110,8 +121,13 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
     def save(self, request, content_detail=None):
         content_detail_id = request.POST.get('content_detail_id')
 
+        # initialize the forms 
         content_form = ContentItemForm(request.POST)
         content_detail_form = ContentDetailForm(request.POST)
+
+        # Get the fields and display fields for the model
+        content_detail_info = ContentDetail.objects.all()
+        fields, display_fields = self.get_model_fields()
 
         # Check if content_detail_id is provided
         if content_detail_id:
@@ -123,8 +139,10 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
         # Save the forms if they are valid
         if content_form.is_valid() and content_detail_form.is_valid():
+
             content_detail = content_detail_form.save(commit=False)
             content_detail.save()
+            
             content = content_form.save(commit=False)
             content.detail = content_detail
             content.save()
@@ -134,6 +152,17 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         else:
             error_messages = f"Content form errors: {content_form.errors}, Content detail form errors: {content_detail_form.errors}"
             messages.error(request, f"Error saving content and its details! {error_messages}")
+            
+            # Pass the forms back to the context to preserve the data
+            context = {
+                'content_form': content_form,
+                'content_detail_form': content_detail_form,
+                'content_detail_info': content_detail_info,
+                'fields': fields,
+                'display_fields': display_fields,
+            }            
+
+            return render(self.request, self.template_name, context)
 
         return self.get(request)
 
@@ -207,15 +236,17 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
     # View to list all threads and messages
 
     def get(self, request, message_id=None, thread_id=None):
-        threads = Thread.objects.all()  # Retrieve all threads
+        # Check if thread_id is provided
         thread_messages = []
         current_thread = None
         current_message = None
-        fields, display_fields = self.get_model_fields()
-
+      
         if thread_id:
             current_thread = Thread.objects.get(pk=thread_id)
             thread_messages = Message.objects.filter(thread_id=thread_id)
+
+        threads = Thread.objects.all()  # Retrieve all threads
+        fields, display_fields = self.get_model_fields()
 
         if message_id:
             current_message = Message.objects.get(pk=message_id)
@@ -224,12 +255,13 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         assistants = Assistant.objects.all()  # Fetch all assistants
 
         return render(request, 'parodynews/content_processing.html', {
-            'threads': threads,
             'message_list': message_list,
             'current_thread': current_thread,
+            'threads': threads,
             'assistants': assistants,
             'thread_messages': thread_messages,
             'current_message': current_message,
+            # 'thread_run_form': ThreadRunFrom(),
             'fields': fields,
             'display_fields': display_fields
             })
@@ -244,6 +276,8 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         if request.POST.get('_method') == 'run_message':
             return self.run_message(request)
         
+        if request.POST.get('_method') == 'create_post':
+            return self.create_post(request)
 
     # View to delete a thread
 
@@ -293,7 +327,7 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         new_content = ContentItem.objects.create(
             assistant_id=assistant_id,
             prompt=Assistant.objects.get(id=assistant_id).instructions,
-            content=message_data['text'],
+            content=message_data['content'],
             detail_id=message.content.detail_id,
             content_type='message'
         )
@@ -316,6 +350,45 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         # Redirect to the thread_detail.html of the message
         return redirect('thread_message_detail', message_id=message_id, thread_id=thread_id)
 
+    # View to create a post
+
+    def create_post(self, request, content_id=None, thread_id=None, message_id=None):
+        thread_id = request.POST.get('thread_id')
+        message_id = request.POST.get('message_id')
+        assistant_id = request.POST.get('assistant_id')
+        content_id = Message.objects.get(id=message_id).content.id
+
+        # Retrieve the message instance
+        message = Message.objects.get(id=message_id)
+
+        # Retrieve the content instance
+        content = ContentItem.objects.get(id=content_id)
+
+        content_detail = ContentDetail.objects.get(id=content.detail_id)
+
+        assistant = Assistant.objects.get(id=assistant_id) if Assistant.objects.filter(id=assistant_id).exists() else None
+        # Create a new post instance
+        post = Post.objects.create(
+            content=content.content,
+            thread=Thread.objects.get(id=thread_id),
+            message=Message.objects.get(id=message_id),
+            assistant=assistant,
+            content_detail=content_detail
+        )
+
+        post_frontmatter = PostFrontMatter.objects.create(
+            post_id=post.id,
+            title=message.content.detail.title,
+            author=message.content.detail.author,
+            published_at=message.content.detail.published_at,
+            slug=message.content.detail.slug,
+        )
+
+        post.save()
+        post_frontmatter.save()
+
+        messages.success(request, "Post created successfully.")
+        return redirect('post_detail', post_id=post.id)
 
 
 
@@ -683,3 +756,121 @@ def delete_schema(request, pk):
         messages.success(request, 'Schema deleted successfully.')
         return redirect('list_schemas')
     return redirect('list_schemas')
+
+# parodynews/views.py
+import os
+from django.conf import settings
+from django.shortcuts import render, redirect
+
+from .forms import PostForm, PostFrontMatterForm
+from .models import Post
+
+class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
+    model = Post
+    template_name = 'parodynews/pages_post_detail.html'
+
+    def get(self, request, post_id=None):
+        if post_id:
+            post = Post.objects.get(pk=post_id)
+            form_post = PostForm(instance=post)
+            form_post_frontmatter = PostFrontMatterForm(instance=post)
+
+        else:
+            post = None
+            form_post = None
+            form_post_frontmatter = None
+
+        # Initialize the form
+        form_post = PostForm(instance=post)
+        form_post_frontmatter = PostFrontMatterForm(instance=post)
+        
+        # Get all posts and fields
+        post_list = Post.objects.all()
+        fields, display_fields = self.get_model_fields()
+
+        context = {
+            'post': post,
+            'form_post': form_post,
+            'form_post_frontmatter': form_post_frontmatter,
+            'post_list': post_list,
+            'fields': fields,
+            'display_fields': display_fields,
+            }
+
+        return render(request, self.template_name, context)
+
+
+
+    def post(self, request, post_id=None):
+        if request.POST.get('_method') == 'delete':
+            return self.delete(request)
+        
+        if request.POST.get('_method') == 'save':
+            return self.save(request)
+        
+        return redirect('manage_post')
+    
+
+
+    def delete(self, request, post_id=None):
+        post_id = request.POST.get('post_id')
+        post = Post.objects.get(id=post_id)
+        post.delete()
+
+        messages.success(request, "Post deleted successfully.")
+
+        return redirect('manage_post')
+
+
+
+    def save(self, request, post_id=None):
+        post_id = request.POST.get('post_id')
+
+        # Initialize the forms
+        form_post = PostForm(request.POST)
+        form_post_frontmatter = PostFrontMatterForm(request.POST)
+
+        # Get the fields and display fields for the model
+        post_list = Post.objects.all()
+        fields, display_fields = self.get_model_fields()
+
+        # Check if post_id is provided
+        if post_id:
+            post = Post.objects.get(pk=post_id)
+            post_frontmatter = PostFrontMatter.objects.get(post_id=post_id)
+
+            form_post = PostForm(request.POST, instance=post)
+            form_post_frontmatter = PostFrontMatterForm(request.POST, instance=post_frontmatter)
+
+        # Save the forms if they are valid
+        if form_post.is_valid() and form_post_frontmatter.is_valid():
+
+            post_front_matter = form_post_frontmatter.save(commit=False)
+            post_front_matter.save()
+
+            post = form_post.save(commit=False)
+            post.frontmatter = post_front_matter
+            post.save()
+
+            messages.success(request, "Post and front matter saved successfully.")
+            return redirect('post_detail', post_id=post.id)
+        else:
+            
+            if not form_post.is_valid():
+                messages.error(request, form_post.errors)
+            if not form_post_frontmatter.is_valid():
+                messages.error(request, form_post_frontmatter.errors)
+            
+            context = {
+                'post': post,
+                'form_post': form_post,
+                'form_post_frontmatter': form_post_frontmatter,
+                'post_list': post_list,
+                'fields': fields,
+                'display_fields': display_fields,
+            }
+
+            return render(request, self.template_name, context)
+
+
+        

@@ -82,7 +82,7 @@ def save_assistant(name, description, instructions, model, json_schema, assistan
 
     if assistant_id:
         assistant = client.beta.assistants.update(
-            assistant_id,
+            assistant_id=assistant_id,
             name=name,
             instructions=instructions,
             model=model,
@@ -323,7 +323,7 @@ def create_run(thread_id, assistant_id):
         
         if run_status.status == "completed":
             break
-        time.sleep(1)
+        time.sleep(2)
 
     new_message = client.beta.threads.messages.list(
         thread_id=thread_id,
@@ -333,12 +333,28 @@ def create_run(thread_id, assistant_id):
     new_message_id = new_message.data[0].id
 
     # https://platform.openai.com/docs/api-reference/messages/getMessage
-    message_content = client.beta.threads.messages.retrieve(
+    response = client.beta.threads.messages.retrieve(
     message_id=new_message_id,
     thread_id=thread_id,
     )
 
-    message_data = {"id": message_content.id, "text": message_content.content[0].text.value, "assistant_id": message_content.assistant_id}
+    data = response.content[0].text.value
+    assistant_id = response.assistant_id
+
+    try:
+        content_data = json.loads(data)
+    except json.JSONDecodeError:
+        content_data = data
+    
+    if isinstance(content_data, dict) and 'Content' in content_data and 'body' in content_data['Content']:
+        content_section = content_data['Content']['body']
+    else:
+        content_section = content_data
+
+    message_data = {"id": new_message_id,
+                    "content": content_section,
+                    "assistant_id": assistant_id,
+                }
 
     return run, run_status, message_data
 

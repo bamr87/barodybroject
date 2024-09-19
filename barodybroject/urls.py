@@ -27,8 +27,10 @@ from parodynews.views import (
     ManageAssistantsView,
     ManageMessageView,
     ProcessContentView,
+    ManagePostView,
     MyObjectView)
 
+from django.urls import include, path
 
 
 urlpatterns = [
@@ -46,6 +48,7 @@ urlpatterns = [
     path('content/generate/<int:content_detail_id>', ManageContentView.as_view(), name='generate_content'),
     path('content/generate/', ManageContentView.as_view(), name='generate_content'),
     path('content/thread/create/<int:content_detail_id>/', ManageContentView.as_view(), name='create_thread'),
+    path('content/thread/create/', ManageContentView.as_view(), name='manage_content'),
 
     # Sub routines for AJAX requests
     path('get_assistant_details/<str:assistant_id>/', views.get_assistant_details, name='get_assistant_details'),
@@ -58,6 +61,7 @@ urlpatterns = [
     path('threads/<str:thread_id>/messages/<str:message_id>/', ProcessContentView.as_view(), name='thread_message_detail'),
     path('threads/<str:thread_id>/messages/run/<str:message_id>/', ProcessContentView.as_view(), name='run_message'),
     path('threads/<str:thread_id>/messages/delete/<str:message_id>/', ProcessContentView.as_view(), name='delete_thread_message'),
+    path('threads/<str:thread_id>/messages/post/<str:message_id>/', ProcessContentView.as_view(), name='create_post'),
 
     # Message management
     path('messages/', ManageMessageView.as_view(), name='manage_message'),
@@ -71,8 +75,16 @@ urlpatterns = [
     path('messages/assign/', ManageMessageView.as_view(), name='assign_assistant_to_message'),
     path('add_message_to_db/', views.add_message_to_db, name='add_message_to_db'),
 
-    # Thread management
-    # path('threads/', views.thread_detail, name='thread_detail'),
+    # Post Management
+
+    path('posts/', ManagePostView.as_view(), name='manage_post'),
+    path('posts/<int:post_id>', ManagePostView.as_view(), name='post_detail'),
+    path('posts/edit/', ManagePostView.as_view(), name='edit_post'),
+    path('posts/edit/<int:post_id>', ManagePostView.as_view(), name='edit_post'),
+    path('posts/delete/', ManagePostView.as_view(), name='delete_post'),
+    path('posts/delete/<int:post_id>', ManagePostView.as_view(), name='delete_post'),
+
+
 
     # Assistant management
     path('assistants/', ManageAssistantsView.as_view(), name='manage_assistants'),

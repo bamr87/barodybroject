@@ -57,6 +57,13 @@
     <h2>Selected Thread</h2>
     <div class="list-group" id="messages-list">
         <h3>Thread ID: {{ current_thread.id }}</h3>
+            <!-- Thread Run Form -->
+            <div class="col-md-6">
+                <h3>Thread Run Form</h3>
+                <div class="form-group">
+                    {{ thread_run_form.as_p }}
+                </div>
+            </div>
                 <!-- Message List -->
                  <!-- Message List and Assistants -->
     <div class="container mt-5" id="message-list">
@@ -112,14 +119,16 @@
                                 <input type="hidden" name="message_id" value="{{ message.id }}">
                                 <button type="submit" class="btn btn-primary">Run</button>
                             </form>
-                            <!-- Form to add message to database -->
-                            <form action="{% url 'add_message_to_db' %}" method="post">
+                            <!-- Form to create Post -->
+                            <form action="{% url 'create_post' message.id current_thread.id %}" method="post">
                                 {% csrf_token %}
                                 <input type="hidden" name="thread_id" value="{{ current_thread.id }}">
+                                <input type="hidden" name="_method" value="create_post">
+                                <input type="hidden" name="action" value="create_post">
                                 <input type="hidden" name="assistant_id" value="{{ message.assistant_id }}">
                                 <input type="hidden" name="message_id" value="{{ message.id }}">
                                 <input type="hidden" name="message_content" value="{{ message.text }}">
-                                <button type="submit" class="btn btn-primary">Add</button>
+                                <button type="submit" class="btn btn-primary">Post</button>
                             </form>
                             <!-- Delete Button Form -->
                             <form action="{% url 'delete_thread_message' current_thread.id message.id %}" method="post" class="mr-2">
@@ -144,7 +153,10 @@
         <h2>Selected Message</h2>
         <div class="list-group-item">
             <p class="fw-bold">{{ current_message.id }}</p>
-            <div class="message-content">{{ current_message.content.content|markdownify|linebreaksbr }}</div>
+            <div class="message-content">
+                <p>
+                    {{ current_message.content.content|dict_to_text_list|markdownify|linebreaksbr }}</div>
+                </p>
             <!-- Form to add message to database -->
             <form action="{% url 'add_message_to_db' %}" method="post">
                 {% csrf_token %}
@@ -159,7 +171,9 @@
         <div class="list-group-item">
             <p class="fw-bold">{{ message.id }}</p>
             <div class="message-content">
-                {{ message.text|markdownify|linebreaksbr }}
+                <p>
+                    {{ message.content.content|dict_to_text_list|markdownify|linebreaksbr }}
+                </p>
             </div>
         </div>
         {% empty %}
