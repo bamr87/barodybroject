@@ -54,8 +54,8 @@ cd barodybroject
 - For Unix/Linux/Mac:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venvbarody
+source .venvbarody/bin/activate
 ```
 
 - For Windows:

@@ -1,17 +1,26 @@
 {% extends "base.html" %}
 {% load custom_filters %}
 {% load markdownify %}
+{% load martortags %}
+
+{% load static %}
+
+{% block css %}
+  <link href="{% static 'plugins/css/ace.min.css' %}" type="text/css" media="all" rel="stylesheet" />
+  <link href="{% static 'plugins/css/resizable.min.css' %}" type="text/css" media="all" rel="stylesheet" />
+  <link href="{% static 'martor/css/martor.bootstrap.min.css' %}" type="text/css" media="all" rel="stylesheet" />
+{% endblock %}
+
 
 {% block content %}
-
 
 {% if post.id %}
 <div class="container mt-5">
     <h2>Editing: {{ post.id }}</h2>
     <form method="post" action="{% url 'manage_post' %}" class="needs-validation" novalidate>
         {% csrf_token %}
-        {{ form_post.as_p }}
         {{ form_post_frontmatter.as_p }}
+        {{ form_post.as_p}}
 
         <!-- Save Button Form -->
         <form action="{% url 'edit_post' post.id %}" method="POST" class="save-form mr-2">
@@ -82,3 +91,18 @@
 
     
     {% endblock content %}
+
+    <!-- JS -->
+
+{% block js %}
+  <script type="text/javascript" src="{% static 'plugins/js/ace.js' %}"></script>
+  <script type="text/javascript" src="{% static 'plugins/js/mode-markdown.js' %}"></script>
+  <script type="text/javascript" src="{% static 'plugins/js/ext-language_tools.js' %}"></script>
+  <script type="text/javascript" src="{% static 'plugins/js/theme-github.js' %}"></script>
+  <script type="text/javascript" src="{% static 'plugins/js/typo.js' %}"></script>
+  <script type="text/javascript" src="{% static 'plugins/js/spellcheck.js' %}"></script>
+  <script type="text/javascript" src="{% static 'plugins/js/highlight.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'plugins/js/resizable.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'plugins/js/emojis.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'martor/js/martor.bootstrap.min.js' %}"></script>
+{% endblock %}

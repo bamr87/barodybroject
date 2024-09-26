@@ -16,11 +16,11 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
-from parodynews import views
+from django.urls import include, path
 from django.contrib.auth.views import LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
+from parodynews import views
 from parodynews.views import (
     FooterView,
     ManageContentView,
@@ -30,8 +30,6 @@ from parodynews.views import (
     ManagePostView,
     MyObjectView)
 
-from django.urls import include, path
-
 
 urlpatterns = [
     # Home page and admin page
@@ -39,7 +37,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('footer/', FooterView.as_view(), name='footer'),
 
-    
+    path('martor/', include('martor.urls')),
+
+
     # Content management
     path('content/', ManageContentView.as_view(), name='manage_content'),
     path('content/<int:content_detail_id>', ManageContentView.as_view(), name='content_detail'),
@@ -113,4 +113,3 @@ urlpatterns = [
     path('schemas/delete/<int:pk>/', views.delete_schema, name='delete_schema'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-

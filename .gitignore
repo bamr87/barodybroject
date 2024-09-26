@@ -178,3 +178,9 @@ Gemfile.lock
 pages/_notes/.DS_Store
 *.DS_Store
 .env
+
+# Node modules
+node_modules/
+package-lock.json
+package.json
+.venv*

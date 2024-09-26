@@ -312,9 +312,10 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
     def create_content(self, request, thread_id=None, message_id=None):
         message_id = request.POST.get('message_id')
-        message_content = Message.objects.get(id=message_id).content.content
+        message = Message.objects.get(id=message_id)
+        message_content = message.content.content
         thread_id = request.POST.get('thread_id')
-        assistant_id = request.POST.get('assistant_id')
+        assistant_id = message.assistant_id
 
         generated_content_detail = json.loads(generate_content_detail(message_content))
         # First, create the ContentDetail object
@@ -337,7 +338,7 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         # Then, create or update the Content object with the content_detail instance
         content, _ = ContentItem.objects.update_or_create(
             prompt= message_content,  # Assuming you want to use the message_content as the prompt
-            assistant= Assistant.objects.get(id=assistant_id),  # Assuming you want to use the message_content as the prompt
+            assistant= Assistant.objects.get(id=assistant_id) if assistant_id else None,  # Assuming you want to use the message_content as the prompt
             detail=content_detail_instance  # Use the ContentDetail instance here
         )
 
@@ -423,6 +424,7 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         post_frontmatter = PostFrontMatter.objects.create(
             post_id=post.id,
             title=message.content.detail.title,
+            description=message.content.detail.description,
             author=message.content.detail.author,
             published_at=message.content.detail.published_at,
             slug=message.content.detail.slug,
@@ -849,7 +851,7 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
         data = f"---\n{frontmatter_yaml}---\n\n{post.content}"
         
         # Format the date and title for the filename
-        filename = post.slug.lower().replace(" ", "-")
+        filename = post_frontmatter.slug.lower().replace(" ", "-")
         date_str = post_frontmatter.published_at.strftime("%Y-%m-%d")
         formatted_filename = f"{date_str}-{filename}.md"
 

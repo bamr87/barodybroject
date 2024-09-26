@@ -1,6 +1,8 @@
 import json
 from django.db import models
 from django.utils import timezone
+from martor.models import MartorField
+
 
 print("Loading models.py")
 
@@ -138,15 +140,15 @@ class Post(models.Model):
     thread = models.ForeignKey(Thread, on_delete=models.SET_NULL, null=True, related_name='posts')
     message = models.ForeignKey(Message, on_delete=models.SET_NULL, null=True, related_name='posts')
     assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, related_name='posts')
-    content = models.TextField()
+    content = MartorField()
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     filename = models.CharField(max_length=255, blank=True, default="")
-    slug = models.SlugField(max_length=255, unique=False, default="slug")
+    status = models.CharField(max_length=100, default="draft")
 
     def get_display_fields(self):
         # List the fields you want to display
-        return ['id', 'filename', 'created_at', 'slug']
+        return ['id', 'title', 'created_at', 'slug', 'status']
 
     def __str__(self):
         return self.content_detail.title

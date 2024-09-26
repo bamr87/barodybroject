@@ -11,6 +11,7 @@ from .models import (
     )
 import json
 from django.db.models import Count
+from martor.fields import MartorFormField
 
 
 print("Loading forms...")
@@ -140,7 +141,7 @@ class PostForm(forms.ModelForm):
         model = Post
         fields = [
             'id', 'content_detail', 'thread', 'message', 'assistant', 'content', 
-            'created_at', 'filename', 'slug'
+            'created_at', 'filename'
         ]
         widgets = {
             'content_detail': forms.Select(attrs={'class': 'form-control'}),
@@ -150,9 +151,9 @@ class PostForm(forms.ModelForm):
             'content': forms.Textarea(attrs={'class': 'form-control'}),
             'created_at': forms.DateTimeInput(attrs={'class': 'form-control'}),
             'filename': forms.TextInput(attrs={'class': 'form-control'}),
-            'slug': forms.TextInput(attrs={'class': 'form-control'}),
         }
         exclude = ['updated_at']
+    content = MartorFormField()
 
 class PostFrontMatterForm(forms.ModelForm):
     class Meta:
