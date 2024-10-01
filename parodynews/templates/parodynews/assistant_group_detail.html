@@ -8,42 +8,24 @@
 <div class="container mt-5" id="assistant-form">
     <div class="row">
         <div class="col-md-6">
-            <h2>Assistant Form</h2>
-            {% if selected_asssistant%}
-            <form method="post" action="{% url 'assistant_detail' assistant_id=selected_assistant.id %}" class="needs-validation" novalidate>
-            {% else %}
-            <form method="post" action="{% url 'manage_assistants' %}" class="needs-validation" novalidate>
-            {% endif %}
+            <!-- Assistant Group Form -->
+            <form method="post" action="{% url 'manage_assistant_group' %}" class="needs-validation" novalidate>
                 {% csrf_token %}
-                    <!-- Assistant Form -->
-                <div class="form-group">
-                    {{ assistant_form.as_p }}
-                </div>
-                {% if assistant_id %}
-                <!-- Save Button Form -->
-                <form action="{% url 'edit_assistant' assistant_id %}" method="POST" class="save-form mr-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="assistant_id" value="{{ assistant_id }}">
-                    <input type="hidden" name="_method" value="save">
-                    <input type="hidden" name="action" value="save">
-                    <input type="hidden" name="save_form" value="assistant_form">
-
-                    <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Save</button>
-                </form>
-                {% else %}
-                <!-- Create Button Form -->
-                <form action="{% url 'manage_assistants' %}" method="POST" class="save-form mr-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="_method" value="save">
-                    <input type="hidden" name="action" value="save">
-                    <input type="hidden" name="save_form" value="assistant_form">
-
-                    <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
-                </form>
-                {% endif %}
+                    <h3>Assistant Group Form</h3>
+                    <div class="form-group">
+                        {{ assistant_group_form.as_p }}
+                    </div>
+                    <div class="d-grid gap-2">
+                        <!-- Save Button Form -->
+                        <form action="{% url 'manage_assistant_group' %}" method="POST" class="save-form mr-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="_method" value="save">
+                            <input type="hidden" name="action" value="save">
+                            <input type="hidden" name="save_form" value="assistant_group_form">
+                            <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Save</button>
+                    </div>
             </form>
         </div>
-
     </div>
 </div>
             
@@ -51,7 +33,7 @@
 <div class="container mt-5">
     {% load custom_filters %}
     
-    <h2>Assistant List</h2>
+    <h2>Assistant Group List</h2>
         <table class="table">
             <thead>
                 <tr>

@@ -55,11 +55,21 @@ class Assistant(models.Model):
     top_p = models.FloatField(null=True, blank=True)
     response_format = models.JSONField(default=dict)
     json_schema = models.ForeignKey(JSONSchema, on_delete=models.SET_NULL, null=True, blank=True)
+    assistant_groups = models.ManyToManyField('AssistantGroup', related_name='assistant', blank=True)
+
 
     def get_display_fields(self):
         # List the fields you want to display
         return ['id', 'name', 'description', 'instructions', 'model', 'json_schema']
     
+    def __str__(self):
+        return self.name
+
+class AssistantGroup(models.Model):
+    name = models.CharField(max_length=256)
+    assistants = models.ManyToManyField(Assistant, related_name='assistant_group')
+    group_type = models.CharField(max_length=100, default="default")
+
     def __str__(self):
         return self.name
 
@@ -168,4 +178,23 @@ class MyObject(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
 
+class GeneralizedCodes(models.Model):
+    code = models.CharField(max_length=256, unique=True)
+    name = models.CharField(max_length=256)
+    description = models.TextField()
+    type = models.CharField(max_length=256, default="system")
+    items = models.JSONField(default=list)
+    model = models.CharField(max_length=256, default="default")
+    table = models.CharField(max_length=256, default="default")
+    field = models.CharField(max_length=256, default="default")
+    database = models.CharField(max_length=256, default="default")
+    category = models.CharField(max_length=256, default="default")
+    domain = models.CharField(max_length=256, default="default")
+    entity = models.CharField(max_length=256, default="default")
+    project = models.CharField(max_length=256, default="default")
+    module = models.CharField(max_length=256, default="default")
+    hash = models.CharField(max_length=256,)
 
+    created_at = models.DateTimeField(default=timezone.now)
+    def __str__(self):
+        return self.name

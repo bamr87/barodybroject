@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'django_json_widget',  # Add this line to include the JSON widget app in the project
     'import_export',  # Add this line to include the import_export app in the project
     'martor',  # Add this line to include the martor app in the project
+    'rest_framework', # Add this line to include the rest_framework app in the project
+
 ]
 
 MIDDLEWARE = [

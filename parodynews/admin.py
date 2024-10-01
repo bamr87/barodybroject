@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django import forms
 from django.db import models
-from .models import AppConfig, PoweredBy, Assistant, JSONSchema, Post
+from .models import AppConfig, PoweredBy, Assistant, JSONSchema, Post, GeneralizedCodes
 from django_json_widget.widgets import JSONEditorWidget
 from import_export.admin import ImportExportModelAdmin
 from .resources import AssistantResource, JSONSchemaResource
@@ -12,6 +12,7 @@ print("Registering AppConfig model")
 # Register your models here.
 admin.site.register(AppConfig)
 admin.site.register(PoweredBy)
+admin.site.register(GeneralizedCodes)
 
 
 # JSON Schema model

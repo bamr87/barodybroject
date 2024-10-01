@@ -1,6 +1,7 @@
 from django import forms
 from .models import (
     Assistant,
+    AssistantGroup,
     ContentItem,
     ContentDetail,
     MyObject,
@@ -91,24 +92,47 @@ class ContentItemForm(forms.ModelForm):
 
 # Fetch all Assistant objects and create a list of tuples for the dropdown choices
 
+from django import forms
+from .models import Assistant, AssistantGroup
+
 class AssistantForm(forms.ModelForm):
 
     class Meta:
         model = Assistant
-        fields = ['name', 'description', 'model', 'instructions', 'json_schema']
+        fields = ['name', 'description', 'model', 'instructions', 'json_schema', 'assistant_groups']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_name'}),
             'description': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_assist_description'}),
             'instructions': forms.Textarea(attrs={'class': 'form-control', 'id': 'id_instructions'}),
             'model': forms.Select(attrs={'class': 'form-select', 'id': 'id_model'}),
             'json_schema': forms.Select(attrs={'class': 'form-control', 'id': 'id_json_schema'}),
+            'assistant_groups': forms.CheckboxSelectMultiple(),
         }
-
 
     def __init__(self, *args, **kwargs):
         super(AssistantForm, self).__init__(*args, **kwargs)
         self.fields['model'].choices = MODEL_CHOICES
-        # self.fields['model'].initial = Assistant._meta.get_field('model').default
+
+        if 'instance' in kwargs and kwargs['instance']:
+            assistant = kwargs['instance']
+            self.fields['assistant_groups'].queryset = AssistantGroup.objects.all()
+            self.fields['assistant_groups'].initial = assistant.assistant_groups.all()
+        else:
+            self.fields['assistant_groups'].queryset = AssistantGroup.objects.all()
+
+class AssistantGroupForm(forms.ModelForm):
+    class Meta:
+        model = AssistantGroup
+        fields = ['name', 'assistants', 'group_type']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_group_name'}),
+            'assistants': forms.CheckboxSelectMultiple(),
+            'group_type': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_group_type'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(AssistantGroupForm, self).__init__(*args, **kwargs)
+        self.fields['assistants'].queryset = Assistant.objects.all()
 
 class ContentProcessingForm(forms.Form):
     thread_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))

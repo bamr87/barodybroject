@@ -4,12 +4,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
-from django.http import JsonResponse
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.generic import TemplateView
 from django.views import View
 from datetime import datetime
-from .forms import AssistantForm, ContentItemForm, ContentDetailForm
+from .forms import (
+    AssistantForm,
+    ContentItemForm,
+    ContentDetailForm,
+    AssistantGroupForm
+)
 from .models import (
     Assistant,
     ContentItem,
@@ -34,10 +39,10 @@ from .utils import (
 )
 
 from .mixins import ModelFieldsMixin
+from openai import OpenAI
 
 print("Loading views.py")
 
-from django.views.generic import TemplateView
 
 class FooterView(TemplateView):
     template_name = 'footer.html'
@@ -46,8 +51,6 @@ class FooterView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['powered_by'] = PoweredBy.objects.all()
         return context
-
-from openai import OpenAI
 
 # Custom LoginView to render a custom login page
 class UserLoginView(LoginView):
@@ -514,6 +517,7 @@ class ManageAssistantsView(ModelFieldsMixin, View):
 
         # Initialize the form
         assistant_form = AssistantForm(instance=assistant)
+        assistant_group_form = AssistantGroupForm()
 
         # Get the fields and display fields for the model
         assistants_info = Assistant.objects.all()
@@ -522,6 +526,7 @@ class ManageAssistantsView(ModelFieldsMixin, View):
         # Render the assistant detail page with the form and assistant details
         return render(request, self.template_name, {
             'assistant_form': assistant_form,
+            'assistant_group_form': assistant_group_form,
             'assistants_info': assistants_info,
             'assistant_id': assistant_id,
             'is_edit': is_edit,
@@ -538,23 +543,39 @@ class ManageAssistantsView(ModelFieldsMixin, View):
 
         return redirect('assistant_detail', assistant_id=assistant_id)
 
-    def save(self, request, assistant=None):
+    def save(self, request, save_form=None, assistant=None):
         assistant_id = request.POST.get('assistant_id')
+        save_form = request.POST.get('save_form')
 
         assistant_form = AssistantForm(request.POST)
+        assistant_group_form = AssistantGroupForm(request.POST)
 
         if assistant_id:
             assistant = Assistant.objects.get(pk=assistant_id)
             assistant_form = AssistantForm(request.POST, instance=assistant)
 
-        if assistant_form.is_valid():
-            assistant = assistant_form.save(commit=False)
+        if  save_form == 'assistant_form':
+            if assistant_form.is_valid():
+                assistant = assistant_form.save(commit=False)
 
-            # Create or update the assistant in OpenAI
-            assistant_ai = save_assistant(assistant.name, assistant.description, assistant.instructions, assistant.model, assistant.json_schema, assistant.id)
-            assistant.id = assistant_ai.id
-            assistant.save()
+                # Create or update the assistant in OpenAI
+                assistant_ai = save_assistant(assistant.name, assistant.description, assistant.instructions, assistant.model, assistant.json_schema, assistant.id)
+                assistant.id = assistant_ai.id
+                assistant.save()
+                
+                # Save the many-to-many relationships for the assistant groups
+                assistant_form.save_m2m()
 
+                messages.success(request, "Assistant created successfully.")
+                return redirect('manage_assistants')
+
+        if assistant_group_form.is_valid() and save_form == 'assistant_group_form':
+            
+            assistant_group = assistant_group_form.save(commit=False)
+            assistant_group.save()
+            assistant_group.assistants.set(assistant_group_form.cleaned_data['assistants'])
+            assistant_group.save()
+            
             messages.success(request, "Assistant created successfully.")
             return redirect('manage_assistants')
         else:
@@ -564,6 +585,7 @@ class ManageAssistantsView(ModelFieldsMixin, View):
             display_fields = Assistant().get_display_fields()
             return render(request, self.template_name, {
                 'assistant_form': assistant_form,
+                'assistant_group_form': assistant_group_form,
                 'assistants_info': assistants_info,
                 'fields': fields,
                 'display_fields': display_fields,
@@ -595,7 +617,6 @@ def get_assistant_details(request, assistant_id):
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.views import View
 from .models import MyObject
 from .forms import MyObjectForm
 
@@ -861,3 +882,15 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
         # Provide feedback to the user
         return HttpResponse(f"Markdown file generated at: {file_path}")
         
+
+# views.py
+from rest_framework import viewsets
+from .models import ContentItem, ContentDetail  # Replace with your actual model
+from .serializers import MyModelSerializer
+
+class MyModelViewSet(viewsets.ModelViewSet):
+    """
+    A simple ViewSet for viewing and editing instances of MyModel.
+    """
+    queryset = ContentItem.objects.all()
+    serializer_class = MyModelSerializer
