@@ -36,13 +36,22 @@ Follow these steps to set up a development environment for this Django project:
 
 ### Prerequisites
 
+- Github CLI
 - Python 3.8 or higher
 - pip (Python package manager)
 - Virtualenv (optional but recommended for creating isolated Python environments)
 
 ### Setup
 
+[zer0](https://it-journey.dev/zer0/)
+
 1. **Clone the Repository**
+
+```sh
+cd ~/github/
+gh repo clone bamr87/barodybroject test1
+cd test1
+```
 
 ```bash
 git clone https://github.com/bamr87/barodybroject.git
@@ -54,8 +63,8 @@ cd barodybroject
 - For Unix/Linux/Mac:
 
 ```bash
-python3 -m venv .venvbarody
-source .venvbarody/bin/activate
+python3 -m venv .venvtest1
+source .venvtest1/bin/activate
 ```
 
 - For Windows:
@@ -88,6 +97,7 @@ DATABASE_URL=sqlite:///db.sqlite3
 Apply the database migrations to set up your database schema:
 
 ```bash
+python manage.py makemigrations
 python manage.py migrate
 ```
 
@@ -118,6 +128,21 @@ python manage.py runserver
 ```
 
 Visit [http://localhost:8000](http://localhost:8000) in your web browser to view the application.
+
+### Run the Publication Site (Jekyll)
+
+```sh
+# build the docker image based on the Dockerfile
+docker build -t test1 .
+```
+
+```sh
+# run the docker image and mount the local directory to the container and open a bash shell
+docker run -d -p 4002:4002 -v ${GITHOME}/test1:/app --name test1_container test1
+```
+
+```sh
+
 
 ### Screenshots
 

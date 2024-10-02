@@ -1,35 +1,52 @@
-# Use an official Ruby runtime as a parent image
-FROM ruby:2.7.4
+# Use an official Python runtime as a parent image
+FROM python:3.8-slim
 
 # Set environment variables
-ENV GITHUB_GEM_VERSION 231
-ENV JSON_GEM_VERSION 1.8.6
+ENV PYTHONUNBUFFERED=1
 
-# Set the working directory in the container to /app
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    ruby-full \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install bundler and jekyll
+RUN gem install bundler jekyll
+
+# Set the working directory
 WORKDIR /app
-# WORKDIR /usr/src/app
 
-# Add the current directory contents into the container at /app 
-ADD . /app
+# Copy dependency files
+COPY requirements.txt Gemfile ./
 
-# Install any needed packages specified in Gemfile
-RUN gem update --system 3.3.22
-RUN bundle update
-RUN bundle install
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
-# Clean up 
-RUN bundle clean --force
+# Install Jekyll dependencies
+RUN bundle config build.ffi --enable-libffi-alloc \
+    && bundle install
 
-# Make port 4002 available to the world outside this container
-EXPOSE 4002
-# EXPOSE 4000 80
+# **Install supervisor globally before switching users**
+RUN pip install --no-cache-dir supervisor
 
-# Run Jekyll when the container launches
-CMD ["bundle", "exec", "jekyll", "serve", "--config", "_config.yml,_config_dev.yml", "--host", "0.0.0.0"]
-# CMD jekyll serve -d /_site --watch --force_polling -H 0.0.0.0 -P 4000
+# Copy the application code
+COPY . .
 
-# source .env
-# docker build -t ${GIT_REPO} .
-# docker run -d -p 4002:4002 -v ${$GITHOME}/${GIT_REPO}:/app --name ${GIT_REPO}-container ${GIT_REPO}
-# docker start ${GIT_REPO}-container
-# docker exec -it ${GIT_REPO}-container /bin/bash
+# Create a non-root user and set permissions
+RUN adduser --disabled-password --gecos '' appuser \
+    && chown -R appuser:appuser /app
+
+# Switch to the non-root user
+USER appuser
+
+# Expose ports
+EXPOSE 8000 4002
+
+# Copy supervisor configuration
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Command to start supervisor
+CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
