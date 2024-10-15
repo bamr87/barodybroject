@@ -1,0 +1,17 @@
+version: 1.0
+
+source:
+  type: GitHub
+  repositoryUrl: https://github.com/bamr87/barodybroject
+  branch: main
+  connectionArn: arn:aws:apprunner:us-east-1:535686818366:service/barodybroject/a75c53ae672145c0a7efc56f4e8de942
+
+build:
+  runtime: DOCKER
+  buildCommand: docker build -t barodybroject .
+  startCommand: docker run -p 8080:8080 barodybroject
+
+deployment:
+  port: 8080
+  environmentVariables:
+    ENV_VAR_NAME: value
