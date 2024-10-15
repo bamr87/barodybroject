@@ -1,17 +1,28 @@
 version: 1.0
-
-source:
-  type: GitHub
-  repositoryUrl: https://github.com/bamr87/barodybroject
-  branch: main
-  connectionArn: arn:aws:apprunner:us-east-1:535686818366:service/barodybroject/a75c53ae672145c0a7efc56f4e8de942
+runtime: python311 
 
 build:
-  runtime: DOCKER
-  buildCommand: docker build -t barodybroject .
-  startCommand: docker run -p 8080:8080 barodybroject
+  commands:
+    pre-build:
+      - echo "pre-build"
+    build:        
+    - pip3 install pipenv
+    - pip3 install -r requirements.txt
 
-deployment:
-  port: 8080
-  environmentVariables:
-    ENV_VAR_NAME: value
+    post-build:
+      - python manage.py runserver
+  env:
+    - name: DJANGO_SETTINGS_MODULE
+      value: "barodybroject.settings"
+    - name: MY_VAR_EXAMPLE
+      value: "example"
+
+run:
+  runtime-version: 3.11
+  command: pipenv run gunicorn django_apprunner.wsgi --log-file -
+  network: 
+    port: 8000
+    env: MY_APP_PORT  
+  env:
+    - name: MY_VAR_EXAMPLE
+      value: "example"
