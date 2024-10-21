@@ -475,3 +475,7 @@ cr_lisense: "MIT"
 
 sitemap_include: ["html", "xml"]
 sitemap_exclude: ["secret.html", "private"]
+
+# Build settings
+# source: /
+# destination: /_site

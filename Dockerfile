@@ -25,15 +25,14 @@ COPY requirements.txt Gemfile ./
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-# Install Jekyll dependencies
-RUN bundle config build.ffi --enable-libffi-alloc \
-    && bundle install
+# Install Ruby dependencies
+RUN bundle install
 
 # **Install supervisor globally before switching users**
 RUN pip install --no-cache-dir supervisor
 
 # Copy the application code
-COPY . .
+COPY src/ /app/
 
 # Create a non-root user and set permissions
 RUN adduser --disabled-password --gecos '' appuser \
@@ -47,6 +46,8 @@ EXPOSE 8000 4002
 
 # Copy supervisor configuration
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+RUN cat /etc/supervisor/conf.d/supervisord.conf
 
 # Command to start supervisor
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
