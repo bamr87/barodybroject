@@ -3,7 +3,7 @@ gunicorn==22.0.0
 azure-monitor-opentelemetry
 
 # django requirements
-Django==4.2.1
+Django==4.2.16
 django-import-export==4.1.1
 django-json-widget==2.0.1
 django-markdownify==0.9.5
