@@ -16,17 +16,37 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Determine whether we're in production, as this will affect many settings.
+prod = bool(os.environ.get("RUNNING_IN_PRODUCTION", False))
+
+if not prod:  # Running in a Test/Development environment
+    DEBUG = True  # SECURITY WARNING: don't run with debug turned on in production!
+    DEFAULT_SECRET = "insecure-secret-key"
+
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:8000",
+    ]
+    if os.environ.get("CODESPACE_NAME"):
+        CSRF_TRUSTED_ORIGINS.append(
+            f"https://{os.environ.get('CODESPACE_NAME')}-8000.{os.environ.get('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN')}"
+        )
+else:  # Running in a Production environment
+    DEBUG = False
+    DEFAULT_SECRET = None
+    ALLOWED_HOSTS = [
+        os.environ["CONTAINER_APP_NAME"] + "." + os.environ["CONTAINER_APP_ENV_DNS_SUFFIX"],
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        "https://" + os.environ["CONTAINER_APP_NAME"] + "." + os.environ["CONTAINER_APP_ENV_DNS_SUFFIX"],
+    ]
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-9=woki=bii5gfdzfb3igh$qcxb=i+-u+!c58xl76x1tk)gaqd3'
+# SECRET_KEY = 'django-insecure-9=woki=bii5gfdzfb3igh$qcxb=i+-u+!c58xl76x1tk)gaqd3'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+SECRET_KEY = os.environ.get("SECRET_KEY", DEFAULT_SECRET)
 
 
 # Application definition
@@ -82,13 +102,28 @@ WSGI_APPLICATION = 'barodybroject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+db_options = {}
+if ssl_mode := os.environ.get("POSTGRES_SSL"):
+    db_options = {"sslmode": ssl_mode}
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("POSTGRES_DATABASE"),
+        "USER": os.environ.get("POSTGRES_USERNAME"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+        "HOST": os.environ.get("POSTGRES_HOST"),
+        "PORT": os.environ.get("POSTGRES_PORT", 5432),
+        "OPTIONS": db_options,
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -149,6 +184,9 @@ STATIC_ROOT = BASE_DIR / "static"
 
 PAGES_DIR = BASE_DIR / "pages"
 POST_DIR = PAGES_DIR / "_posts"
+
+
+
 
 # Martor settings
 

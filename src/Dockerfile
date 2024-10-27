@@ -6,6 +6,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client \
     build-essential \
     libpq-dev \
     ruby-full \
@@ -19,7 +20,7 @@ RUN gem install bundler jekyll
 WORKDIR /app
 
 # Copy dependency files
-COPY requirements.txt Gemfile ./
+COPY ./src/requirements.txt ./src/Gemfile ./
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip \

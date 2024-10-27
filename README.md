@@ -197,12 +197,11 @@ brew install postgresql
 brew install pgadmin4
 ```
 
-
 1. Install production requirements:
 
-    ```sh
-    python3 -m pip install -r src/requirements.txt
-    ```
+```sh
+python3 -m pip install -r src/requirements.txt
+```
 
 2. Start the PostgreSQL server:
 
@@ -213,10 +212,10 @@ brew services start postgresql@14
 
 1. Apply database migrations and seed initial data:
 
-    ```sh
-    python3 src/manage.py migrate
-    python3 src/manage.py loaddata src/seed_data.json
-    ```
+```sh
+python3 src/manage.py migrate
+# python3 src/manage.py loaddata src/seed_data.json
+```
 
 ## Running locally
 
@@ -244,16 +243,16 @@ python3 src/manage.py createsuperuser
 
 1. Install the development requirements:
 
-    ```sh
-    python3 -m pip install -r requirements-dev.txt
-    python3 -m playwright install chromium --with-deps
-    ```
+```sh
+python3 -m pip install -r requirements-dev.txt
+python3 -m playwright install chromium --with-deps
+```
 
 2. Run the tests:
 
-    ```sh
-    python3 -m pytest
-    ```
+```sh
+python3 -m pytest
+```
 
 ## Deployment
 
@@ -265,15 +264,15 @@ Steps for deployment:
 2. Install the [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd). (If you open this repository in Codespaces or with the VS Code Dev Containers extension, that part will be done for you.)
 3. Login to Azure:
 
-    ```shell
-    azd auth login
-    ```
+```shell
+azd auth login
+```
 
 4. Provision and deploy all the resources:
 
-    ```shell
-    azd up
-    ```
+```shell
+azd up
+```
 
     It will prompt you to provide an `azd` environment name (like "myapp"), select a subscription from your Azure account, and select a location (like "eastus"). Then it will provision the resources in your account and deploy the latest code. If you get an error with deployment, changing the location can help, as there may be availability constraints for some of the resources.
 
@@ -281,9 +280,9 @@ Steps for deployment:
 
 6. When you've made any changes to the app code, you can just run:
 
-    ```shell
-    azd deploy
-    ```
+```shell
+azd deploy
+```
 
 ### CI/CD pipeline
 
