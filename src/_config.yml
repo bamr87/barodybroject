@@ -52,7 +52,7 @@ title_separator          : "|" # Appears in the web browser tab name
 domain                   : &domain "parodynews.org"
 domain_ext               : ".org"
 sub_domain               : &sub_domain ""
-baseurl                  : "" # the subpath of your site, e.g. /blog - Use this if you want this whole repo to be a domain branch
+baseurl                  : "/barodybroject" # the subpath of your site, e.g. /blog - Use this if you want this whole repo to be a domain branch
 url_dev                  : ['https://', *sub_domain, '.', *domain, *domain_ext ] # the base hostname & protocol for your site, e.g. http://example.com
 url                      : &url 'https://paroydnews.org' # the base hostname & protocol for your site, e.g. http://example.com
 public_folder            : "/assets"
