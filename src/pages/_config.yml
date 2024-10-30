@@ -55,10 +55,10 @@ sub_domain               : &sub_domain ""
 baseurl                  : "/barodybroject" # the subpath of your site, e.g. /blog - Use this if you want this whole repo to be a domain branch
 url_dev                  : ['https://', *sub_domain, '.', *domain, *domain_ext ] # the base hostname & protocol for your site, e.g. http://example.com
 url                      : &url 'https://paroydnews.org' # the base hostname & protocol for your site, e.g. http://example.com
-public_folder            : "/assets"
+public_folder            : "/barodybroject/assets"
 port                     : 4002 # Jekyll Serve Dev port
 dg_port                  : 8000 # TODO: Doppelganger site. Use this if you want to switch between parallel deployments
-og_image                 : '/assets/images/wizard-on-journey.png'
+og_image                 : '/barodybroject/assets/images/wizard-on-journey.png'
 
 ### Owner Information -------------------------------------------------------------
 

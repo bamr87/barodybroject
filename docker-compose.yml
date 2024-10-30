@@ -20,13 +20,11 @@ services:
     ports:
       - "5432:5432"
 
-  web:
+  python:
     build:
       context: .
-      dockerfile: ./src/Dockerfile
-    ports:
-      - "8000:8000"
-      - "4002:4002"
+      dockerfile: Dockerfile.python
+
     depends_on:
       db:
         condition: service_healthy
@@ -36,9 +34,39 @@ services:
       POSTGRES_DATABASE: barodydb
       POSTGRES_HOST: db
       POSTGRES_PASSWORD: postgres
+    ports:
+      - "8000:8000"
+    # volumes:
+    #   - ..:/workspace:cached
 
-    volumes:
-      - ..:/workspace:cached
+  # ruby:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.ruby
+  #   volumes:
+  #     - ./src:/app
+  #   ports:
+  #     - "4002:4002"
+
+  # web:
+  #   build:
+  #     context: .
+  #     dockerfile: ./Dockerfile
+  #   ports:
+  #     - "8000:8000"
+  #     - "4002:4002"
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+
+  #   environment:
+  #     POSTGRES_USERNAME: postgres
+  #     POSTGRES_DATABASE: barodydb
+  #     POSTGRES_HOST: db
+  #     POSTGRES_PASSWORD: postgres
+
+  #   volumes:
+  #     - ..:/workspace:cached
 
 volumes:
   postgres-data:

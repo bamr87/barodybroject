@@ -1,0 +1,32 @@
+# Dockerfile.python
+FROM python:3.10
+
+# Set environment variables
+# ENV PYTHONUNBUFFERED=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory
+WORKDIR /app
+
+# Copy dependency files
+COPY ./src/requirements.txt ./
+
+# Install Python dependencies
+RUN pip install -r requirements.txt
+
+# Copy the application code
+COPY ./src/ ./
+
+# Copy supervisor configuration
+# COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Expose ports
+EXPOSE 8000
+
+# Command to start Django application
+CMD ["/app/entrypoint.sh"]

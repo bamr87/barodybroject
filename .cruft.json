@@ -1,11 +1,10 @@
 {
   "template": "https://github.com/Azure-Samples/Azure-Python-Standardization-Template-Generator",
-  "commit": "573edb00d58171b2848ed4d1032fc6aae8fe0cea",
   "checkout": null,
   "context": {
     "cookiecutter": {
       "project_name": "barodybroject",
-      "python_version": "3.12",
+      "python_version": "3.10",
       "project_backend": "django",
       "db_resource": "postgres-flexible",
       "project_host": "aca",
