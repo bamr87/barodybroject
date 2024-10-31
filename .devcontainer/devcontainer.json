@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-docker-compose
 {
-    "name": "barody-broject-django-postgres-flexible-aca",
+    "name": "barody-broject-django-postgres",
 
     // Update the 'dockerComposeFile' list if you have more compose files or use different names.
     // The .devcontainer/docker-compose.yml file contains any overrides you need/want to make.
@@ -19,11 +19,14 @@
     "customizations": {
         "vscode": {
             "extensions": [
+                "GitHub.vscode-github-actions",
+                "ms-azuretools.azure-dev",
+                "ms-azuretools.vscode-azurefunctions",
                 "ms-azuretools.vscode-bicep",
                 "charliermarsh.ruff",
-                "ms-python.python",
-                "ms-azuretools.vscode-docker",
-                "bierner.github-markdown-preview"
+                "ms-azuretools.vscode-docker"
+                // Include other VSCode language extensions if needed
+                // Right click on an extension inside VSCode to add directly to devcontainer.json, or copy the extension ID
             ],
             "settings": {
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
@@ -48,9 +51,11 @@
     },
     "features": {
         // Required for azd to package the app to ACA
+        
         "ghcr.io/devcontainers/features/docker-in-docker:2": {},
         "ghcr.io/azure/azure-dev/azd:latest": {}
     },
+    
     "postCreateCommand": "playwright install chromium --with-deps && python src/manage.py migrate"
 }
 
