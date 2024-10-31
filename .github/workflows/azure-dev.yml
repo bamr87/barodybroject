@@ -5,7 +5,6 @@ on:
     push:
       branches:
         - main
-        - cruft/update
 
 # GitHub Actions workflow to deploy to Azure using azd
 # To configure required secrets for connecting to Azure, simply run `azd pipeline config`
@@ -25,6 +24,8 @@ jobs:
         AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
         AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
         AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+        AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+        AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
         AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
       steps:
         - name: Checkout
@@ -95,7 +96,7 @@ jobs:
         - name: Setup python
           uses: actions/setup-python@v4
           with:
-            python-version: 3.12
+            python-version: 3.13
 
         - name: End-to-end smoke tests (playwright)
           env:
