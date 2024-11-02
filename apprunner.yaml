@@ -1,5 +1,5 @@
 version: 1.0
-runtime: python311 
+runtime: python312
 
 build:
   commands:
@@ -19,7 +19,7 @@ build:
       value: "example"
 
 run:
-  runtime-version: 3.11
+  runtime-version: 3.12
   command: pipenv run gunicorn django_apprunner.wsgi --log-file -
   network: 
     port: 8000
