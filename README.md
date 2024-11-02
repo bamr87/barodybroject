@@ -2,9 +2,11 @@
 
 ## Description
 
-Django application that integrates with OpenAI to generate content with the help of assistants.
+Django application integrated with OpenAI to generate content with the help of assistants.
 
-## Features
+<!-- TODO: add Django CMS functionality -->
+
+### Features
 
 - **User Authentication**: Supports standard user registration, login, logout, and password management.
 - **Dynamic Content Management**: Admin interface for managing content, users, and site settings.
@@ -14,19 +16,28 @@ Django application that integrates with OpenAI to generate content with the help
 - **Search Functionality**: Integrated search functionality for finding content within the site.
 - **Security Features**: Implements Django's built-in security features to protect against XSS, CSRF, SQL Injection, and more.
 
-## Powered By
+### Powered By
 
 - **Django**: High-level Python Web framework that encourages rapid development and clean, pragmatic design.
+<!-- - Django CMS: Open-source content management system based on the Django web framework. -->
 - **OpenAI**: API for accessing new AI models developed by OpenAI.
 - **Bootstrap**: Front-end open source toolkit for developing with HTML, CSS, and JS.
 <!-- - **Tailwind CSS**: Utility-first CSS framework packed with classes like flex, pt-4, text-center, and rotate-90 that can be composed to build any design, directly in your markup. -->
+- **PostgreSQL**: Powerful, open-source object-relational database system.
 - **SQLite**: Self-contained, serverless, zero-configuration, transactional SQL database engine.
 <!-- - **Sphinx**: Python documentation generator that converts reStructuredText files into HTML websites and PDFs. -->
 - **Docker**: Open platform for developing, shipping, and running applications.
 <!-- - **React**: JavaScript library for building user interfaces. -->
 - **Jekyll**: Simple, blog-aware static site generator for personal, project, or organization sites.
 
-## Tools
+### Tools
+
+- **Git**: Distributed version control system for tracking changes in source code during software development.
+- **Github**: Leading platform for hosting and collaborating on Git repositories.
+- **VS Code**: Lightweight but powerful source code editor that runs on your desktop.
+- **Docker Compose**: Tool for defining and running multi-container Docker applications.
+- **Azure Container Apps**: Service for deploying and scaling containerized applications in the cloud.
+- **Azure Developer CLI**: Command-line interface for managing Azure resources.
 
 <!-- - **Selenium**: Portable framework for testing web applications. -->
 
@@ -39,23 +50,36 @@ Follow these steps to set up a development environment for this Django project:
 - Github CLI
 - Python 3.8 or higher
 - pip (Python package manager)
-- Virtualenv (optional but recommended for creating isolated Python environments)
+- virtualenv (optional but recommended for creating isolated Python environments)
 
 ### Setup
 
 [zer0](https://it-journey.dev/zer0/)
 
+0. Set naming parameters
+
+```sh
+GH_USER=bamr87
+GH_REPO=barodybroject
+GH_HOME=~/github
+GH_REPO_DIR=${GH_HOME}/test-1
+PY_VENV=.venv${GH_REPO}
+```
+
+
 1. **Clone the Repository**
 
 ```sh
-cd ~/github/
-gh repo clone bamr87/barodybroject test1
-cd test1
+cd $GH_HOME
+gh repo clone bamr87/barodybroject $GH_REPO_DIR
+cd $GH_REPO_DIR
 ```
 
 ```bash
+# Or clone the repository using the git command
+cd $GH_HOME
 git clone https://github.com/bamr87/barodybroject.git
-cd barodybroject
+cd $GH_REPO_DIR
 ```
 
 2. **Create a Virtual Environment (Optional)**
@@ -63,8 +87,8 @@ cd barodybroject
 - For Unix/Linux/Mac:
 
 ```bash
-python3 -m venv .venvtest1
-source .venvtest1/bin/activate
+python3 -m venv $PY_VENV
+source $PY_VENV/bin/activate
 ```
 
 - For Windows:
@@ -79,7 +103,7 @@ python -m venv venv
 With your virtual environment activated, install the project dependencies:
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 2. **Set Up Environment Variables**
@@ -97,6 +121,7 @@ DATABASE_URL=sqlite:///db.sqlite3
 Apply the database migrations to set up your database schema:
 
 ```bash
+cd src
 python manage.py makemigrations
 python manage.py migrate
 ```
@@ -133,12 +158,15 @@ Visit [http://localhost:8000](http://localhost:8000) in youπr web browser to vi
 
 ```sh
 # build the docker image based on the Dockerfile
-docker build -t barody .
+docker compose build -t $GH_REPO .
 ```
 
 ```sh
 # run the docker image and mount the local directory to the container and open a bash shell
-docker run -d -p 8000:8000 -p 4002:4002 --env-file .env --name container-barody barody
+# docker run -d -p 8000:8000 -p 4002:4002 --env-file .env --name container-barody barody
+
+docker compose up -d
+
 ```
 
 
