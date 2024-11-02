@@ -45,7 +45,7 @@ jobs:
       - name: Seed data
         run: |
           python3 src/manage.py migrate
-          python3 src/manage.py loaddata src/seed_data.json
+
         env:
           POSTGRES_HOST: localhost
           POSTGRES_USERNAME: postgres
