@@ -23,7 +23,11 @@ if not prod:  # Running in a Test/Development environment
     DEBUG = True  # SECURITY WARNING: don't run with debug turned on in production!
     DEFAULT_SECRET = "insecure-secret-key"
 
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+    ALLOWED_HOSTS = [
+        "localhost",
+        "127.0.0.1",
+        os.environ["CONTAINER_APP_NAME"] + "." + os.environ["CONTAINER_APP_ENV_DNS_SUFFIX"]
+    ]
     CSRF_TRUSTED_ORIGINS = [
         "http://localhost:8000",
     ]
