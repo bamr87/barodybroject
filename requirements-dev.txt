@@ -11,6 +11,6 @@ pytest-playwright
 coverage
 pytest-cov
 axe-playwright-python
-
+selenium
 # Linters
 ruff

@@ -307,7 +307,6 @@ def openai_delete_message(message_id, thread_id):
 
 def create_run(thread_id, assistant_id):
     import time
-    client = OpenAI()
 
     run = client.beta.threads.runs.create(
     thread_id=thread_id,

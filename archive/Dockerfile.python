@@ -29,4 +29,4 @@ COPY ./src/ ./
 EXPOSE 8000
 
 # Command to start Django application
-CMD ["/app/entrypoint.sh"]
+CMD bash -c ". entrypoint.sh"

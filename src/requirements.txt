@@ -4,16 +4,16 @@ azure-monitor-opentelemetry
 
 # django requirements
 Django==4.2.16
-django-import-export==4.1.1
-django-json-widget==2.0.1
-django-markdownify==0.9.5
-jsonref==1.1.0
-jsonschema==4.23.0
-jsonschema-specifications==2023.12.1
-Markdown==3.5.2
-openai==1.35.12
-PyYAML==6.0.1
-selenium==4.24.0
-martor==1.6.44
-djangorestframework==3.15.2
+django-import-export
+django-json-widget
+django-markdownify
+jsonref
+jsonschema
+jsonschema-specifications
+Markdown
+openai
+PyYAML
+martor
+djangorestframework
 psycopg
+setuptools

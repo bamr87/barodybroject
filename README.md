@@ -61,9 +61,10 @@ Follow these steps to set up a development environment for this Django project:
 ```sh
 GH_USER=bamr87
 GH_REPO=barodybroject
+GH_TEST_REPO=barodybroject-test-4
 GH_HOME=~/github
-GH_REPO_DIR=${GH_HOME}/test-1
-PY_VENV=.venv${GH_REPO}
+GH_REPO_DIR=${GH_HOME}/${GH_TEST_REPO}
+PY_VENV=.venv${GH_TEST_REPO}
 ```
 
 
@@ -110,7 +111,21 @@ pip install -r requirements-dev.txt
 
 Create a `.env` file in the project root directory and add your environment-specific variables. For example:
 
+```sh
+cd $GH_REPO_DIR
+touch .env
+echo "CONTAINER_APP_NAME=${GH_TEST_REPO}" >> .env
+echo "CONTAINER_APP_ENV_DNS_SUFFIX=localhost" >> .env
+echo "DEBUG=True" >> .env
+echo "SECRET_KEY=your_secret_key" >> .env
+echo "DATABASE_URL=sqlite:///db.sqlite3" >> .env
+```
+
+or manually create the `.env` file and add the following environment variables:
+
 ```plaintext
+CONTAINER_APP_NAME=${GH_TEST_REPO}
+CONTAINER_APP_ENV_DNS_SUFFIX=localhost
 DEBUG=True
 SECRET_KEY=your_secret_key
 DATABASE_URL=sqlite:///db.sqlite3
@@ -187,6 +202,14 @@ docker compose up -d
 ## Deploy Django Application with PostgreSQL via Azure Container Apps
 
 This project deploys a web application for a space travel agency using Django. The application can be deployed to Azure with Azure Container Apps using the [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/overview).
+
+
+
+```sh
+azd auth login
+azd init
+azd up
+```
 
 ```sh
 # sample site

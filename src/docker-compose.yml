@@ -23,7 +23,7 @@ services:
   python:
     build:
       context: .
-      dockerfile: Dockerfile.python
+      dockerfile: Dockerfile
 
     depends_on:
       db:

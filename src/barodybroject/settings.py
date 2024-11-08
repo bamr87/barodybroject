@@ -26,17 +26,13 @@ if not prod:  # Running in a Test/Development environment
     ALLOWED_HOSTS = [
         "localhost",
         "127.0.0.1",
-        os.environ["CONTAINER_APP_NAME"] + "." + os.environ["CONTAINER_APP_ENV_DNS_SUFFIX"]
     ]
     CSRF_TRUSTED_ORIGINS = [
         "http://localhost:8000",
     ]
-    if os.environ.get("CODESPACE_NAME"):
-        CSRF_TRUSTED_ORIGINS.append(
-            f"https://{os.environ.get('CODESPACE_NAME')}-8000.{os.environ.get('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN')}"
-        )
+
 else:  # Running in a Production environment
-    DEBUG = False
+    DEBUG = True  # SECURITY WARNING: don't run with debug turned on in production!
     DEFAULT_SECRET = None
     ALLOWED_HOSTS = [
         os.environ["CONTAINER_APP_NAME"] + "." + os.environ["CONTAINER_APP_ENV_DNS_SUFFIX"],
