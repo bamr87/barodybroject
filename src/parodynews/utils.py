@@ -9,8 +9,16 @@ print("Loading utils.py")
 
 # Start up and load the OpenAI API key
 def table_exists(table_name):
+    db_type = settings.DATABASES['default']['ENGINE']
+    
     with connection.cursor() as cursor:
-        cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = %s;", (table_name,))
+        if 'postgresql' in db_type:
+            cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = %s;", (table_name,))
+        elif 'sqlite' in db_type:
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?;", (table_name,))
+        else:
+            raise ValueError("Unsupported database type")
+        
         return cursor.fetchone() is not None
 
 def get_config_value(key):
