@@ -9,6 +9,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from .models import ContentItem, ContentDetail
 from django.contrib.auth.models import User
+from rest_framework.test import APITestCase
 
 class ManageContentViewTestCase(TestCase):
     def setUp(self):
@@ -32,6 +33,7 @@ class ManageContentViewTestCase(TestCase):
         self.assertEqual(content_detail.title, 'Default Title')
         self.assertEqual(content_detail.description, 'Default Description')
         self.assertEqual(content_detail.author, 'Default Author')
+
 class ContentFormTestCase(TestCase):
     def test_valid_form(self):
         form_data = {'title': 'Valid Title', 'description': 'Valid Description'}
@@ -42,3 +44,21 @@ class ContentFormTestCase(TestCase):
         form_data = {'title': '', 'description': 'Valid Description'}
         form = ContentItemForm(data=form_data)
         self.assertFalse(form.is_valid())
+
+class ContentAPITestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.login(username='testuser', password='testpassword')
+        
+    def test_create_content_api(self):
+        url = reverse('content_detail')  # Update with the correct API endpoint name
+        data = {
+            'title': 'Test Content',
+            'description': 'Test Description',
+            'author': 'Test Author',
+            # ...additional required fields...
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(ContentDetail.objects.count(), 1)
+        self.assertEqual(ContentDetail.objects.get().title, 'Test Content')

@@ -4,22 +4,27 @@
 from django.db import connection
 from .models import AppConfig
 from openai import OpenAI
+from django.conf import settings
 
 print("Loading utils.py")
 
 # Start up and load the OpenAI API key
-def table_exists(table_name):
-    db_type = settings.DATABASES['default']['ENGINE']
-    
-    with connection.cursor() as cursor:
-        if 'postgresql' in db_type:
-            cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = %s;", (table_name,))
-        elif 'sqlite' in db_type:
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?;", (table_name,))
-        else:
-            raise ValueError("Unsupported database type")
-        
-        return cursor.fetchone() is not None
+from django.apps import apps
+
+from django.db.models import Q
+
+def table_exists_and_fields_populated(model_name):
+    try:
+        model = apps.get_model('parodynews', model_name)
+        if model.objects.exists():
+            return model.objects.filter(
+                Q(api_key__isnull=False) & ~Q(api_key='') &
+                Q(project_id__isnull=False) & ~Q(project_id='') &
+                Q(org_id__isnull=False) & ~Q(org_id='')
+            ).exists()
+        return False
+    except LookupError:
+        return False
 
 def get_config_value(key):
     try:
@@ -28,27 +33,13 @@ def get_config_value(key):
     except AppConfig.DoesNotExist:
         return None
 
-if table_exists('parodynews_appconfig'):
+if table_exists_and_fields_populated('AppConfig'):
     api_key = get_config_value('api_key')
     project_id = get_config_value('project_id')
     org_id = get_config_value('org_id')
 
     if api_key:
         print("OPENAI_API_KEY loaded successfully.")
-    else:
-        print("Failed to load OPENAI_API_KEY.")
-
-    if project_id:
-        print("PROJECT_ID loaded successfully.")
-    else:
-        print("Failed to load PROJECT_ID.")
-
-    if org_id:
-        print("ORG_ID loaded successfully.")
-    else:
-        print("Failed to load ORG_ID.")
-else:
-    print("Table 'parodynews_appconfig' does not exist.")
 
 try:
     client = OpenAI(

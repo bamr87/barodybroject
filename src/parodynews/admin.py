@@ -54,6 +54,27 @@ admin.site.register(JSONSchema, JSONSchemaAdmin)
 class AssistantAdmin(ImportExportModelAdmin):
     resource_class = AssistantResource
 
+# parodynews/admin.py
+from django.core.management import call_command
+from django.contrib import messages
+from .models import OpenAIModel
+
+@admin.register(OpenAIModel)
+class OpenAIModelAdmin(admin.ModelAdmin):
+    list_display = ('model_id', 'created_at', 'updated_at')
+    search_fields = ('model_id',)
+    actions = ['fetch_openai_models']
+
+    def fetch_openai_models(self, request, queryset):
+        try:
+            call_command('fetch_models')
+            self.message_user(request, "Successfully fetched and saved model choices", messages.SUCCESS)
+        except Exception as e:
+            self.message_user(request, f"Error fetching models: {e}", messages.ERROR)
+
+    fetch_openai_models.short_description = "Fetch and update OpenAI models"
+
+
 class PostAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.TextField: {'widget': AdminMartorWidget},

@@ -12,13 +12,25 @@ response = session.get(url)
 soup = BeautifulSoup(response.content, 'html.parser')
 csrf_token = soup.find('input', {'name': 'csrfmiddlewaretoken'})['value']
 
+# Login credentials
+login_data = {
+    'username': 'testuser',
+    'password': 'testpassword',
+    'csrfmiddlewaretoken': csrf_token
+}
+
+# Perform login
+login_url = 'http://127.0.0.1:8000/login/'
+session.post(login_url, data=login_data)
+
 # Define the data to be sent in the POST request
 data = {
-    '_method': 'create',  # This will invoke the save method in ManageContentView
-    'title': 'Example Title',
-    'description': 'Example Description',
-    'csrfmiddlewaretoken': csrf_token,  # Include the CSRF token
-    # Add other necessary fields here
+    '_method': 'save',
+    'title': 'Test Content',
+    'description': 'Test Description',
+    'author': 'Test Author',
+    'csrfmiddlewaretoken': csrf_token,
+    # ...additional required fields...
 }
 
 # Optionally, add headers if needed (e.g., for authentication)
@@ -26,17 +38,12 @@ headers = {
     'Content-Type': 'application/x-www-form-urlencoded',
 }
 
-# Send the POST request
-response = session.post(url, data=data, headers=headers)
+# Send the POST request to create content
+response = session.post(url, data=data)
 
 # Check the response
-if response.status_code == 200:
-    try:
-        print('Request was successful')
-        print(response.json())  # Try to parse JSON
-    except requests.exceptions.JSONDecodeError:
-        print('Response is not in JSON format')
-        print(response.text)  # Print raw text
+if response.status_code == 302:
+    print('Content created successfully')
 else:
-    print(f'Failed to send request: {response.status_code}')
+    print(f'Failed to create content: {response.status_code}')
     print(response.text)

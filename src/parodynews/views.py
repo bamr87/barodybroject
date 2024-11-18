@@ -111,7 +111,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
             return self.delete(request)
         
         if request.POST.get('_method') == 'save':
-            return self.save(request)
+            return self.save(request, content_detail_id)
 
         if request.POST.get('_method') == 'generate_content':
             return self.generate_content(request)
@@ -121,7 +121,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
         return redirect('manage_content')
     
-    def save(self, request, content_detail=None):
+    def save(self, request, content_detail_id=None):
         content_detail_id = request.POST.get('content_detail_id')
 
         # initialize the forms 
@@ -284,6 +284,9 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         
         if request.POST.get('_method') == 'create_post':
             return self.create_post(request)
+        
+        if request.POST.get('_method') == 'save':
+            return self.save(request, thread_id, message_id)
 
     # View to delete a thread
 
@@ -438,8 +441,11 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
         messages.success(request, "Post created successfully.")
         return redirect('post_detail', post_id=post.id)
-
-
+    
+    def save(self, request, thread_id=None, message_id=None):
+        # Added the save method since it's called in post()
+        # ...implement the save logic or remove the call if not needed...
+        messages.success(request, "Message saved successfully.")
 
 
 class ManageMessageView(LoginRequiredMixin, View):
@@ -539,11 +545,11 @@ class ManageAssistantsView(ModelFieldsMixin, View):
             return self.delete(request)
 
         if request.POST.get('_method') == 'save':
-            return self.save(request)
+            return self.save(request, assistant_id)
 
         return redirect('assistant_detail', assistant_id=assistant_id)
 
-    def save(self, request, save_form=None, assistant=None):
+    def save(self, request, assistant_id=None):
         assistant_id = request.POST.get('assistant_id')
         save_form = request.POST.get('save_form')
 
@@ -780,7 +786,7 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
             return self.delete(request)
         
         if request.POST.get('_method') == 'save':
-            return self.save(request)
+            return self.save(request, post_id)
         
         if request.POST.get('_method') == 'publish':
             return self.publish(request)

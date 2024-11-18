@@ -8,7 +8,8 @@ from .models import (
     JSONSchema,
     Thread,
     Post,
-    PostFrontMatter
+    PostFrontMatter,
+    OpenAIModel
     )
 import json
 from django.db.models import Count
@@ -31,12 +32,6 @@ class ContentDetailForm(forms.ModelForm):
         }
 
 
-# Load model choices from the JSON file
-try:
-    with open('model_choices.json', 'r') as f:
-        MODEL_CHOICES = [(model, model) for model in json.load(f)]
-except FileNotFoundError:
-    MODEL_CHOICES = []
 
 class ContentItemForm(forms.ModelForm):
 
@@ -111,7 +106,7 @@ class AssistantForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AssistantForm, self).__init__(*args, **kwargs)
-        self.fields['model'].choices = MODEL_CHOICES
+        self.fields['model'].choices = [(model.model_id, model.model_id) for model in OpenAIModel.objects.all()]
 
         if 'instance' in kwargs and kwargs['instance']:
             assistant = kwargs['instance']
@@ -165,7 +160,7 @@ class PostForm(forms.ModelForm):
         model = Post
         fields = [
             'id', 'content_detail', 'thread', 'message', 'assistant', 'content', 
-            'created_at', 'filename'
+            'created_at', 'filename', 'status'  # Added 'status' field
         ]
         widgets = {
             'content_detail': forms.Select(attrs={'class': 'form-control'}),
@@ -216,4 +211,4 @@ class JSONSchemaForm(forms.ModelForm):
         if not re.match(r'^[a-zA-Z0-9_-]+$', name):
             raise ValidationError('Name can only contain letters, numbers, underscores, and hyphens.')
         return name
-        
+

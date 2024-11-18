@@ -33,12 +33,17 @@ class JSONSchema(models.Model):
         return self.name
     
 
-# Load model choices from the JSON file
-try:
-    with open('model_choices.json', 'r') as f:
-        MODEL_CHOICES = [(model, model) for model in json.load(f)]
-except FileNotFoundError:
-    MODEL_CHOICES = []
+class OpenAIModel(models.Model):
+    model_id = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.model_id
+
+# Load model choices from the DB
+MODEL_CHOICES = [(model.model_id, model.model_id) for model in OpenAIModel.objects.all()]
+
 
 class Assistant(models.Model):
     id = models.CharField(max_length=225, primary_key=True)
@@ -157,10 +162,11 @@ class Post(models.Model):
     status = models.CharField(max_length=100, default="draft")
 
     def get_display_fields(self):
-        # List the fields you want to display
-        return ['id', 'title', 'created_at', 'slug', 'status']
+        # Added missing get_display_fields method
+        return ['id', 'content_detail', 'thread', 'message', 'assistant', 'created_at', 'status']
 
     def __str__(self):
+        # Updated __str__ method for consistency
         return self.content_detail.title
 
 class PostFrontMatter(models.Model):
@@ -171,7 +177,12 @@ class PostFrontMatter(models.Model):
     published_at = models.DateTimeField(default=timezone.now)
     slug = models.SlugField(max_length=255, unique=False, default="slug")
 
+    def get_display_fields(self):
+        # Added missing get_display_fields method
+        return ['post', 'title', 'author', 'published_at', 'slug']
+
     def __str__(self):
+        # Updated __str__ method for consistency
         return self.title
 
 class MyObject(models.Model):
