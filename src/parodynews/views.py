@@ -1,11 +1,9 @@
 import json
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.views.decorators.http import require_POST
+from django.http import HttpResponse, JsonResponse
 from django.views.generic import TemplateView
 from django.views import View
 from datetime import datetime
@@ -32,9 +30,6 @@ from .utils import (
     generate_content, 
     openai_create_message,
     openai_delete_message,
-    openai_list_messages, 
-    retrieve_assistants_info,
-    json_to_markdown,
     generate_content_detail
 )
 
@@ -621,7 +616,6 @@ def get_assistant_details(request, assistant_id):
 
 
 
-from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from .models import MyObject
 from .forms import MyObjectForm
@@ -687,9 +681,6 @@ class MyObjectView(View):
 
 
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
-from django.contrib import messages
 from .models import JSONSchema
 from .forms import JSONSchemaForm
 
@@ -735,12 +726,8 @@ def delete_schema(request, pk):
     return redirect('list_schemas')
 
 # parodynews/views.py
-import os
-from django.conf import settings
-from django.shortcuts import render, redirect
 
 from .forms import PostForm, PostFrontMatterForm
-from .models import Post
 from .utils import generate_markdown_file
 import yaml
 class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
@@ -891,7 +878,7 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
 
 # views.py
 from rest_framework import viewsets
-from .models import ContentItem, ContentDetail  # Replace with your actual model
+from .models import ContentDetail  # Replace with your actual model
 from .serializers import MyModelSerializer
 
 class MyModelViewSet(viewsets.ModelViewSet):

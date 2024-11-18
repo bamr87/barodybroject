@@ -11,7 +11,6 @@ from .models import (
     PostFrontMatter,
     OpenAIModel
     )
-import json
 from django.db.models import Count
 from martor.fields import MartorFormField
 
@@ -88,7 +87,7 @@ class ContentItemForm(forms.ModelForm):
 # Fetch all Assistant objects and create a list of tuples for the dropdown choices
 
 from django import forms
-from .models import Assistant, AssistantGroup
+from .models import Assistant
 
 class AssistantForm(forms.ModelForm):
 
@@ -151,7 +150,6 @@ class ThreadRunFrom(forms.Form):
     prompt = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
     content = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
     
-from .models import Post, PostFrontMatter
 from django import forms
 
 # Post form 
