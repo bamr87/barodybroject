@@ -45,7 +45,7 @@ MODEL_CHOICES = [(model.model_id, model.model_id) for model in OpenAIModel.objec
 
 
 class Assistant(models.Model):
-    id = models.CharField(max_length=225, primary_key=True)
+    id = models.CharField(max_length=225, blank=True, primary_key=True)
     name = models.CharField(max_length=256, null=True, blank=True, default="system default")
     description = models.CharField(max_length=512, null=True, blank=True, default="Describe the assistant.")
     instructions = models.TextField(max_length=256000, default="you are a helpful assistant.")
@@ -53,7 +53,7 @@ class Assistant(models.Model):
     object = models.CharField(max_length=50, default="assistant")
     model = models.CharField(max_length=100, choices=MODEL_CHOICES, default='gpt-3.5-turbo')
     created_at = models.DateTimeField(default=timezone.now)
-    tools = models.JSONField(default=list)
+    tools = models.JSONField(default=list, null=True, blank=True,)
     metadata = models.JSONField(default=dict)
     temperature = models.FloatField(null=True, blank=True)
     top_p = models.FloatField(null=True, blank=True)

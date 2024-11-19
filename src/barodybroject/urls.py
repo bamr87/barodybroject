@@ -32,23 +32,22 @@ from parodynews.views import (
 
 from django.urls import include, path
 from rest_framework import routers
-from parodynews.views import MyModelViewSet
 
 router = routers.DefaultRouter()
-router.register(r'ContentItem', MyModelViewSet)
-
 
 urlpatterns = [
-
+    path('admin/', admin.site.urls),
+    # Include the app's URLs under the root path
     path('', include('parodynews.urls')),
     # Home page and admin page
     path('', views.index, name='index'),
-    path('admin/', admin.site.urls),
     path('footer/', FooterView.as_view(), name='footer'),
 
     path('martor/', include('martor.urls')),
 
-    path('', include(router.urls)),
-    path('api/', include('parodynews.urls')),  # Replace with your app name
+    # Include the API endpoints under 'api/' path
+    path('api/', include(router.urls)),
+    # Remove the redundant include
+    # path('api/', include('parodynews.urls')),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

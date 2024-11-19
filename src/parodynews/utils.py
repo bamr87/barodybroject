@@ -2,7 +2,7 @@
 # https://platform.openai.com/docs/api-reference/chat-gpt-4o
 
 from django.db import connection
-from .models import AppConfig
+from .models import AppConfig, Assistant
 from openai import OpenAI
 from django.conf import settings
 
@@ -279,7 +279,7 @@ def generate_content_detail(content):
     content_detail = response.choices[0].message.content
     
     # Log the response
-    logging.info("Response: %s", data)
+    logging.info("Response: %s", content_detail)
     
     return content_detail
 
@@ -449,4 +449,35 @@ def generate_content_detail(content):
     logging.info("Response: %s", data)
     
     return data
+
+def create_or_update_assistant(validated_data):
+    name = validated_data.get('name')
+    description = validated_data.get('description')
+    instructions = validated_data.get('instructions', 'you are a helpful assistant.')
+    model = validated_data.get('model')
+    json_schema = validated_data.get('json_schema')
+    assistant_id = validated_data.get('id', None)  # For updates
+
+    # Create or update the assistant in OpenAI
+    assistant_ai = save_assistant(
+        name,
+        description,
+        instructions,
+        model,
+        json_schema,
+        assistant_id
+    )
+
+    # Update or create the Assistant object in the database
+    assistant, created = Assistant.objects.update_or_create(
+        id=assistant_ai.id,
+        defaults={
+            'name': name,
+            'description': description,
+            'instructions': instructions,
+            'model': model,
+            'json_schema': json_schema,
+        }
+    )
+    return assistant
 

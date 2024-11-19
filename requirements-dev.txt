@@ -12,5 +12,8 @@ coverage
 pytest-cov
 axe-playwright-python
 selenium
+beautifulsoup4
+requests
+
 # Linters
 ruff

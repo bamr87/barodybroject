@@ -1,40 +1,64 @@
-from django.contrib import admin
 from django.urls import path, include
-from parodynews import views  # Make sure to replace 'myapp' with the actual name of your Django app
-
-print("Registering parodynews urls")
-
-from django.contrib import admin
-from django.urls import include, path
-from django.contrib.auth.views import LogoutView
-from django.conf import settings
-from django.conf.urls.static import static
-from parodynews import views
-from parodynews.views import (
+from rest_framework import routers
+from .views import (
+    AssistantViewSet,
+    AssistantGroupViewSet,
+    ContentItemViewSet,
+    ContentDetailViewSet,
+    ThreadViewSet,
+    MessageViewSet,
+    PostViewSet,
+    PostFrontMatterViewSet,
+    JSONSchemaViewSet,
+    PoweredByViewSet,
+    MyObjectViewSet,
+    GeneralizedCodesViewSet,
     FooterView,
     ManageContentView,
     ManageAssistantsView,
     ManageMessageView,
     ProcessContentView,
     ManagePostView,
-    MyObjectView)
+    UserLoginView,
+    get_assistant_details,
+    index,
+    list_schemas,
+    edit_schema,
+    create_schema,
+    delete_schema,
+    export_schema,
+    MyObjectView
+    )
 
-from django.urls import include, path
-from rest_framework import routers
-from parodynews.views import MyModelViewSet
+from django.contrib.auth.views import LogoutView
+from django.conf import settings
+from django.conf.urls.static import static
+
+print("Registering parodynews urls")
 
 router = routers.DefaultRouter()
-router.register(r'ContentItem', MyModelViewSet)
+# Register the viewsets
+router.register(r'assistants', AssistantViewSet)
+router.register(r'assistant-groups', AssistantGroupViewSet)
+router.register(r'content-items', ContentItemViewSet)
+router.register(r'content-details', ContentDetailViewSet)
+router.register(r'threads', ThreadViewSet)
+router.register(r'messages', MessageViewSet)
+router.register(r'posts', PostViewSet)
+router.register(r'post-front-matters', PostFrontMatterViewSet)
+router.register(r'json-schemas', JSONSchemaViewSet)
+router.register(r'powered-by', PoweredByViewSet)
+router.register(r'my-objects', MyObjectViewSet)
+router.register(r'generalized-codes', GeneralizedCodesViewSet)
 
 urlpatterns = [
-
-    # Home page and admin page
-    path('', views.index, name='index'),
+    # Home page and other views
+    path('', index, name='index'),
     path('footer/', FooterView.as_view(), name='footer'),
-
     path('martor/', include('martor.urls')),
 
-    path('', include(router.urls)),
+    # Include API endpoints under 'api/' path
+    path('api/', include(router.urls)),
 
     # Content management
     path('content/', ManageContentView.as_view(), name='manage_content'),
@@ -47,8 +71,7 @@ urlpatterns = [
     path('content/thread/create/', ManageContentView.as_view(), name='manage_content'),
 
     # Sub routines for AJAX requests
-    path('get_assistant_details/<str:assistant_id>/', views.get_assistant_details, name='get_assistant_details'),
-
+    path('get_assistant_details/<str:assistant_id>/', get_assistant_details, name='get_assistant_details'),
 
     # Content Processing
     path('threads/', ProcessContentView.as_view(), name='process_content'),
@@ -72,7 +95,6 @@ urlpatterns = [
     path('messages/assign/', ManageMessageView.as_view(), name='assign_assistant_to_message'),
 
     # Post Management
-
     path('posts/', ManagePostView.as_view(), name='manage_post'),
     path('posts/<int:post_id>', ManagePostView.as_view(), name='post_detail'),
     path('posts/edit/', ManagePostView.as_view(), name='edit_post'),
@@ -90,12 +112,11 @@ urlpatterns = [
 
     # Assistant Grouping
     path('assistants/group/', ManageAssistantsView.as_view(), name='manage_assistant_group'),
-        
 
     # User management
-    path('login/', views.UserLoginView.as_view(), name='login'),
+    path('login/', UserLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
-    
+
     # Object management
     path('objects/', MyObjectView.as_view(), name='object-list'),
     path('objects/create/', MyObjectView.as_view(), {'action': 'create'}, name='object-create'),
@@ -104,11 +125,10 @@ urlpatterns = [
     path('objects/<int:pk>/delete/', MyObjectView.as_view(), {'action': 'delete'}, name='object-delete'),
 
     # JSON Schema management
-    path('schemas/', views.list_schemas, name='list_schemas'),
-    path('schemas/create/', views.create_schema, name='create_schema'),
-    path('schemas/edit/<int:pk>/', views.edit_schema, name='edit_schema'),
-    path('schemas/export/<int:pk>/', views.export_schema, name='export_schema'),
-    path('schemas/delete/<int:pk>/', views.delete_schema, name='delete_schema'),
-
+    path('schemas/', list_schemas, name='list_schemas'),
+    path('schemas/create/', create_schema, name='create_schema'),
+    path('schemas/edit/<int:pk>/', edit_schema, name='edit_schema'),
+    path('schemas/export/<int:pk>/', export_schema, name='export_schema'),
+    path('schemas/delete/<int:pk>/', delete_schema, name='delete_schema'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

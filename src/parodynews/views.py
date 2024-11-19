@@ -7,6 +7,10 @@ from django.http import HttpResponse, JsonResponse
 from django.views.generic import TemplateView
 from django.views import View
 from datetime import datetime
+
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+
 from .forms import (
     AssistantForm,
     ContentItemForm,
@@ -15,12 +19,16 @@ from .forms import (
 )
 from .models import (
     Assistant,
+    AssistantGroup,
+
     ContentItem,
     ContentDetail,
     Message,
     Thread,
     PoweredBy,
     Post,
+    MyObject,
+    GeneralizedCodes,
     PostFrontMatter,
 )
 from .utils import (
@@ -30,9 +38,23 @@ from .utils import (
     generate_content, 
     openai_create_message,
     openai_delete_message,
-    generate_content_detail
+    generate_content_detail,
+    create_or_update_assistant
 )
-
+from .serializers import (
+    AssistantSerializer,
+    AssistantGroupSerializer,
+    ContentItemSerializer,
+    ContentDetailSerializer,
+    ThreadSerializer,
+    MessageSerializer,
+    PostSerializer,
+    PostFrontMatterSerializer,
+    JSONSchemaSerializer,
+    PoweredBySerializer,
+    MyObjectSerializer,
+    GeneralizedCodesSerializer
+)
 from .mixins import ModelFieldsMixin
 from openai import OpenAI
 
@@ -680,7 +702,6 @@ class MyObjectView(View):
 
 
 
-
 from .models import JSONSchema
 from .forms import JSONSchemaForm
 
@@ -876,14 +897,61 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
         return HttpResponse(f"Markdown file generated at: {file_path}")
         
 
-# views.py
-from rest_framework import viewsets
-from .models import ContentDetail  # Replace with your actual model
-from .serializers import MyModelSerializer
+class AssistantViewSet(viewsets.ModelViewSet):
+    queryset = Assistant.objects.all()
+    serializer_class = AssistantSerializer
 
-class MyModelViewSet(viewsets.ModelViewSet):
-    """
-    A simple ViewSet for viewing and editing instances of MyModel.
-    """
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            assistant = create_or_update_assistant(serializer.validated_data)
+            output_serializer = self.get_serializer(assistant)
+            return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AssistantGroupViewSet(viewsets.ModelViewSet):
+    queryset = AssistantGroup.objects.all()
+    serializer_class = AssistantGroupSerializer
+
+class ContentItemViewSet(viewsets.ModelViewSet):
     queryset = ContentItem.objects.all()
-    serializer_class = MyModelSerializer
+    serializer_class = ContentItemSerializer
+
+class ContentDetailViewSet(viewsets.ModelViewSet):
+    queryset = ContentDetail.objects.all()
+    serializer_class = ContentDetailSerializer
+
+class ThreadViewSet(viewsets.ModelViewSet):
+    queryset = Thread.objects.all()
+    serializer_class = ThreadSerializer
+
+class MessageViewSet(viewsets.ModelViewSet):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+
+class PostFrontMatterViewSet(viewsets.ModelViewSet):
+    queryset = PostFrontMatter.objects.all()
+    serializer_class = PostFrontMatterSerializer
+
+class JSONSchemaViewSet(viewsets.ModelViewSet):
+    queryset = JSONSchema.objects.all()
+    serializer_class = JSONSchemaSerializer
+
+class PoweredByViewSet(viewsets.ModelViewSet):
+    queryset = PoweredBy.objects.all()
+    serializer_class = PoweredBySerializer
+
+class MyObjectViewSet(viewsets.ModelViewSet):
+    queryset = MyObject.objects.all()
+    serializer_class = MyObjectSerializer
+
+class GeneralizedCodesViewSet(viewsets.ModelViewSet):
+    queryset = GeneralizedCodes.objects.all()
+    serializer_class = GeneralizedCodesSerializer
+
+# ...existing code...
