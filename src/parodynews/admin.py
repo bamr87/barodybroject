@@ -1,11 +1,14 @@
+# parodynews/admin.py
 from django.contrib import admin
 from django import forms
-from django.db import models
-from .models import AppConfig, PoweredBy, Assistant, JSONSchema, Post, GeneralizedCodes
+from .models import AppConfig, PoweredBy, Assistant, JSONSchema, Post, PostFrontMatter, GeneralizedCodes, PostPageConfigModel, Entry
 from django_json_widget.widgets import JSONEditorWidget
 from import_export.admin import ImportExportModelAdmin
-from .resources import AssistantResource, JSONSchemaResource
-from martor.widgets import AdminMartorWidget
+from .resources import AssistantResource, JSONSchemaResource, PostResource
+from cms.admin.placeholderadmin import FrontendEditableAdminMixin
+from django.core.management import call_command
+from django.contrib import messages
+from .models import OpenAIModel
 
 print("Registering AppConfig model")
 
@@ -13,8 +16,12 @@ print("Registering AppConfig model")
 admin.site.register(AppConfig)
 admin.site.register(PoweredBy)
 admin.site.register(GeneralizedCodes)
-
-
+admin.site.register(OpenAIModel)
+admin.site.register(Assistant)
+admin.site.register(Post)
+admin.site.register(PostFrontMatter)
+admin.site.register(Entry)
+admin.site.register(PostPageConfigModel)
 # JSON Schema model
 
 class JSONSchemaForm(forms.ModelForm):
@@ -50,16 +57,12 @@ class JSONSchemaAdmin(ImportExportModelAdmin):
 
 admin.site.register(JSONSchema, JSONSchemaAdmin)
 
-@admin.register(Assistant)
 class AssistantAdmin(ImportExportModelAdmin):
     resource_class = AssistantResource
 
-# parodynews/admin.py
-from django.core.management import call_command
-from django.contrib import messages
-from .models import OpenAIModel
 
-@admin.register(OpenAIModel)
+
+
 class OpenAIModelAdmin(admin.ModelAdmin):
     list_display = ('model_id', 'created_at', 'updated_at')
     search_fields = ('model_id',)
@@ -75,10 +78,25 @@ class OpenAIModelAdmin(admin.ModelAdmin):
     fetch_openai_models.short_description = "Fetch and update OpenAI models"
 
 
-class PostAdmin(admin.ModelAdmin):
-    formfield_overrides = {
-        models.TextField: {'widget': AdminMartorWidget},
-    }
+
+class PostAdmin(FrontendEditableAdminMixin, ImportExportModelAdmin, admin.ModelAdmin):
+    frontend_editable_fields = ("post_content")
+    resource_class = PostResource
 
 
-admin.site.register(Post)
+class PostFrontMatterAdmin(FrontendEditableAdminMixin, admin.ModelAdmin):
+    frontend_editable_fields = ("title", "description", "author", "date", "tags")
+
+class EntryAdmin(admin.ModelAdmin):
+    list_display = (
+        'title',
+        'content_text',
+        'app_config',
+    )
+    list_filter = (
+        'app_config',
+    )
+
+
+class FaqConfigAdmin(admin.ModelAdmin):
+    pass

@@ -12,7 +12,8 @@ from .models import (
     OpenAIModel
     )
 from django.db.models import Count
-from martor.fields import MartorFormField
+# from martor.fields import MartorFormField
+from cms.models.fields import PlaceholderField
 
 
 print("Loading forms...")
@@ -105,7 +106,6 @@ class AssistantForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AssistantForm, self).__init__(*args, **kwargs)
-        self.fields['model'].choices = [(model.model_id, model.model_id) for model in OpenAIModel.objects.all()]
 
         if 'instance' in kwargs and kwargs['instance']:
             assistant = kwargs['instance']
@@ -157,7 +157,7 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = [
-            'id', 'content_detail', 'thread', 'message', 'assistant', 'content', 
+            'id', 'content_detail', 'thread', 'message', 'assistant',
             'created_at', 'filename', 'status'  # Added 'status' field
         ]
         widgets = {
@@ -165,12 +165,11 @@ class PostForm(forms.ModelForm):
             'thread': forms.Select(attrs={'class': 'form-control'}),
             'message': forms.Select(attrs={'class': 'form-control'}),
             'assistant': forms.Select(attrs={'class': 'form-control'}),
-            'content': forms.Textarea(attrs={'class': 'form-control'}),
             'created_at': forms.DateTimeInput(attrs={'class': 'form-control'}),
             'filename': forms.TextInput(attrs={'class': 'form-control'}),
         }
         exclude = ['updated_at']
-    content = MartorFormField()
+    # content = MartorFormField()
 
 class PostFrontMatterForm(forms.ModelForm):
     class Meta:

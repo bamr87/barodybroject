@@ -27,8 +27,10 @@ from .views import (
     create_schema,
     delete_schema,
     export_schema,
-    MyObjectView
+    MyObjectView,
     )
+
+from . import views
 
 from django.contrib.auth.views import LogoutView
 from django.conf import settings
@@ -52,10 +54,14 @@ router.register(r'my-objects', MyObjectViewSet)
 router.register(r'generalized-codes', GeneralizedCodesViewSet)
 
 urlpatterns = [
-    # Home page and other views
-    path('', index, name='index'),
+
+    path("postpage/", views.IndexView.as_view(), name='index'),
+
+
+    # Remove or adjust the root path to prevent conflict with django CMS
+    path('news/', index, name='index'),
     path('footer/', FooterView.as_view(), name='footer'),
-    path('martor/', include('martor.urls')),
+    # path('martor/', include('martor.urls')),
 
     # Include API endpoints under 'api/' path
     path('api/', include(router.urls)),

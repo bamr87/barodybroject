@@ -1,16 +1,14 @@
 {% extends "base.html" %}
 {% load custom_filters %}
-{% load markdownify %}
-{% load martortags %}
+{% load cms_tags menu_tags sekizai_tags %}
 
 {% load static %}
 
 {% block css %}
-  <link href="{% static 'plugins/css/ace.min.css' %}" type="text/css" media="all" rel="stylesheet" />
-  <link href="{% static 'plugins/css/resizable.min.css' %}" type="text/css" media="all" rel="stylesheet" />
-  <link href="{% static 'martor/css/martor.bootstrap.min.css' %}" type="text/css" media="all" rel="stylesheet" />
+  {% comment %} <link href="{% static 'plugins/css/ace.min.css' %}" type="text/css" media="all" rel="stylesheet" />
+  <link href="{% static 'plugins/css/resizable.min.css' %}" type="text/css" media="all" rel="stylesheet" /> {% endcomment %}
+  {% comment %} <link href="{% static 'martor/css/martor.bootstrap.min.css' %}" type="text/css" media="all" rel="stylesheet" /> {% endcomment %}
 {% endblock %}
-
 
 {% block content %}
 
@@ -21,7 +19,14 @@
         {% csrf_token %}
         {{ form_post_frontmatter.as_p }}
         {{ form_post.as_p}}
+    </form>
+    <!-- Editable content section -->
+    <div class="post-content">
+        {% placeholder "content" or %}There is no content.{% endplaceholder %}
+        {% placeholder "post_content" post %}
+    </div>
 
+        <!-- Rest of your form -->
         <!-- Save Button Form -->
         <form action="{% url 'edit_post' post.id %}" method="POST" class="save-form mr-2">
             {% csrf_token %}
@@ -38,7 +43,6 @@
             <input type="hidden" name="action" value="publish">
             <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">publish</button>
         </form>
-    </form>
 </div>
 {% endif %}
 
@@ -59,7 +63,7 @@
         </thead>
         <tbody>
             {% for post in post_list %}
-            <tr>s
+            <tr>
                 {% for field in fields %}
                     {% if field.name in display_fields %}
                     <td>{{ post|get_field_value:field.name }}</td>
@@ -92,17 +96,4 @@
     
     {% endblock content %}
 
-    <!-- JS -->
 
-{% block js %}
-  <script type="text/javascript" src="{% static 'plugins/js/ace.js' %}"></script>
-  <script type="text/javascript" src="{% static 'plugins/js/mode-markdown.js' %}"></script>
-  <script type="text/javascript" src="{% static 'plugins/js/ext-language_tools.js' %}"></script>
-  <script type="text/javascript" src="{% static 'plugins/js/theme-github.js' %}"></script>
-  <script type="text/javascript" src="{% static 'plugins/js/typo.js' %}"></script>
-  <script type="text/javascript" src="{% static 'plugins/js/spellcheck.js' %}"></script>
-  <script type="text/javascript" src="{% static 'plugins/js/highlight.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'plugins/js/resizable.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'plugins/js/emojis.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'martor/js/martor.bootstrap.min.js' %}"></script>
-{% endblock %}

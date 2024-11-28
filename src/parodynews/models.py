@@ -1,7 +1,8 @@
 from django.db import models
 from django.utils import timezone
-from martor.models import MartorField
-
+from django.utils.translation import gettext_lazy as _
+from cms.models.fields import PlaceholderField
+from cms.models.pluginmodel import CMSPlugin
 
 print("Loading models.py")
 
@@ -34,14 +35,12 @@ class JSONSchema(models.Model):
 
 class OpenAIModel(models.Model):
     model_id = models.CharField(max_length=255, unique=True)
+    description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.model_id
-
-# Load model choices from the DB
-MODEL_CHOICES = [(model.model_id, model.model_id) for model in OpenAIModel.objects.all()]
 
 
 class Assistant(models.Model):
@@ -51,7 +50,7 @@ class Assistant(models.Model):
     instructions = models.TextField(max_length=256000, default="you are a helpful assistant.")
     prompt = models.TextField(max_length=256000, default="you are a helpful assistant.")
     object = models.CharField(max_length=50, default="assistant")
-    model = models.CharField(max_length=100, choices=MODEL_CHOICES, default='gpt-3.5-turbo')
+    model = models.ForeignKey(OpenAIModel, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     tools = models.JSONField(default=list, null=True, blank=True,)
     metadata = models.JSONField(default=dict)
@@ -146,27 +145,59 @@ class Message(models.Model):
     def __str__(self):
         return self.id
 
+# New model for storing posts
+class PostPageConfigModel(models.Model):
+    namespace = models.CharField(
+        _("instance namespace"),
+        default=None,
+        max_length=255,
+        unique=True
+    )
+
+    paginated_by = models.IntegerField(
+        _("paginate size"),
+        blank=False,
+        default=5
+    )
+
+class Entry(models.Model):
+    app_config = models.ForeignKey(PostPageConfigModel, null=False, on_delete=models.CASCADE)
+    title = models.TextField(blank=True, default='')
+    content_text = PlaceholderField('page_content')
+
+    def __str__(self):
+        return self.title or "<no title>"
+    
+    class Meta:
+        verbose_name = _("Entry")
+        verbose_name_plural = _("Entries")
+
 # Post Model
 
 class Post(models.Model):
-    id = models.AutoField(primary_key = True)
     content_detail = models.ForeignKey(ContentDetail, on_delete=models.CASCADE, related_name='posts')
     thread = models.ForeignKey(Thread, on_delete=models.SET_NULL, null=True, related_name='posts')
     message = models.ForeignKey(Message, on_delete=models.SET_NULL, null=True, related_name='posts')
+    post_content = PlaceholderField('content')
     assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, related_name='posts')
-    content = MartorField()
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     filename = models.CharField(max_length=255, blank=True, default="")
     status = models.CharField(max_length=100, default="draft")
 
     def get_display_fields(self):
-        # Added missing get_display_fields method
-        return ['id', 'content_detail', 'thread', 'message', 'assistant', 'created_at', 'status']
+        return ['id', 'content_detail', 'thread', 'message', 'assistant', 'created_at', 'status', 'post_content']
 
     def __str__(self):
-        # Updated __str__ method for consistency
         return self.content_detail.title
+class PostPluginModel(CMSPlugin):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.post.content_detail.title
+
+    class Meta:
+        abstract = False  # Ensure this is either omitted or set to False
 
 class PostFrontMatter(models.Model):
     post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name='front_matter')

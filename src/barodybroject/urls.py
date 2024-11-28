@@ -20,30 +20,29 @@ from django.urls import include, path
 from django.contrib.auth.views import LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
+from django.conf.urls.i18n import i18n_patterns
+from rest_framework import routers
+
 from parodynews import views
 from parodynews.views import (
     FooterView,
-    ManageContentView,
-    ManageAssistantsView,
-    ManageMessageView,
-    ProcessContentView,
-    ManagePostView,
-    MyObjectView)
+)
 
-from django.urls import include, path
-from rest_framework import routers
+
 
 router = routers.DefaultRouter()
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    # Include the app's URLs under the root path
-    path('', include('parodynews.urls')),
     # Home page and admin page
+    path('admin/', admin.site.urls),
     path('', views.index, name='index'),
+    # Include your app's URLs under a specific prefix to avoid conflicts
+    path('', include('parodynews.urls')),
     path('footer/', FooterView.as_view(), name='footer'),
+    # Include django CMS URLs at the root
+    path('', include('cms.urls')),
 
-    path('martor/', include('martor.urls')),
+    # path('martor/', include('martor.urls')),
 
     # Include the API endpoints under 'api/' path
     path('api/', include(router.urls)),
@@ -51,3 +50,8 @@ urlpatterns = [
     # path('api/', include('parodynews.urls')),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# Remove i18n_patterns if not needed or adjust accordingly
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

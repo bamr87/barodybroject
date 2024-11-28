@@ -3,7 +3,7 @@ gunicorn==22.0.0
 azure-monitor-opentelemetry
 
 # django requirements
-Django==4.2.16
+Django==5.1.3
 django-import-export
 django-json-widget
 django-markdownify
@@ -13,7 +13,14 @@ jsonschema-specifications
 Markdown
 openai
 PyYAML
-martor
+# martor
 djangorestframework
 psycopg
 setuptools
+django-cms
+django-filer
+djangocms_text_ckeditor
+djangocms-frontend
+djangocms-versioning
+djangocms-alias
+djangocms_admin_style

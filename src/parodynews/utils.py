@@ -25,6 +25,7 @@ def table_exists_and_fields_populated(model_name):
         return False
     except LookupError:
         return False
+    pass
 
 def get_config_value(key):
     try:
@@ -32,39 +33,12 @@ def get_config_value(key):
         return getattr(config, key, None)
     except AppConfig.DoesNotExist:
         return None
+    pass
 
-if table_exists_and_fields_populated('AppConfig'):
-    api_key = get_config_value('api_key')
-    project_id = get_config_value('project_id')
-    org_id = get_config_value('org_id')
+def load_openai_client(client):
+    return client
 
-    if api_key:
-        print("OPENAI_API_KEY loaded successfully.")
-
-try:
-    client = OpenAI(
-      organization=org_id,  # Use the org_id variable
-      project=project_id,  # Use the project_id variable
-      api_key=api_key  # Use the api_key variable
-    )
-
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": "Say this is a test, idiot",
-            }
-        ],
-        model="gpt-3.5-turbo",
-    )
-    print(chat_completion.choices[0].message.content)
-
-except Exception as e:
-    print(f"Error: {e}")
-
-# Assistant Creation and Management
-
-def save_assistant(name, description, instructions, model, json_schema, assistant_id=None):
+def save_assistant(client, name, description, instructions, model, json_schema, assistant_id=None):
     if json_schema is not None:
         response_format = {
             "type": "json_schema",
@@ -84,7 +58,7 @@ def save_assistant(name, description, instructions, model, json_schema, assistan
             assistant_id=assistant_id,
             name=name,
             instructions=instructions,
-            model=model,
+            model=model.model_id,
             response_format=response_format
         )
     else:
@@ -92,21 +66,19 @@ def save_assistant(name, description, instructions, model, json_schema, assistan
             name=name,
             description=description,
             instructions=instructions,
-            model=model,
+            model=model.model_id,
             response_format=response_format
         )
     
     return assistant
 
-def get_assistant(assistant_id):
+def get_assistant(client, assistant_id):
     assistant = client.beta.assistants.retrieve(assistant_id)
     return assistant
 
 # Function to retrieve assistant information
 
-def retrieve_assistants_info():
-    client = OpenAI()
-
+def retrieve_assistants_info(client):
     my_assistants = client.beta.assistants.list(
         order="desc",
         limit="100",
@@ -122,7 +94,7 @@ def retrieve_assistants_info():
 
 # Function to delete an assistant
 
-def openai_delete_assistant(assistant_id):
+def openai_delete_assistant(client, assistant_id):
     # Assuming you have a Django model named Assistant
 
     client.beta.assistants.delete(assistant_id)
@@ -192,11 +164,9 @@ def resolve_refs(obj):
         # Return the object as is if it's not a reference or collection
         return obj
 
+def generate_content(client, content_form):
 
-
-def generate_content(content_form):
-
-    model = content_form.assistant.model
+    model = content_form.assistant.model.model_id
 
     if content_form.assistant.json_schema is not None:
         response_format = {
@@ -234,7 +204,7 @@ def generate_content(content_form):
     # Get the content of the last message in the response
     data = response.choices[0].message.content
 
-    content_detail = generate_content_detail(data)
+    content_detail = generate_content_detail(client, data)
 
     # Log the response
     logging.info("Response: %s", data, content_detail)
@@ -247,9 +217,9 @@ all_schemas = load_schemas()
 parody_schema = resolve_refs(all_schemas.get('parody_news_article_schema'))
 content_detail_schema = resolve_refs(all_schemas.get('content_detail_schema'))
 
-def generate_content_detail(content):
+def generate_content_detail(client, content):
     response = client.chat.completions.create(
-        model="gpt-4o-2024-08-06",
+        model="gpt-4o-mini",
         messages=[
             {
                 "role": "system",
@@ -283,8 +253,7 @@ def generate_content_detail(content):
     
     return content_detail
 
-
-def openai_create_message(content):
+def openai_create_message(client, content):
     thread = client.beta.threads.create(
         metadata={"type": "news_article_thread",
                   "title": content.detail.title,
@@ -297,14 +266,14 @@ def openai_create_message(content):
     )
     return message, thread.id
 
-def openai_delete_message(message_id, thread_id):
+def openai_delete_message(client, message_id, thread_id):
     deleted_message = client.beta.threads.messages.delete(
     message_id=message_id,
     thread_id=thread_id,
     )
     return deleted_message
 
-def create_run(thread_id, assistant_id):
+def create_run(client, thread_id, assistant_id):
     import time
 
     run = client.beta.threads.runs.create(
@@ -356,10 +325,7 @@ def create_run(thread_id, assistant_id):
 
     return run, run_status, message_data
 
-
-def openai_list_messages(thread_id):
-    client = OpenAI()
-
+def openai_list_messages(client, thread_id):
     thread_messages = client.beta.threads.messages.list(
         thread_id=thread_id,
         limit=10,
@@ -369,7 +335,6 @@ def openai_list_messages(thread_id):
         {"id": message.id, "text": message.content[0].text.value, "assistant_id": message.assistant_id} for message in thread_messages
     ]
     return formatted_messages
-
 
 # Function to convert JSON to Markdown
 
@@ -389,7 +354,6 @@ def json_to_markdown(data):
         return markdown
 
     return convert_to_md(data)
-
 
 from django.conf import settings
 
@@ -411,9 +375,7 @@ def generate_markdown_file(data, filename):
     
     return file_path
 
-
-
-def generate_content_detail(content):
+def generate_content_detail(client, content):
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -450,7 +412,7 @@ def generate_content_detail(content):
     
     return data
 
-def create_or_update_assistant(validated_data):
+def create_or_update_assistant(client, validated_data):
     name = validated_data.get('name')
     description = validated_data.get('description')
     instructions = validated_data.get('instructions', 'you are a helpful assistant.')
@@ -460,6 +422,7 @@ def create_or_update_assistant(validated_data):
 
     # Create or update the assistant in OpenAI
     assistant_ai = save_assistant(
+        client,
         name,
         description,
         instructions,

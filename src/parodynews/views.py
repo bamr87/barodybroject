@@ -7,6 +7,9 @@ from django.http import HttpResponse, JsonResponse
 from django.views.generic import TemplateView
 from django.views import View
 from datetime import datetime
+from cms.models import Placeholder
+
+
 
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -39,7 +42,8 @@ from .utils import (
     openai_create_message,
     openai_delete_message,
     generate_content_detail,
-    create_or_update_assistant
+    create_or_update_assistant,
+    load_openai_client
 )
 from .serializers import (
     AssistantSerializer,
@@ -55,7 +59,8 @@ from .serializers import (
     MyObjectSerializer,
     GeneralizedCodesSerializer
 )
-from .mixins import ModelFieldsMixin
+from .mixins import ModelFieldsMixin, AppConfigClientMixin
+
 from openai import OpenAI
 
 print("Loading views.py")
@@ -80,7 +85,7 @@ def index(request):
 
 # View to manage content creation and deletion
 
-class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
+class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, AppConfigClientMixin, View):
     model=ContentDetail
     template_name = 'parodynews/content_detail.html'
 
@@ -139,6 +144,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         return redirect('manage_content')
     
     def save(self, request, content_detail_id=None):
+
         content_detail_id = request.POST.get('content_detail_id')
 
         # initialize the forms 
@@ -187,10 +193,13 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         return self.get(request)
 
     def generate_content(self, request, content_detail=None):
+        # Retrieve the OpenAI client from the session
+        client = AppConfigClientMixin.get_client(self)
+
         content_detail_id = request.POST.get('content_detail_id')
         content_form = ContentItem.objects.get(detail_id=content_detail_id)
         content_detail = ContentDetail.objects.get(pk=content_detail_id)
-        data, content_detail_schema = generate_content(content_form)
+        data, content_detail_schema = generate_content(client, content_form)
         json_data = json.loads(content_detail_schema)
            # Check if data is in JSON format
         try:
@@ -219,13 +228,16 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         return redirect('content_detail', content_detail_id=content_detail_id)
 
     def create_thread(self, request):
+        # Retrieve the OpenAI client from the session
+        client = AppConfigClientMixin.get_client(self)
+
         content_detail_id = request.POST.get('content_detail_id')
 
         content = ContentItem.objects.get(detail_id=content_detail_id, line_number=1)
         content_id = content.id
 
         # Call utils.create_message to get message and thread_id
-        message, thread_id = openai_create_message(content)
+        message, thread_id = openai_create_message(client, content)
 
         # Create a new Thread instance and save it
         new_thread = Thread(id=thread_id, name=content.detail.title)
@@ -377,6 +389,9 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
     # View to run messages
     def run_message(self, request, message_id=None, thread_id=None):
+        # Retrieve the OpenAI client from the session
+        client = AppConfigClientMixin.get_client(self)
+
         # retrieve the message instance of the selected message
         message_id = request.POST.get('message_id')
         message = Message.objects.get(id=message_id)  # Retrieve the message by its ID or return 404
@@ -384,7 +399,7 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         thread_id = message.thread_id  # Access the thread_id associated with the message
         
         # Call the create_run function to create a run for the message
-        run, run_status, message_data = create_run(thread_id, assistant_id)  
+        run, run_status, message_data = create_run(client, thread_id, assistant_id)  
         
         # Update the message status and run_id
         message.status = run_status.status
@@ -424,20 +439,16 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         thread_id = request.POST.get('thread_id')
         message_id = request.POST.get('message_id')
         assistant_id = request.POST.get('assistant_id')
-        content_id = Message.objects.get(id=message_id).content.id
+        content_detail_id = Message.objects.get(id=message_id).content.detail_id
 
         # Retrieve the message instance
         message = Message.objects.get(id=message_id)
 
-        # Retrieve the content instance
-        content = ContentItem.objects.get(id=content_id)
-
-        content_detail = ContentDetail.objects.get(id=content.detail_id)
+        content_detail = ContentDetail.objects.get(id=content_detail_id)
 
         assistant = Assistant.objects.get(id=assistant_id) if Assistant.objects.filter(id=assistant_id).exists() else None
         # Create a new post instance
         post = Post.objects.create(
-            content=content.content,
             thread=Thread.objects.get(id=thread_id),
             message=Message.objects.get(id=message_id),
             assistant=assistant,
@@ -525,7 +536,7 @@ class ManageMessageView(LoginRequiredMixin, View):
         return redirect('message_detail', message_id=message_id)  # Redirect to the messages list page or wherever appropriate
 
 
-class ManageAssistantsView(ModelFieldsMixin, View):
+class ManageAssistantsView(ModelFieldsMixin, AppConfigClientMixin, View):
     model = Assistant
     template_name = 'parodynews/assistant_detail.html'
     
@@ -567,6 +578,9 @@ class ManageAssistantsView(ModelFieldsMixin, View):
         return redirect('assistant_detail', assistant_id=assistant_id)
 
     def save(self, request, assistant_id=None):
+        # Retrieve the OpenAI client from the Mixin
+        client = AppConfigClientMixin.get_client(self)
+        
         assistant_id = request.POST.get('assistant_id')
         save_form = request.POST.get('save_form')
 
@@ -582,7 +596,7 @@ class ManageAssistantsView(ModelFieldsMixin, View):
                 assistant = assistant_form.save(commit=False)
 
                 # Create or update the assistant in OpenAI
-                assistant_ai = save_assistant(assistant.name, assistant.description, assistant.instructions, assistant.model, assistant.json_schema, assistant.id)
+                assistant_ai = save_assistant(client, assistant.name, assistant.description, assistant.instructions, assistant.model, assistant.json_schema, assistant.id)
                 assistant.id = assistant_ai.id
                 assistant.save()
                 
@@ -955,3 +969,90 @@ class GeneralizedCodesViewSet(viewsets.ModelViewSet):
     serializer_class = GeneralizedCodesSerializer
 
 # ...existing code...
+
+from django.contrib.auth import authenticate, login
+from .utils import load_openai_client
+
+# ...existing code...
+
+def user_login(request):
+    # ...existing authentication code...
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        login(request, user)
+        app_config = AppConfig.objects.first()
+        api_key = app_config.openai_api_key
+        org_id = app_config.openai_org_id
+        project_id = app_config.openai_project_id
+        client = OpenAI(organization=org_id, project=project_id, api_key=api_key)
+        request.session['openai_client'] = client
+        # ...existing code...
+    # ...existing code...
+
+# Pass 'request.session['openai_client']' to utility functions
+# ...existing code...
+
+from django.shortcuts import render, get_object_or_404
+# ...existing code...
+
+def post_detail(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    context = {
+        'post': post,
+        'form_post_frontmatter': PostFrontMatterForm(instance=post),
+    }
+    return render(request, 'pages_post_detail.html', context)
+
+
+from django.views.generic import ListView
+from django.urls import Resolver404, resolve
+from django.utils.translation import override
+
+from cms.apphook_pool import apphook_pool
+from cms.utils import get_language_from_request
+
+from . import models
+
+
+def get_app_instance(request):
+    namespace, config = "", None
+    if getattr(request, "current_page", None) and request.current_page.application_urls:
+        app = apphook_pool.get_apphook(request.current_page.application_urls)
+        if app and app.app_config:
+            try:
+                config = None
+                with override(get_language_from_request(request)):
+                    if hasattr(request, "toolbar") and hasattr(request.toolbar, "request_path"):
+                        path = request.toolbar.request_path  # If v4 endpoint take request_path from toolbar
+                    else:
+                        path = request.path_info
+                    namespace = resolve(path).namespace
+                    config = app.get_config(namespace)
+            except Resolver404:
+                pass
+    return namespace, config
+
+
+class AppHookConfigMixin:
+    def dispatch(self, request, *args, **kwargs):
+        # get namespace and config
+        self.namespace, self.config = get_app_instance(request)
+        request.current_app = self.namespace
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(app_config__namespace=self.namespace)
+
+
+class IndexView(AppHookConfigMixin, ListView):
+    model = models.Entry
+    template_name = 'index.html'
+
+    def get_paginate_by(self, queryset):
+        try:
+            return self.config.paginate_by
+        except AttributeError:
+            return 10
