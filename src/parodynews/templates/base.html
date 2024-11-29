@@ -107,7 +107,8 @@
     
     {% endblock %}
     {% block content %}
-        {% placeholder "Content" %}
+    {% placeholder "content" %}
+
     {% endblock content %}
     
     {% block base_js %}
@@ -117,7 +118,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>    
 
     <!-- Additional JavaScript -->
-    <script src="{% static 'cms/js/cms.js' %}"></script>
+
     {% endblock %}
 
     {% endspaceless %}{% render_block 'js' %}{% spaceless %}

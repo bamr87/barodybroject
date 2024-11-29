@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load custom_filters %}
 {% load cms_tags menu_tags sekizai_tags %}
-
+{% cms_toolbar %}
 {% load static %}
 
 {% block css %}
@@ -20,11 +20,7 @@
         {{ form_post_frontmatter.as_p }}
         {{ form_post.as_p}}
     </form>
-    <!-- Editable content section -->
-    <div class="post-content">
-        {% placeholder "content" or %}There is no content.{% endplaceholder %}
-        {% placeholder "post_content" post %}
-    </div>
+
 
         <!-- Rest of your form -->
         <!-- Save Button Form -->
@@ -43,6 +39,12 @@
             <input type="hidden" name="action" value="publish">
             <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">publish</button>
         </form>
+
+            <!-- Editable content section -->
+    <div class="post-content">
+        {% render_model post "post_content" %}
+    </div>
+
 </div>
 {% endif %}
 

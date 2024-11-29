@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from cms.models.fields import PlaceholderField
+from cms.models.fields import PlaceholderRelationField
 from cms.models.pluginmodel import CMSPlugin
 
 print("Loading models.py")
@@ -97,15 +97,15 @@ class ContentItem(models.Model):
     id = models.AutoField(primary_key=True)
     line_number = models.IntegerField(default=0)
     content_type = models.CharField(max_length=100, default="text")
+    content_text = models.TextField()
 
-    assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, blank=True, related_name='content')
+    assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, blank=True, related_name='contentitem')
     prompt = models.TextField(default="say this is a test")
-    content = models.TextField()
-    detail = models.ForeignKey(ContentDetail, on_delete=models.CASCADE, related_name='content')
+    detail = models.ForeignKey(ContentDetail, on_delete=models.CASCADE, related_name='contentitem')
 
     def get_display_fields(self):
         # List the fields you want to display
-        return ['id', 'assistant', 'prompt', 'content', 'detail']
+        return ['id', 'assistant', 'prompt', 'content_text', 'detail']
     
     def save(self, *args, **kwargs):
         if not self.pk:  # Check if this is a new record
@@ -137,7 +137,7 @@ class Thread(models.Model):
 class Message(models.Model):
     id = models.CharField(max_length=255, primary_key=True)
     created_at = models.DateTimeField(default=timezone.now)
-    content = models.ForeignKey(ContentItem, on_delete=models.SET_NULL, null=True, blank=True, related_name='messages')
+    contentitem = models.ForeignKey(ContentItem, on_delete=models.SET_NULL, null=True, blank=True, related_name='messages')
     thread = models.ForeignKey(Thread, on_delete=models.SET_NULL, null=True, related_name='messages')
     assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, blank=True, related_name='messages')
     status = models.CharField(max_length=100, default="initial")
@@ -163,7 +163,7 @@ class PostPageConfigModel(models.Model):
 class Entry(models.Model):
     app_config = models.ForeignKey(PostPageConfigModel, null=False, on_delete=models.CASCADE)
     title = models.TextField(blank=True, default='')
-    content_text = PlaceholderField('page_content')
+    content_text = PlaceholderRelationField('page_content')
 
     def __str__(self):
         return self.title or "<no title>"
@@ -178,7 +178,7 @@ class Post(models.Model):
     content_detail = models.ForeignKey(ContentDetail, on_delete=models.CASCADE, related_name='posts')
     thread = models.ForeignKey(Thread, on_delete=models.SET_NULL, null=True, related_name='posts')
     message = models.ForeignKey(Message, on_delete=models.SET_NULL, null=True, related_name='posts')
-    post_content = PlaceholderField('content')
+    post_content = models.TextField()
     assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, related_name='posts')
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -186,7 +186,7 @@ class Post(models.Model):
     status = models.CharField(max_length=100, default="draft")
 
     def get_display_fields(self):
-        return ['id', 'content_detail', 'thread', 'message', 'assistant', 'created_at', 'status', 'post_content']
+        return ['id', 'content_detail', 'thread', 'message', 'assistant', 'created_at', 'status']
 
     def __str__(self):
         return self.content_detail.title

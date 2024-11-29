@@ -253,16 +253,16 @@ def generate_content_detail(client, content):
     
     return content_detail
 
-def openai_create_message(client, content):
+def openai_create_message(client, contentitem):
     thread = client.beta.threads.create(
         metadata={"type": "news_article_thread",
-                  "title": content.detail.title,
-                  "description": content.detail.description,},
+                  "title": contentitem.detail.title,
+                  "description": contentitem.detail.description,},
     )
     message = client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
-        content=content.content
+        content=contentitem.content_text
     )
     return message, thread.id
 
@@ -443,4 +443,22 @@ def create_or_update_assistant(client, validated_data):
         }
     )
     return assistant
+
+def get_openai_client():
+    import openai
+    api_key = get_config_value('api_key')
+    org_id = get_config_value('org_id')
+
+    openai.api_key = api_key
+    if (org_id):
+        openai.organization = org_id
+
+    return openai
+
+def delete_assistant(client, assistant_id):
+    # Delete assistant from OpenAI API
+    client.beta.assistants.delete(assistant_id)
+    # Delete assistant from the database
+    Assistant.objects.filter(id=assistant_id).delete()
+    return f"Assistant with ID {assistant_id} deleted successfully."
 

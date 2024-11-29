@@ -155,7 +155,7 @@
             <p class="fw-bold">{{ current_message.id }}</p>
             <div class="message-content">
                 <p>
-                    {{ current_message.content.content|dict_to_text_list|markdownify|linebreaksbr }}</div>
+                    {{ current_message.contentitem.content_text|dict_to_text_list|markdownify|linebreaksbr }}</div>
                 </p>
             <!-- Form to add message to database -->
             <form action="{% url 'create_content' current_thread.id current_message.id %}" method="post">

@@ -1,31 +1,14 @@
 {% extends "base.html" %}
-{% comment %} {% extends "base.html" %} {% endcomment %}
-{# Replace this with your base template #}
 
 {% load cms_tags sekizai_tags %}
 {% load menu_tags %}
 
-<!-- test -->
-        <title>{% page_attribute "page_title" %}</title>
-        <ul class="nav">
-            {% show_menu 0 100 100 100 %}
-        </ul>
-        {% render_block "css" %}
-
-
-        {% cms_toolbar %}
-        {% block title %}{% page_attribute "page_title" %}{% endblock title %}
-
+    {% block content %}
+        {% block title %}
+            {% page_attribute "page_title" %}
+        {% endblock title %}
         {% render_model request.current_page "title" %}
-        {% block content %}
-            {% placeholder "feature" %}
-            {% placeholder "content" %}
-            {% placeholder "splashbox" %}
-        {% endblock %}
-
-        {% render_block "js" %}
-
-    <!-- Include the footer template -->
-    <footer>
-        {% include "footer.html" %}
-    </footer>
+        {% placeholder "feature" %}
+        {% placeholder "content" %}
+        {% placeholder "splashbox" %}
+    {% endblock %}

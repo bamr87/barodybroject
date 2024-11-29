@@ -51,10 +51,10 @@ class ContentItemForm(forms.ModelForm):
 
     class Meta:
         model = ContentItem
-        fields = [ 'assistant', 'instructions', 'prompt', 'content']
+        fields = [ 'assistant', 'instructions', 'prompt', 'content_text']
         widgets = {
             'prompt': forms.Textarea(attrs={'class': 'form-control'}),
-            'content': forms.Textarea(attrs={'class': 'form-control'}),
+            'content_text': forms.Textarea(attrs={'class': 'form-control'}),
         }
         labels = {
             'prompt': 'Prompt',
@@ -68,7 +68,7 @@ class ContentItemForm(forms.ModelForm):
             (assistant.id, assistant.name) for assistant in Assistant.objects.all()
         ]
 
-        self.fields['content'].required = False  # Make content field optional
+        self.fields['content_text'].required = False  # Make content field optional
 
         # Only set the assistant field to a random record if the form is new
         if not self.initial.get('assistant'):
