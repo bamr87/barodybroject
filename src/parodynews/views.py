@@ -129,18 +129,18 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, AppConfigClientMix
     model=ContentDetail
     template_name = 'parodynews/content_detail.html'
 
-    def get(self, request, content_detail_id=None, content_id=None):
-        # Check if content_id is provided
+    def get(self, request, content_detail_id=None, content_item_id=None):
+        # Check if content_detail_id is provided
         if content_detail_id:
             content_detail = ContentDetail.objects.get(pk=content_detail_id)
-            content = ContentItem.objects.get(detail_id=content_detail_id, line_number=1)
-            content_id = content.id
-            assistant = content.assistant.name if content.assistant else None
-            instructions = content.assistant.instructions if content.assistant else None
-            content_form = ContentItemForm(instance=content)
+            content_item = ContentItem.objects.get(detail_id=content_detail_id, line_number=1)
+            content_item_id = content_item.id
+            assistant = content_item.assistant.name if content_item.assistant else None
+            instructions = content_item.assistant.instructions if content_item.assistant else None
+            content_form = ContentItemForm(instance=content_item)
             content_detail_form = ContentDetailForm(instance=content_detail)
         else:
-            content = None
+            content_item = None
             content_detail = None
             assistant = None
             instructions = None
@@ -156,7 +156,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, AppConfigClientMix
         context = {
             'content_form': content_form,
             'content_detail_form': content_detail_form,
-            'content_id': content_id,
+            'content_item_id': content_item_id,
             'content_detail_id': content_detail_id,
             'assistant': assistant,
             'instructions': instructions,
@@ -478,26 +478,71 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
     # View to create a post
 
-    def create_post(self, request, content_id=None, thread_id=None, message_id=None):
-        thread_id = request.POST.get('thread_id')
+    def create_post(self, request):
+        # Retrieve the OpenAI client from the session
+        client = AppConfigClientMixin.get_client(self)
+
         message_id = request.POST.get('message_id')
-        assistant_id = request.POST.get('assistant_id')
-        content_detail_id = Message.objects.get(id=message_id).contentitem.detail_id
-
-        # Retrieve the message instance
         message = Message.objects.get(id=message_id)
+        message_content = message.contentitem.content_text
+        thread_id = request.POST.get('thread_id')
+        assistant_id = message.assistant_id
+        assistant = Assistant.objects.get(id=assistant_id) if assistant_id else None  # Assuming you want to use the message_content as the prompt
 
-        content_detail = ContentDetail.objects.get(id=content_detail_id)
+        generated_content_detail = json.loads(generate_content_detail(client, message_content))
+        # First, create the ContentDetail object
+        title = generated_content_detail['Header']['title'],  # Placeholder title, adjust as needed
+        description = generated_content_detail['Metadata']['description'],  # Placeholder description, adjust as needed
+        author = generated_content_detail['Header']['author']['name'],  # Access the nested 'name' key within 'author'
+        published_at = datetime.now().isoformat(),  # Use the current time for published_at
+        slug = generated_content_detail['Metadata']['slug']  # Access the 'slug' key)
+        
+        content_detail = ContentDetail.objects.create(
+            title=title[0],
+            description=description[0],
+            author=author[0],
+            published_at=published_at[0],
+            slug=slug[0]
+            )
+        # Retrieve the ContentDetail instance using the ID
+        content_detail_instance = ContentDetail.objects.get(id=content_detail.id)
 
-        assistant = Assistant.objects.get(id=assistant_id) if Assistant.objects.filter(id=assistant_id).exists() else None
-        # Create a new post instance
+        # Then, create or update the Content object with the content_detail instance
+        contentitem, _ = ContentItem.objects.update_or_create(
+            prompt= message_content,  # Assuming you want to use the message_content as the prompt
+            assistant= Assistant.objects.get(id=assistant_id) if assistant_id else None,  # Assuming you want to use the message_content as the prompt
+            detail=content_detail_instance  # Use the ContentDetail instance here
+        )
+
+        # Update content_detail to link to the newly created or updated content
+        content_detail.contentitem.set([contentitem])
+        content_detail.save()
+
+        messages.success(request, "Message and content created successfully.")
+
+        # Create the Placeholder instance
+        placeholder = Placeholder.objects.create(slot='post_content')
+
+        # Add content to the placeholder using a plugin
+        from djangocms_text_ckeditor.cms_plugins import TextPlugin
+        from cms.api import add_plugin
+
+
+
+        add_plugin(placeholder, TextPlugin, language='en', body=message_content)
+
+        # Create the Post without assigning ManyToMany fields directly
         post = Post.objects.create(
             thread=Thread.objects.get(id=thread_id),
             message=Message.objects.get(id=message_id),
             assistant=assistant,
-            content_detail=content_detail,
-            post_content=message.contentitem.content_text
+            content_detail=content_detail
+            # Do not include 'post_content' here
         )
+        
+        # Assign the placeholder using set() for the ManyToMany field
+        post.post_content.set([placeholder])
+        
 
         post_frontmatter = PostFrontMatter.objects.create(
             post_id=post.id,
@@ -804,7 +849,7 @@ def delete_schema(request, pk):
 # parodynews/views.py
 
 
-class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
+class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
     model = Post
     template_name = 'parodynews/pages_post_detail.html'
 
@@ -949,6 +994,13 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, View):
         # Provide feedback to the user
         return HttpResponse(f"Markdown file generated at: {file_path}")
         
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post_id = self.kwargs.get('post_id')
+        post = get_object_or_404(Post, id=post_id)
+        context['post'] = post
+        # Add other context variables as needed
+        return context
 
 class AssistantViewSet(viewsets.ModelViewSet):
     queryset = Assistant.objects.all()
@@ -1011,11 +1063,8 @@ def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     context = {
         'post': post,
-        'form_post_frontmatter': PostFrontMatterForm(instance=post),
     }
-    return render(request, 'pages_post_detail.html', context)
-
-
+    return render(request, 'parodynews/pages_post_detail.html', context)
 
 def get_app_instance(request):
     namespace, config = "", None
@@ -1048,7 +1097,7 @@ class AppHookConfigMixin:
         return qs.filter(app_config__namespace=self.namespace)
 
 
-class IndexView(AppHookConfigMixin, ListView):
+class PostPageView(AppHookConfigMixin, ListView):
     model = models.Entry
     template_name = 'index.html'
 

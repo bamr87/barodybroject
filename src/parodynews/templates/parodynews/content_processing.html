@@ -85,7 +85,7 @@
                         <a href="{% url 'thread_message_detail' current_thread.id message.id %}">{{ message.id }}</a>
                     </td>
                     <td>
-                        {{ message.content.title }}
+                        {{ message.contentitem.title }}
                     </td>
                     <td>
                         <!-- Assign Assistant Form -->
@@ -174,7 +174,7 @@
             <p class="fw-bold">{{ message.id }}</p>
             <div class="message-content">
                 <p>
-                    {{ message.content.content|dict_to_text_list|markdownify|linebreaksbr }}
+                    {{ message.contentitem.content|dict_to_text_list|markdownify|linebreaksbr }}
                 </p>
             </div>
         </div>

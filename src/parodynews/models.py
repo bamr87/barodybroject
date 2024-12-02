@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from cms.models.fields import PlaceholderRelationField
 from cms.models.pluginmodel import CMSPlugin
+from django.urls import reverse
 
 print("Loading models.py")
 
@@ -53,10 +54,10 @@ class Assistant(models.Model):
     model = models.ForeignKey(OpenAIModel, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     tools = models.JSONField(default=list, null=True, blank=True,)
-    metadata = models.JSONField(default=dict)
+    metadata = models.JSONField(default=dict, null=True, blank=True)
     temperature = models.FloatField(null=True, blank=True)
     top_p = models.FloatField(null=True, blank=True)
-    response_format = models.JSONField(default=dict)
+    response_format = models.JSONField(default=dict, null=True, blank=True)
     json_schema = models.ForeignKey(JSONSchema, on_delete=models.SET_NULL, null=True, blank=True)
     assistant_groups = models.ManyToManyField('AssistantGroup', related_name='assistant', blank=True)
 
@@ -175,10 +176,10 @@ class Entry(models.Model):
 # Post Model
 
 class Post(models.Model):
-    content_detail = models.ForeignKey(ContentDetail, on_delete=models.CASCADE, related_name='posts')
+    content_detail = models.ForeignKey(ContentDetail, on_delete=models.SET_NULL, null=True, related_name='posts')
     thread = models.ForeignKey(Thread, on_delete=models.SET_NULL, null=True, related_name='posts')
     message = models.ForeignKey(Message, on_delete=models.SET_NULL, null=True, related_name='posts')
-    post_content = models.TextField()
+    post_content = PlaceholderRelationField('post_content')  # Ensure placeholder name matches template
     assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, related_name='posts')
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -188,8 +189,16 @@ class Post(models.Model):
     def get_display_fields(self):
         return ['id', 'content_detail', 'thread', 'message', 'assistant', 'created_at', 'status']
 
+    def get_absolute_url(self):
+        return reverse('post_detail', kwargs={'pk': self.pk})
+
     def __str__(self):
         return self.content_detail.title
+
+    # Ensure TextPlugin is available in post_content
+    def get_allowed_plugins(self):
+        return ['TextPlugin', 'ImagePlugin', 'LinkPlugin']
+
 class PostPluginModel(CMSPlugin):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
 

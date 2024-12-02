@@ -92,7 +92,7 @@ INSTALLED_APPS = [
 
 
     # Third-party apps
-    'djangocms_text_ckeditor',
+    'djangocms_text_ckeditor',  # Ensure this is included
     'djangocms_alias',
     'djangocms_versioning',
 
@@ -221,11 +221,8 @@ CMS_CONFIRM_VERSION4 = True
 
 CMS_TEMPLATES = [
     ("base.html", _("Base Template")),
-    # default templates that extend base.html
     ('parodynews/cms.html', 'CMS Template'),
-    # optional templates that extend base.html, to be used with Bootstrap 5
-    # ('bootstrap5.html', 'Bootstrap 5 Demo'),
-    # Add other templates if needed
+    # ...existing templates...
 ]
 
 CMS_PLACEHOLDERS = [
@@ -274,3 +271,12 @@ SITE_ID = 1
 TEXT_INLINE_EDITING = True
 
 DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS = True
+
+# CKEditor settings
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',
+        'height': 300,
+        'width': '100%',
+    },
+}

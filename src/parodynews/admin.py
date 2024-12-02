@@ -33,7 +33,7 @@ print("Registering AppConfig model")
 admin.site.register(AppConfig)
 admin.site.register(PoweredBy)
 admin.site.register(GeneralizedCodes)
-admin.site.register(Post)
+
 admin.site.register(PostFrontMatter)
 admin.site.register(Entry)
 admin.site.register(PostPageConfigModel)
@@ -162,9 +162,16 @@ admin.site.register(OpenAIModel, OpenAIModelAdmin)
 
 
 class PostAdmin(FrontendEditableAdminMixin, ImportExportModelAdmin, admin.ModelAdmin):
-    frontend_editable_fields = ("post_content")
+    frontend_editable_fields = ("post_content",)
     resource_class = PostResource
+    list_display = ('content_detail', 'thread', 'message', 'assistant', 'created_at', 'status')
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if 'post_content' in form.cleaned_data:
+            obj.post_content.set(form.cleaned_data['post_content'])
+
+admin.site.register(Post, PostAdmin)
 
 class PostFrontMatterAdmin(FrontendEditableAdminMixin, admin.ModelAdmin):
     frontend_editable_fields = ("title", "description", "author", "date", "tags")

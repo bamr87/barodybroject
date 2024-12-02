@@ -20,6 +20,7 @@ from .views import (
     ProcessContentView,
     ManagePostView,
     UserLoginView,
+    PostPageView,
     get_assistant_details,
     index,
     list_schemas,
@@ -28,9 +29,8 @@ from .views import (
     delete_schema,
     export_schema,
     MyObjectView,
+    post_detail,
     )
-
-from . import views
 
 from django.contrib.auth.views import LogoutView
 from django.conf import settings
@@ -55,7 +55,7 @@ router.register(r'generalized-codes', GeneralizedCodesViewSet)
 
 urlpatterns = [
 
-    path("postpage/", views.IndexView.as_view(), name='index'),
+    path("postpage/", PostPageView.as_view(), name='index'),
 
 
     # Remove or adjust the root path to prevent conflict with django CMS
@@ -109,6 +109,7 @@ urlpatterns = [
     path('posts/delete/<int:post_id>', ManagePostView.as_view(), name='delete_post'),
     path('posts/delete/', ManagePostView.as_view(), name='delete_post'),
     path('posts/publish/<int:post_id>', ManagePostView.as_view(), name='publish_post'),
+    path('posts/<int:post_id>/', ManagePostView.as_view(), name='post_detail'),
 
     # Assistant management
     path('assistants/', ManageAssistantsView.as_view(), name='manage_assistants'),
