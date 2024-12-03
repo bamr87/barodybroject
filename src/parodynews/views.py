@@ -521,28 +521,25 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         messages.success(request, "Message and content created successfully.")
 
         # Create the Placeholder instance
-        placeholder = Placeholder.objects.create(slot='post_content')
+        # placeholder = Placeholder.objects.create(slot='post_content')
 
         # Add content to the placeholder using a plugin
-        from djangocms_text_ckeditor.cms_plugins import TextPlugin
-        from cms.api import add_plugin
+        # from djangocms_text_ckeditor.cms_plugins import TextPlugin
+        # from cms.api import add_plugin
 
+        # add_plugin(placeholder, TextPlugin, language='en', body=message_content)
 
-
-        add_plugin(placeholder, TextPlugin, language='en', body=message_content)
+        # Assign the placeholder using set() for the ManyToMany field
+        # post.post_content.set([placeholder])
 
         # Create the Post without assigning ManyToMany fields directly
         post = Post.objects.create(
             thread=Thread.objects.get(id=thread_id),
             message=Message.objects.get(id=message_id),
             assistant=assistant,
-            content_detail=content_detail
-            # Do not include 'post_content' here
+            content_detail=content_detail,
+            post_content=message_content
         )
-        
-        # Assign the placeholder using set() for the ManyToMany field
-        post.post_content.set([placeholder])
-        
 
         post_frontmatter = PostFrontMatter.objects.create(
             post_id=post.id,
@@ -910,8 +907,6 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
 
         return redirect('manage_post')
 
-
-
     def save(self, request, post_id=None):
         post_id = request.POST.get('post_id')
 
@@ -981,7 +976,7 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
         frontmatter_yaml = yaml.dump(frontmatter, default_flow_style=False)
         
         # Combine the frontmatter and the main content
-        data = f"---\n{frontmatter_yaml}---\n\n{post.content}"
+        data = f"---\n{frontmatter_yaml}---\n\n{post.post_content}"
         
         # Format the date and title for the filename
         filename = post_frontmatter.slug.lower().replace(" ", "-")

@@ -38,11 +38,10 @@ urlpatterns = [
     path('', views.index, name='index'),
     # Include your app's URLs under a specific prefix to avoid conflicts
     path('', include('parodynews.urls')),
+    path('', include('cms.urls')),
     path('footer/', FooterView.as_view(), name='footer'),
     # Include django CMS URLs at the root
-    path('', include('cms.urls')),
 
-    # path('martor/', include('martor.urls')),
 
     # Include the API endpoints under 'api/' path
     path('api/', include(router.urls)),

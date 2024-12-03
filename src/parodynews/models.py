@@ -4,6 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from cms.models.fields import PlaceholderRelationField
 from cms.models.pluginmodel import CMSPlugin
 from django.urls import reverse
+from martor.models import MartorField
+
 
 print("Loading models.py")
 
@@ -179,7 +181,8 @@ class Post(models.Model):
     content_detail = models.ForeignKey(ContentDetail, on_delete=models.SET_NULL, null=True, related_name='posts')
     thread = models.ForeignKey(Thread, on_delete=models.SET_NULL, null=True, related_name='posts')
     message = models.ForeignKey(Message, on_delete=models.SET_NULL, null=True, related_name='posts')
-    post_content = PlaceholderRelationField('post_content')  # Ensure placeholder name matches template
+    post_content = MartorField() 
+    # post_content = PlaceholderRelationField('post_content')  # Ensure placeholder name matches template
     assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, related_name='posts')
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)

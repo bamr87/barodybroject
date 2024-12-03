@@ -7,8 +7,9 @@ from .models import PostPluginModel
 class PostPlugin(CMSPluginBase):
     model = PostPluginModel
     name = _("Post Plugin")
-    render_template = "parodynews/cms.html"
+    render_template = "parodynews/pages_post_detail.html"
     cache = False
+    text_enabled = True
 
     def render(self, context, instance, placeholder):
         context = super().render(context, instance, placeholder)

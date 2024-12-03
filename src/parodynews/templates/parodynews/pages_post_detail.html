@@ -1,13 +1,11 @@
 {% extends "base.html" %}
 {% load custom_filters %}
 {% load cms_tags menu_tags sekizai_tags %}
+{% load martortags %}
 {% cms_toolbar %}
 {% load static %}
 
 {% block css %}
-  {% comment %} <link href="{% static 'plugins/css/ace.min.css' %}" type="text/css" media="all" rel="stylesheet" />
-  <link href="{% static 'plugins/css/resizable.min.css' %}" type="text/css" media="all" rel="stylesheet" /> {% endcomment %}
-  {% comment %} <link href="{% static 'martor/css/martor.bootstrap.min.css' %}" type="text/css" media="all" rel="stylesheet" /> {% endcomment %}
 {% endblock %}
 
 {% block content %}
@@ -19,8 +17,6 @@
         {% csrf_token %}
         {{ form_post_frontmatter.as_p }}
         {{ form_post.as_p}}
-    </form>
-
 
         <!-- Rest of your form -->
         <!-- Save Button Form -->
@@ -39,6 +35,7 @@
             <input type="hidden" name="action" value="publish">
             <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Publish</button>
         </form>
+    </form>
 {% endif %}
 
             <!-- Editable content section -->

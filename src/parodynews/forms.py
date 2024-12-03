@@ -151,14 +151,16 @@ class ThreadRunFrom(forms.Form):
     content = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
     
 from django import forms
+from martor.fields import MartorFormField
 
 # Post form 
 class PostForm(forms.ModelForm):
+
     class Meta:
         model = Post
         fields = [
             'id', 'content_detail', 'thread', 'message', 'assistant',
-            'created_at', 'filename', 'status'  # Added 'status' field
+            'created_at', 'filename', 'status', 'post_content'  # Added 'status' field
         ]
         widgets = {
             'content_detail': forms.Select(attrs={'class': 'form-control'}),
@@ -167,9 +169,11 @@ class PostForm(forms.ModelForm):
             'assistant': forms.Select(attrs={'class': 'form-control'}),
             'created_at': forms.DateTimeInput(attrs={'class': 'form-control'}),
             'filename': forms.TextInput(attrs={'class': 'form-control'}),
+            'status': forms.TextInput(attrs={'class': 'form-control'}),
+            'post_content': forms.Textarea(attrs={'class': 'form-control'}),
         }
         exclude = ['updated_at']
-    # content = MartorFormField()
+
 
 class PostFrontMatterForm(forms.ModelForm):
     class Meta:

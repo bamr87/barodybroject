@@ -1,6 +1,17 @@
 # parodynews/admin.py
-from django.contrib import admin
+from django.core.management import call_command
+from django.contrib import (
+    admin,
+    messages
+)
+
+from martor.widgets import AdminMartorWidget
+from django.db import models
 from django import forms
+from django_json_widget.widgets import JSONEditorWidget
+from import_export.admin import ImportExportModelAdmin
+from cms.admin.placeholderadmin import FrontendEditableAdminMixin
+
 from .models import (
     AppConfig,
     PoweredBy,
@@ -10,21 +21,17 @@ from .models import (
     PostFrontMatter,
     GeneralizedCodes,
     PostPageConfigModel,
+    OpenAIModel,
     Entry
 )
 
-from django_json_widget.widgets import JSONEditorWidget
-from import_export.admin import ImportExportModelAdmin
 from .resources import (
     AssistantResource,
     JSONSchemaResource,
     PostResource,
     OpenAIModelResource,
 )
-from cms.admin.placeholderadmin import FrontendEditableAdminMixin
-from django.core.management import call_command
-from django.contrib import messages
-from .models import OpenAIModel
+
 from .utils import get_openai_client, delete_assistant
 
 print("Registering AppConfig model")
@@ -162,9 +169,13 @@ admin.site.register(OpenAIModel, OpenAIModelAdmin)
 
 
 class PostAdmin(FrontendEditableAdminMixin, ImportExportModelAdmin, admin.ModelAdmin):
-    frontend_editable_fields = ("post_content",)
+    # frontend_editable_fields = ("post_content",)
     resource_class = PostResource
     list_display = ('content_detail', 'thread', 'message', 'assistant', 'created_at', 'status')
+
+    formfield_overrides = {
+        models.TextField: {'widget': AdminMartorWidget}
+    }
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
