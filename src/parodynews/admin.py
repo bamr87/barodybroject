@@ -11,6 +11,7 @@ from django import forms
 from django_json_widget.widgets import JSONEditorWidget
 from import_export.admin import ImportExportModelAdmin
 from cms.admin.placeholderadmin import FrontendEditableAdminMixin
+from django.contrib.admin import TabularInline
 
 from .models import (
     AppConfig,
@@ -22,7 +23,9 @@ from .models import (
     GeneralizedCodes,
     PostPageConfigModel,
     OpenAIModel,
-    Entry
+    Entry,
+    AssistantGroup,
+    AssistantGroupMembership
 )
 
 from .resources import (
@@ -200,3 +203,15 @@ class EntryAdmin(admin.ModelAdmin):
 
 class FaqConfigAdmin(admin.ModelAdmin):
     pass
+
+class AssistantGroupMembershipInline(admin.TabularInline):
+    model = AssistantGroupMembership
+    extra = 1
+    ordering = ['position']
+    fields = ['assistant', 'position']
+
+class AssistantGroupAdmin(admin.ModelAdmin):
+    list_display = ('name', 'sequence', 'is_active', 'priority')
+    inlines = [AssistantGroupMembershipInline]
+
+admin.site.register(AssistantGroup, AssistantGroupAdmin)

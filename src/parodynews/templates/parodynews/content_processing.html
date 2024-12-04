@@ -1,10 +1,10 @@
-<!-- content_processing.html -->
 {% extends "base.html" %}
-{% load custom_filters %}
 
+{% load custom_filters %}
 {% load markdownify %}
 
 {% block content %}
+<!-- content_processing.html -->
 
 <!-- Thread list -->
 <div class="container mt-5">
@@ -51,7 +51,7 @@
             {% endfor %}
         </tbody>
     </table>
-</div>
+
 
     {% if current_thread %}
     <h2>Selected Thread</h2>
@@ -188,5 +188,5 @@
 {% endif %}
 
 </div>
-
+</div>
 {% endblock %}

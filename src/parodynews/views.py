@@ -27,6 +27,7 @@ from . import models
 
 from django.contrib.auth import authenticate, login
 from .utils import load_openai_client
+from .utils import get_openai_client, delete_assistant
 
 from django.shortcuts import render, get_object_or_404
 
@@ -41,12 +42,14 @@ from .forms import (
     AssistantForm,
     ContentItemForm,
     ContentDetailForm,
-    AssistantGroupForm
+    AssistantGroupForm,
+    AssistantGroupMembershipForm,
+    AssistantGroupMembershipFormSet,
 )
 from .models import (
     Assistant,
     AssistantGroup,
-
+    AssistantGroupMembership,
     ContentItem,
     ContentDetail,
     Message,
@@ -473,9 +476,42 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
         messages.success(request, "Message run successfully.")
 
+
+
+        thread = get_object_or_404(Thread, id=thread_id)
+        initial_message = get_object_or_404(Message, id=message_id, thread=thread)
+        
+        assistant_groups = initial_message.assistant.assistant_groups.all()
+        if assistant_groups.exists():
+            assistant_group = assistant_groups.first()
+            assistants = AssistantGroupMembership.objects.filter(
+                assistantgroup=assistant_group
+            ).order_by('position')
+            input_content = initial_message.contentitem.content_text
+            for membership in assistants:
+                assistant = membership.assistant
+                output_content = run_assistant(assistant, input_content)
+                content_item = ContentItem.objects.create(
+                    content_text=output_content,
+                    assistant=assistant,
+                    prompt=input_content,
+                    detail=initial_message.contentitem.detail
+                )
+                message = Message.objects.create(
+                    id=generate_unique_id(),
+                    contentitem=content_item,
+                    thread=thread,
+                    assistant=assistant,
+                    status='completed'
+                )
+                input_content = output_content
+            return redirect('thread_detail', thread_id=thread.id)
+        else:
+            # ...existing code...
+            pass
+        
         # Redirect to the thread_detail.html of the message
         return redirect('thread_message_detail', message_id=message_id, thread_id=thread_id)
-
     # View to create a post
 
     def create_post(self, request):
@@ -599,8 +635,6 @@ class ManageMessageView(LoginRequiredMixin, View):
         message.delete()
 
         # Delete the message from OpenAI
-        openai_delete_message(message_id, thread_id)
-
         messages.success(request, "Message deleted successfully.")
         return redirect('manage_message')  # Redirect to the messages list page or wherever appropriate
     # View to assign an assistant to a message
@@ -622,7 +656,6 @@ class ManageMessageView(LoginRequiredMixin, View):
         return redirect('message_detail', message_id=message_id)  # Redirect to the messages list page or wherever appropriate
 
 
-from .utils import get_openai_client, delete_assistant
 
 class ManageAssistantsView(ModelFieldsMixin, AppConfigClientMixin, View):
     model = Assistant
@@ -640,7 +673,6 @@ class ManageAssistantsView(ModelFieldsMixin, AppConfigClientMixin, View):
         # Initialize the form
         assistant_form = AssistantForm(instance=assistant)
         assistant_group_form = AssistantGroupForm()
-
         # Get the fields and display fields for the model
         assistants_info = Assistant.objects.all()
         fields, display_fields = self.get_model_fields()
@@ -648,7 +680,6 @@ class ManageAssistantsView(ModelFieldsMixin, AppConfigClientMixin, View):
         # Render the assistant detail page with the form and assistant details
         return render(request, self.template_name, {
             'assistant_form': assistant_form,
-            'assistant_group_form': assistant_group_form,
             'assistants_info': assistants_info,
             'assistant_id': assistant_id,
             'is_edit': is_edit,
@@ -672,7 +703,7 @@ class ManageAssistantsView(ModelFieldsMixin, AppConfigClientMixin, View):
         save_form = request.POST.get('save_form')
 
         assistant_form = AssistantForm(request.POST)
-        assistant_group_form = AssistantGroupForm(request.POST)
+
 
         if assistant_id:
             assistant = Assistant.objects.get(pk=assistant_id)
@@ -693,15 +724,6 @@ class ManageAssistantsView(ModelFieldsMixin, AppConfigClientMixin, View):
                 messages.success(request, "Assistant created successfully.")
                 return redirect('manage_assistants')
 
-        if assistant_group_form.is_valid() and save_form == 'assistant_group_form':
-            
-            assistant_group = assistant_group_form.save(commit=False)
-            assistant_group.save()
-            assistant_group.assistants.set(assistant_group_form.cleaned_data['assistants'])
-            assistant_group.save()
-            
-            messages.success(request, "Assistant created successfully.")
-            return redirect('manage_assistants')
         else:
             messages.error(request, "Error creating assistant.")
             assistants_info = Assistant.objects.all()
@@ -709,7 +731,6 @@ class ManageAssistantsView(ModelFieldsMixin, AppConfigClientMixin, View):
             display_fields = Assistant().get_display_fields()
             return render(request, self.template_name, {
                 'assistant_form': assistant_form,
-                'assistant_group_form': assistant_group_form,
                 'assistants_info': assistants_info,
                 'fields': fields,
                 'display_fields': display_fields,
@@ -738,10 +759,89 @@ def get_assistant_details(request, assistant_id):
     except Assistant.DoesNotExist:
         return JsonResponse({'error': 'Assistant not found'}, status=404)
 
+class ManageAssistantGroupsView(LoginRequiredMixin, ModelFieldsMixin, View):
+    model = AssistantGroup
+    template_name = 'parodynews/assistant_group_detail.html'
+
+    def get(self, request, assistant_group_id=None):
+        if assistant_group_id:
+            assistant_group = AssistantGroup.objects.get(pk=assistant_group_id)
+            is_edit = True
+        else:
+            assistant_group = None
+            assistant_group_id = None
+            is_edit = False
+
+        assistant_group_form = AssistantGroupForm(instance=assistant_group)
+        assistant_groups_info = AssistantGroup.objects.all()
+        fields, display_fields = self.get_model_fields()
+
+        return render(request, self.template_name, {
+            'assistant_group_form': assistant_group_form,
+            'assistant_groups_info': assistant_groups_info,
+            'assistant_group_id': assistant_group_id,
+            'is_edit': is_edit,
+            'fields': fields,
+            'display_fields': display_fields,
+        })
+
+    def post(self, request, assistant_group_id=None):
+        if request.POST.get('_method') == 'delete':
+            return self.delete(request, assistant_group_id)
+        elif request.POST.get('_method') == 'save':
+            return self.save(request, assistant_group_id)
+
+        return redirect('manage_assistant_groups')
+
+    def save(self, request, assistant_group_id=None):
+        save_form = request.POST.get('save_form')
+        assistant_group_form = AssistantGroupForm(request.POST)
+        formset = AssistantGroupMembershipFormSet(request.POST)
+
+        if assistant_group_id:
+            assistant_group = AssistantGroup.objects.get(pk=assistant_group_id)
+            assistant_group_form = AssistantGroupForm(request.POST, instance=assistant_group)
+            assistant_group_members = AssistantGroupMembership.objects.filter(assistantgroup=assistant_group)
+            formset = AssistantGroupMembershipFormSet(request.POST, instance=assistant_group)
+        
+        if save_form == 'assistant_group_form':
+
+            if assistant_group_form.is_valid():
+                assistant_group = assistant_group_form.save(commit=False)
+                assistant_group.save()
+                assistant_group_form.save_m2m()
+                messages.success(request, "Assistant Group saved successfully.")
+                return redirect('manage_assistant_groups')
+            else:
+                messages.error(request, "Error saving assistant group.")
+                assistant_groups_info = AssistantGroup.objects.all()
+                fields, display_fields = self.get_model_fields()
+                return render(request, self.template_name, {
+                    'assistant_group_form': assistant_group_form,
+                    'assistant_groups_info': assistant_groups_info,
+                    'fields': fields,
+                    'display_fields': display_fields,
+                })
+
+        else:
+            assistant_groups_info = AssistantGroup.objects.all()
+            fields, display_fields = self.get_model_fields()
+
+            return render(request, self.template_name, {
+                'assistant_group_form': assistant_group_form,
+                'formset': formset,
+                'assistant_groups_info': assistant_groups_info,
+                'assistant_group_id': assistant_group_id,
+                'fields': fields,
+                'display_fields': display_fields,
+            })
 
 
-
-
+    def delete(self, request, assistant_group_id=None):
+        assistant_group = AssistantGroup.objects.get(pk=assistant_group_id)
+        assistant_group.delete()
+        messages.success(request, "Assistant Group deleted successfully.")
+        return redirect('manage_assistant_groups')
 
 class MyObjectView(View):
     template_name = 'object_template.html'

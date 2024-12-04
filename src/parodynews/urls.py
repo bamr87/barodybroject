@@ -30,6 +30,7 @@ from .views import (
     export_schema,
     MyObjectView,
     post_detail,
+    ManageAssistantGroupsView,
     )
 
 from django.contrib.auth.views import LogoutView
@@ -117,8 +118,16 @@ urlpatterns = [
     path('assistants/edit/<str:assistant_id>/', ManageAssistantsView.as_view(), name='edit_assistant'),
     path('assistants/delete/<str:assistant_id>/', ManageAssistantsView.as_view(), name='delete_assistant'),
 
-    # Assistant Grouping
-    path('assistants/group/', ManageAssistantsView.as_view(), name='manage_assistant_group'),
+    # Assistant Groups management
+    path('assistant-groups/', ManageAssistantGroupsView.as_view(), name='manage_assistant_groups'),
+    path('assistant-groups/<int:assistant_group_id>/', ManageAssistantGroupsView.as_view(), name='assistant_group_detail'),
+    path('assistant-groups/create/', ManageAssistantGroupsView.as_view(), name='create_assistant_group'),
+    path('assistant-groups/edit/<int:assistant_group_id>/', ManageAssistantGroupsView.as_view(), name='edit_assistant_group'),
+    path('assistant-groups/delete/<int:assistant_group_id>/', ManageAssistantGroupsView.as_view(), name='delete_assistant_group'),
+
+    # Assistant Groups Membership Management
+    
+
 
     # User management
     path('login/', UserLoginView.as_view(), name='login'),

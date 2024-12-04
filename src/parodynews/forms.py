@@ -1,4 +1,8 @@
+import re
+from django_json_widget.widgets import JSONEditorWidget
+from django.core.exceptions import ValidationError
 from django import forms
+from django.db.models import Count
 from .models import (
     Assistant,
     AssistantGroup,
@@ -9,15 +13,16 @@ from .models import (
     Thread,
     Post,
     PostFrontMatter,
-    OpenAIModel
     )
-from django.db.models import Count
+
 # from martor.fields import MartorFormField
 from cms.models.fields import PlaceholderField
-
+from django.forms import inlineformset_factory
+from .models import AssistantGroup, AssistantGroupMembership
 
 print("Loading forms...")
 
+# Content detail form that contains the main content details and metadata. Converted to post front matter form for the blog
 class ContentDetailForm(forms.ModelForm):
     class Meta:
         model = ContentDetail
@@ -31,24 +36,26 @@ class ContentDetailForm(forms.ModelForm):
             'slug': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-
+# Content item form that contains the main content details and metadata. Converted to post form for the blog
 
 class ContentItemForm(forms.ModelForm):
 
+    # Define the form fields for the assistant to be displayed in the form
     assistant = forms.ModelChoiceField(
         queryset=Assistant.objects.all(),
         label="Assistant Name",
         widget=forms.Select(attrs={'class': 'form-select'}),
-        to_field_name="id"  # This will display the 'name' field in the dropdown
-
     )
-    
+
+    # Define the form field for the instructions to be displayed in the form
     instructions = forms.CharField(
         widget=forms.Textarea(
             attrs={'class': 'form-control',
                    'readonly': 'readonly'}), 
-        required=False)
+        required=False
+    )
 
+    # Meta class to define the model and fields to be displayed in the form
     class Meta:
         model = ContentItem
         fields = [ 'assistant', 'instructions', 'prompt', 'content_text']
@@ -85,48 +92,72 @@ class ContentItemForm(forms.ModelForm):
             except Assistant.DoesNotExist:
                 self.fields['instructions'].initial = ''
 
-# Fetch all Assistant objects and create a list of tuples for the dropdown choices
-
-from django import forms
-from .models import Assistant
-
+# Assistant form that contains the main assistant details and metadata
 class AssistantForm(forms.ModelForm):
-
+    # Define the form fields for the assistant to be displayed in the form
     class Meta:
         model = Assistant
-        fields = ['name', 'description', 'model', 'instructions', 'json_schema', 'assistant_groups']
+        fields = ['name', 'description', 'model', 'instructions', 'json_schema', 'assistant_group_memberships']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_name'}),
             'description': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_assist_description'}),
             'instructions': forms.Textarea(attrs={'class': 'form-control', 'id': 'id_instructions'}),
             'model': forms.Select(attrs={'class': 'form-select', 'id': 'id_model'}),
             'json_schema': forms.Select(attrs={'class': 'form-control', 'id': 'id_json_schema'}),
-            'assistant_groups': forms.CheckboxSelectMultiple(),
+            'assistant_group_memberships': forms.CheckboxSelectMultiple(),
         }
 
+    # Set the assistant field choices to the names of all Assistant objects. Needed for AJAX request
     def __init__(self, *args, **kwargs):
         super(AssistantForm, self).__init__(*args, **kwargs)
 
         if 'instance' in kwargs and kwargs['instance']:
             assistant = kwargs['instance']
-            self.fields['assistant_groups'].queryset = AssistantGroup.objects.all()
-            self.fields['assistant_groups'].initial = assistant.assistant_groups.all()
+            self.fields['assistant_group_memberships'].queryset = AssistantGroupMembership.objects.all()
+            self.fields['assistant_group_memberships'].initial = assistant.assistant_group_memberships.all()
         else:
-            self.fields['assistant_groups'].queryset = AssistantGroup.objects.all()
+            self.fields['assistant_group_memberships'].queryset = AssistantGroupMembership.objects.all()
+
+# Assistant group form that contains the main assistant group details and metadata. Used to group assistants into a workflow.
+class AssistantGroupMembershipForm(forms.ModelForm):
+    class Meta:
+        model = AssistantGroupMembership
+        fields = ['assistants', 'position']
+        widgets = {
+            'assistants': forms.Select(attrs={'class': 'form-control'}),
+            'position': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+        }
+
+AssistantGroupMembershipFormSet = inlineformset_factory(
+    AssistantGroup,
+    AssistantGroupMembership,
+    form=AssistantGroupMembershipForm,
+    extra=1,
+    can_delete=True
+)
 
 class AssistantGroupForm(forms.ModelForm):
     class Meta:
         model = AssistantGroup
-        fields = ['name', 'assistants', 'group_type']
+        fields = ['name', 'group_type']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_group_name'}),
-            'assistants': forms.CheckboxSelectMultiple(),
-            'group_type': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_group_type'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'group_type': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
-        super(AssistantGroupForm, self).__init__(*args, **kwargs)
-        self.fields['assistants'].queryset = Assistant.objects.all()
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.formset = AssistantGroupMembershipFormSet(instance=self.instance)
+        else:
+            self.formset = AssistantGroupMembershipFormSet()
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        self.formset.instance = instance
+        if self.formset.is_valid():
+            self.formset.save(commit=commit)
+        return instance
 
 class ContentProcessingForm(forms.Form):
     thread_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -150,8 +181,7 @@ class ThreadRunFrom(forms.Form):
     prompt = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
     content = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
     
-from django import forms
-from martor.fields import MartorFormField
+
 
 # Post form 
 class PostForm(forms.ModelForm):
@@ -195,9 +225,6 @@ class MyObjectForm(forms.ModelForm):
 
 # JSON Schema model form
 
-from django_json_widget.widgets import JSONEditorWidget
-import re
-from django.core.exceptions import ValidationError
 
 class JSONSchemaForm(forms.ModelForm):
     class Meta:

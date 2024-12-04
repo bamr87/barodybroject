@@ -61,7 +61,7 @@ class Assistant(models.Model):
     top_p = models.FloatField(null=True, blank=True)
     response_format = models.JSONField(default=dict, null=True, blank=True)
     json_schema = models.ForeignKey(JSONSchema, on_delete=models.SET_NULL, null=True, blank=True)
-    assistant_groups = models.ManyToManyField('AssistantGroup', related_name='assistant', blank=True)
+    assistant_group_memberships = models.ManyToManyField('AssistantGroupMembership', related_name='assistant', blank=True)
 
 
     def get_display_fields(self):
@@ -71,10 +71,34 @@ class Assistant(models.Model):
     def __str__(self):
         return self.name
 
+# Assistant Group to group assistants into a workflow and order of execution.
+class AssistantGroupMembership(models.Model):
+    assistantgroup = models.ForeignKey('AssistantGroup', on_delete=models.SET_NULL, null=True)
+    assistants = models.ForeignKey('Assistant', on_delete=models.SET_NULL, null=True)
+    position = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ['position']
+
+    def __str__(self):
+        return f"{self.assistant.name} in {self.assistantgroup.name} at position {self.position}"
+
 class AssistantGroup(models.Model):
     name = models.CharField(max_length=256)
-    assistants = models.ManyToManyField(Assistant, related_name='assistant_group')
+    assistants = models.ManyToManyField(
+        Assistant,
+        through='AssistantGroupMembership',
+        related_name='assistant_group_membership'
+    )
     group_type = models.CharField(max_length=100, default="default")
+    sequence = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    priority = models.IntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def get_display_fields(self):
+        # List the fields you want to display
+        return ['name', 'sequence', 'is_active', 'priority']
 
     def __str__(self):
         return self.name
@@ -130,7 +154,7 @@ class Thread(models.Model):
 
     def get_display_fields(self):
         # List the fields you want to display
-        return ['id', 'name', 'created_at']
+        return [ 'name', 'created_at']
 
     def __str__(self):
         return self.name

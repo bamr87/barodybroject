@@ -462,3 +462,20 @@ def delete_assistant(client, assistant_id):
     Assistant.objects.filter(id=assistant_id).delete()
     return f"Assistant with ID {assistant_id} deleted successfully."
 
+def run_assistant(assistant, input_content):
+    client = get_openai_client()
+    response = client.chat_completion.create(
+        model=assistant.model.model_id,
+        messages=[
+            {"role": "system", "content": assistant.instructions},
+            {"role": "user", "content": input_content}
+        ],
+        temperature=assistant.temperature or 0.7
+    )
+    output_content = response.choices[0].message.content
+    return output_content
+
+def generate_unique_id():
+    import uuid
+    return str(uuid.uuid4())
+
