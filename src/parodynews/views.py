@@ -657,6 +657,8 @@ class ManageMessageView(LoginRequiredMixin, View):
 
 
 
+from django.forms import inlineformset_factory
+
 class ManageAssistantsView(ModelFieldsMixin, AppConfigClientMixin, View):
     model = Assistant
     template_name = 'parodynews/assistant_detail.html'
@@ -764,77 +766,85 @@ class ManageAssistantGroupsView(LoginRequiredMixin, ModelFieldsMixin, View):
     template_name = 'parodynews/assistant_group_detail.html'
 
     def get(self, request, assistant_group_id=None):
+        # Check if assistant_group_id is provided
         if assistant_group_id:
-            assistant_group = AssistantGroup.objects.get(pk=assistant_group_id)
-            is_edit = True
+            assistant_group = get_object_or_404(AssistantGroup, pk=assistant_group_id)
+            assistant_group_form = AssistantGroupForm(instance=assistant_group)
         else:
             assistant_group = None
-            assistant_group_id = None
-            is_edit = False
+            assistant_group_form = AssistantGroupForm()
 
-        assistant_group_form = AssistantGroupForm(instance=assistant_group)
+        # initialize the form
+        assistant_group_formset = AssistantGroupMembershipFormSet(instance=assistant_group)
+
         assistant_groups_info = AssistantGroup.objects.all()
         fields, display_fields = self.get_model_fields()
 
-        return render(request, self.template_name, {
+        context = {
             'assistant_group_form': assistant_group_form,
-            'assistant_groups_info': assistant_groups_info,
+            'assistant_group_formset': assistant_group_formset,
+            'assistant_group': assistant_group,
             'assistant_group_id': assistant_group_id,
-            'is_edit': is_edit,
+            'assistant_groups_info': assistant_groups_info,
             'fields': fields,
             'display_fields': display_fields,
-        })
+        }
+
+        return render(request, self.template_name, context)
 
     def post(self, request, assistant_group_id=None):
+
         if request.POST.get('_method') == 'delete':
             return self.delete(request, assistant_group_id)
-        elif request.POST.get('_method') == 'save':
-            return self.save(request, assistant_group_id)
+        if request.POST.get('_method') == 'save':
+            return self.save(request, assistant_group_id) 
 
+        # Return a default response if no condition is met
         return redirect('manage_assistant_groups')
 
     def save(self, request, assistant_group_id=None):
-        save_form = request.POST.get('save_form')
-        assistant_group_form = AssistantGroupForm(request.POST)
-        formset = AssistantGroupMembershipFormSet(request.POST)
+        assistant_group_id = request.POST.get('assistant_group_id')
 
+        # initialize the forms
+        assistant_group_form = AssistantGroupForm(request.POST)
+        assistant_group_formset = AssistantGroupMembershipFormSet(request.POST)
+
+        # Check if assistant_group_id is provided
         if assistant_group_id:
             assistant_group = AssistantGroup.objects.get(pk=assistant_group_id)
+            assistant_group_membership = AssistantGroupMembership.objects.filter(assistantgroup=assistant_group)
             assistant_group_form = AssistantGroupForm(request.POST, instance=assistant_group)
-            assistant_group_members = AssistantGroupMembership.objects.filter(assistantgroup=assistant_group)
-            formset = AssistantGroupMembershipFormSet(request.POST, instance=assistant_group)
-        
-        if save_form == 'assistant_group_form':
+            assistant_group_formset = AssistantGroupMembershipFormSet(request.POST, instance=assistant_group_form.instance)
 
-            if assistant_group_form.is_valid():
-                assistant_group = assistant_group_form.save(commit=False)
-                assistant_group.save()
-                assistant_group_form.save_m2m()
-                messages.success(request, "Assistant Group saved successfully.")
-                return redirect('manage_assistant_groups')
+        if assistant_group_form.is_valid():
+            assistant_group = assistant_group_form.save()  # Save the assistant group first
+
+            if assistant_group_formset.is_valid():
+                assistant_group_formset.instance = assistant_group  # Set the instance for the formset
+                assistant_group_formset.save()  # Save the formset
+
+                messages.success(request, "Assistant group and members saved successfully.")
+                return redirect('assistant_group_detail', assistant_group_id=assistant_group.id)
             else:
-                messages.error(request, "Error saving assistant group.")
-                assistant_groups_info = AssistantGroup.objects.all()
-                fields, display_fields = self.get_model_fields()
-                return render(request, self.template_name, {
-                    'assistant_group_form': assistant_group_form,
-                    'assistant_groups_info': assistant_groups_info,
-                    'fields': fields,
-                    'display_fields': display_fields,
-                })
-
+                error_messages = f"Group Membership form errors: {assistant_group_formset.errors}"
+                messages.error(request, f"Error saving content and its details! {error_messages}")
         else:
-            assistant_groups_info = AssistantGroup.objects.all()
-            fields, display_fields = self.get_model_fields()
+            error_messages = f"Group form errors: {assistant_group_form.errors}"
+            messages.error(request, f"Error saving content and its details! {error_messages}")
 
-            return render(request, self.template_name, {
-                'assistant_group_form': assistant_group_form,
-                'formset': formset,
-                'assistant_groups_info': assistant_groups_info,
-                'assistant_group_id': assistant_group_id,
-                'fields': fields,
-                'display_fields': display_fields,
-            })
+        assistant_groups_info = AssistantGroup.objects.all()
+        fields, display_fields = self.get_model_fields()
+        context = {
+            'assistant_group_form': assistant_group_form,
+            'assistant_group_formset': assistant_group_formset,
+            'assistant_group': assistant_group_form.instance,
+            'assistant_group_membership': assistant_group_membership,
+            'assistant_groups_info': assistant_groups_info,
+            'fields': fields,
+            'display_fields': display_fields,
+        }
+        return render(self.request, self.template_name, context)
+        
 
 
     def delete(self, request, assistant_group_id=None):
@@ -842,6 +852,8 @@ class ManageAssistantGroupsView(LoginRequiredMixin, ModelFieldsMixin, View):
         assistant_group.delete()
         messages.success(request, "Assistant Group deleted successfully.")
         return redirect('manage_assistant_groups')
+    
+    
 
 class MyObjectView(View):
     template_name = 'object_template.html'

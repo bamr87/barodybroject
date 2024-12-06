@@ -73,6 +73,7 @@ class Assistant(models.Model):
 
 # Assistant Group to group assistants into a workflow and order of execution.
 class AssistantGroupMembership(models.Model):
+    id = models.AutoField(primary_key=True)
     assistantgroup = models.ForeignKey('AssistantGroup', on_delete=models.SET_NULL, null=True)
     assistants = models.ForeignKey('Assistant', on_delete=models.SET_NULL, null=True)
     position = models.PositiveIntegerField()
@@ -151,6 +152,8 @@ class Thread(models.Model):
     id = models.CharField(max_length=255, primary_key=True) 
     name = models.CharField(max_length=100, default="New Thread")
     created_at = models.DateTimeField(default=timezone.now)
+    assistant_group = models.ForeignKey(AssistantGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='threads')
+    
 
     def get_display_fields(self):
         # List the fields you want to display
@@ -163,6 +166,7 @@ class Thread(models.Model):
 # https://platform.openai.com/docs/api-reference/messages
 class Message(models.Model):
     id = models.CharField(max_length=255, primary_key=True)
+    
     created_at = models.DateTimeField(default=timezone.now)
     contentitem = models.ForeignKey(ContentItem, on_delete=models.SET_NULL, null=True, blank=True, related_name='messages')
     thread = models.ForeignKey(Thread, on_delete=models.SET_NULL, null=True, related_name='messages')

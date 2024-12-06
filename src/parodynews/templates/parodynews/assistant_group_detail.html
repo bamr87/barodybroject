@@ -1,74 +1,126 @@
-<!-- assistant_detail.html -->
+<!-- assistant_group_detail.html -->
 {% extends "base.html" %}
 {% load custom_filters %}
 
 {% block content %}
-
-<!-- Assistant Forms -->
-<div class="container mt-5" id="assistant-group-form">
-    <div class="row">
-        <div class="col-md-6">
-            <h2>Assistant Group Form</h2>
-            {% if selected_asssistant_group%}
-            <form method="post" action="{% url 'assistant_group_detail' assistant_id=selected_assistant_group.id %}" class="needs-validation" novalidate>
-            {% else %}
-            <form method="post" action="{% url 'manage_assistant_groups' %}" class="needs-validation" novalidate>
-            {% endif %}
-                {% csrf_token %}
-                    <!-- Assistant Group Form -->
-                <div class="form-group">
-                    {{ assistant_group_form.as_p }}
-                </div>
-                {% if assistant_group_id %}
-                <!-- Save Button Form -->
-                <form action="{% url 'edit_assistant_group' assistant_group_id %}" method="POST" class="save-form mr-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="assistant_group_id" value="{{ assistant_group_id }}">
-                    <input type="hidden" name="_method" value="save">
-                    <input type="hidden" name="action" value="save">
-                    <input type="hidden" name="save_form" value="assistant_group_form">
-
-                    <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Save</button>
-                </form>
-                {% else %}
-                <!-- Create Button Form -->
-                <form action="{% url 'manage_assistant_groups' %}" method="POST" class="save-form mr-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="_method" value="save">
-                    <input type="hidden" name="action" value="save">
-                    <input type="hidden" name="save_form" value="assistant_group_form">
-
-                    <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
-                </form>
-                {% endif %}
-            </form>
+<div class="container mt-5">
+    <h2>Assistant Group Form</h2>
+    {% if assistant_group_id %}
+        <form method="post" action="{% url 'assistant_group_detail' assistant_group_id=assistant_group.id %}">
+    {% else %}
+        <form method="post" action="{% url 'manage_assistant_groups' %}">
+    {% endif %}
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ assistant_group_form.name.label_tag }}
+            {{ assistant_group_form.name }}
+        </div>
+        <div class="mb-3">
+            {{ assistant_group_form.group_type.label_tag }}
+            {{ assistant_group_form.group_type }}
         </div>
 
-    </div>
+        <h3>Assistant Group Members</h3>
+        {{ assistant_group_formset.management_form }}
+        <table class="table" id="formset">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Assistant</th>
+                    <th>Position</th>
+                    <th>Delete?</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in assistant_group_formset.forms %}
+                    <tr class="formset-row">
+                        <td>{{ form.id }}</td>
+                        <td>{{ form.assistants }}</td>
+                        <td>{{ form.position }}</td>
+                        <td>{{ form.DELETE }}</td>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-secondary" id="add-form">Add Assistant</button>
+        {% if assistant_group_id %}
+        <!-- Save Button Form -->
+        <form action="{% url 'edit_assistant_group' assistant_group_id %}" method="POST" class="save-form mr-2">
+            {% csrf_token %}
+            <input type="hidden" name="assistant_group_id" value="{{ assistant_group_id }}">
+            <input type="hidden" name="_method" value="save">
+            <input type="hidden" name="action" value="save">
+            <input type="hidden" name="save_form" value="assistant_group_form">
 
+            <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this Group?');">Save</button>
+        </form>
+        {% else %}
+        <!-- Create Button Form -->
+        <form action="{% url 'manage_assistant_groups' %}" method="POST" class="save-form mr-2">
+            {% csrf_token %}
+            <input type="hidden" name="_method" value="save">
+            <input type="hidden" name="action" value="save">
+            <input type="hidden" name="save_form" value="assistant_group_form">
 
-<h2>Assistant Group Membership Form</h2>
-<form method="post" action="{% url 'manage_assistant_group_memberships' %}" class="needs-validation" novalidate>
-    {% csrf_token %}
-    <div class="form-group">
-        {{ assistant_group_membership_form.as_p }}
-    </div>
-    <input type="hidden" name="assistant_group_id" value="{{ assistant_group.id }}">
-    <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Add Assistant</button>
-</form>
-<ol>
-    {% for membership in assistant_group.assistantgroupmembership_set.all %}
-        <li>
-            Position {{ membership.position }}: {{ membership.assistant.name }}
-        </li>
-    {% empty %}
-        <li>No assistants in this group.</li>
-    {% endfor %}
-</ol>
+            <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
+        </form>    
+        {% endif %}
+    </form>
+    <br>
+        
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const formset = document.getElementById('formset').getElementsByTagName('tbody')[0];
+            const addFormButton = document.getElementById('add-form');
+            const totalForms = document.getElementById('id_assistantgroupmembership_set-TOTAL_FORMS');
+    
+            addFormButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                const currentFormCount = parseInt(totalForms.value);
+                const emptyForm = document.querySelector('.formset-row').cloneNode(true);
+    
+                // Clear the values in the cloned form
+                emptyForm.querySelectorAll('input, select').forEach(function(input) {
+                    if (input.type !== 'hidden') {
+                        input.value = '';
+                    }
+                });
+    
+                // Update the form indices
+                emptyForm.innerHTML = emptyForm.innerHTML.replace(/assistantgroupmembership_set-\d+-/g, `assistantgroupmembership_set-${currentFormCount}-`);
+    
+                // Add delete event listener to the new delete button
+                const deleteButton = emptyForm.querySelector('.delete-row');
+                deleteButton.addEventListener('click', function() {
+                    emptyForm.remove();
+                    updateTotalForms(-1);
+                });
+    
+                // Append the new form
+                formset.appendChild(emptyForm);
+    
+                // Increment the total forms count
+                updateTotalForms(1);
+            });
+    
+            // Attach delete event to existing delete buttons
+            document.querySelectorAll('.delete-row').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    button.closest('.formset-row').remove();
+                    updateTotalForms(-1);
+                });
+            });
+    
+            function updateTotalForms(value) {
+                totalForms.value = parseInt(totalForms.value) + value;
+            }
+        });
+    </script>
 
 <!-- Assistant Group List -->
 <div class="container mt-5">
-    <h2>Assistant Group List</h2>
+    <h2>Assistant Groups</h2>
     <table class="table">
         <thead>
             <tr>
@@ -84,18 +136,17 @@
             {% for group in assistant_groups_info %}
                 <tr>
                     {% for field in fields %}
-                       {% if field.name in display_fields %}
-                         <td>{{ group|get_field_value:field.name|truncate_chars:1024 }}</td>
-                       {% endif %}
-                {% endfor %}
+                        {% if field.name in display_fields %}
+                            <td>{{ group|get_field_value:field.name|truncatechars:1024 }}</td>
+                        {% endif %}
+                    {% endfor %}
                     <td>
-                        <a href="{% url 'assistant_group_detail' group.id %}" class="btn btn-primary">View</a>
-                        <!-- Add more actions as needed -->
+                        <a href="{% url 'assistant_group_detail' group.id %}" class="btn btn-primary">Edit</a>
+                        <!-- Add delete action if needed -->
                     </td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
-</div>
 </div>
 {% endblock %}

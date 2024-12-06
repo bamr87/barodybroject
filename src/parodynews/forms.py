@@ -104,25 +104,27 @@ class AssistantForm(forms.ModelForm):
             'instructions': forms.Textarea(attrs={'class': 'form-control', 'id': 'id_instructions'}),
             'model': forms.Select(attrs={'class': 'form-select', 'id': 'id_model'}),
             'json_schema': forms.Select(attrs={'class': 'form-control', 'id': 'id_json_schema'}),
-            'assistant_group_memberships': forms.CheckboxSelectMultiple(),
+            'assistant_group_memberships': forms.SelectMultiple(attrs={'class': 'form-control', 'id': 'id_assistant_group_memberships'}),
         }
 
     # Set the assistant field choices to the names of all Assistant objects. Needed for AJAX request
     def __init__(self, *args, **kwargs):
-        super(AssistantForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            # Filter to assistant groups the assistant is a member of
+            memberships = AssistantGroupMembership.objects.filter(assistants=self.instance)
+            # self.fields['assistant_group_memberships'].queryset = memberships
+            self.fields['assistant_group_memberships'].queryset = AssistantGroup.objects.filter(assistantgroupmembership__assistants=self.instance)
 
-        if 'instance' in kwargs and kwargs['instance']:
-            assistant = kwargs['instance']
-            self.fields['assistant_group_memberships'].queryset = AssistantGroupMembership.objects.all()
-            self.fields['assistant_group_memberships'].initial = assistant.assistant_group_memberships.all()
         else:
-            self.fields['assistant_group_memberships'].queryset = AssistantGroupMembership.objects.all()
+            # No memberships for new assistants
+            self.fields['assistant_group_memberships'].queryset = AssistantGroup.objects.all()
 
 # Assistant group form that contains the main assistant group details and metadata. Used to group assistants into a workflow.
 class AssistantGroupMembershipForm(forms.ModelForm):
     class Meta:
         model = AssistantGroupMembership
-        fields = ['assistants', 'position']
+        fields = ['assistants', 'position']  # Updated field name
         widgets = {
             'assistants': forms.Select(attrs={'class': 'form-control'}),
             'position': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
@@ -145,19 +147,6 @@ class AssistantGroupForm(forms.ModelForm):
             'group_type': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance.pk:
-            self.formset = AssistantGroupMembershipFormSet(instance=self.instance)
-        else:
-            self.formset = AssistantGroupMembershipFormSet()
-
-    def save(self, commit=True):
-        instance = super().save(commit)
-        self.formset.instance = instance
-        if self.formset.is_valid():
-            self.formset.save(commit=commit)
-        return instance
 
 class ContentProcessingForm(forms.Form):
     thread_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
