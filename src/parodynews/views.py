@@ -42,6 +42,7 @@ from .forms import (
     AssistantForm,
     ContentItemForm,
     ContentDetailForm,
+    ThreadForm,
     AssistantGroupForm,
     AssistantGroupMembershipForm,
     AssistantGroupMembershipFormSet,
@@ -63,7 +64,7 @@ from .models import (
 from .utils import (
     save_assistant, 
     openai_delete_assistant, 
-    create_run, 
+    create_run,
     generate_content, 
     openai_create_message,
     openai_delete_message,
@@ -285,6 +286,7 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, AppConfigClientMix
         # Create a new Thread instance and save it
         new_thread = Thread(id=thread_id, name=contentitem.detail.title)
         new_thread.save()
+        # new_thread.create_run_queue()
 
         print(f"New thread created with ID: {contentitem_id}")
 
@@ -306,40 +308,52 @@ class ManageContentView(LoginRequiredMixin, ModelFieldsMixin, AppConfigClientMix
         return redirect('manage_content')
 
 class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
-    template_name = 'parodynews/content_processing.html'
     model = Thread
+    template_name = 'parodynews/content_processing.html'
     # View to list all threads and messages
 
-    def get(self, request, message_id=None, thread_id=None):
+    def get(self, request, message_id=None, thread_id=None, assistant_group_id=None):
+
         # Check if thread_id is provided
-        thread_messages = []
-        current_thread = None
-        current_message = None
       
         if thread_id:
             current_thread = Thread.objects.get(pk=thread_id)
             thread_messages = Message.objects.filter(thread_id=thread_id)
-
-        threads = Thread.objects.all()  # Retrieve all threads
-        fields, display_fields = self.get_model_fields()
+            thread_form = ThreadForm(instance=current_thread)
+            thread_messages = Message.objects.filter(thread_id=thread_id)
+            current_message = None
+            assistant_group_id = current_thread.assistant_group_id
+        else:
+            current_thread = None
+            current_message = None
+            thread_messages = None
+            thread_form = ThreadForm()
+            assistant_group_id = None
 
         if message_id:
             current_message = Message.objects.get(pk=message_id)
 
+        threads = Thread.objects.all()  # Retrieve all threads
+        fields, display_fields = self.get_model_fields()
+
         message_list = Message.objects.all()
         assistants = Assistant.objects.all()  # Fetch all assistants
 
-        return render(request, 'parodynews/content_processing.html', {
+        context = {
             'message_list': message_list,
             'current_thread': current_thread,
+            'thread_form': thread_form,
             'threads': threads,
             'assistants': assistants,
+            'assistant_group_id': assistant_group_id,
             'thread_messages': thread_messages,
             'current_message': current_message,
             # 'thread_run_form': ThreadRunFrom(),
             'fields': fields,
             'display_fields': display_fields
-            })
+        }
+
+        return render(request, self.template_name, context)
 
     def post(self, request, thread_id=None, message_id=None):
         if request.POST.get('_method') == 'delete':
@@ -351,14 +365,17 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         if request.POST.get('_method') == 'create_content':
             return self.create_content(request)
         
-        if request.POST.get('_method') == 'run_message':
-            return self.run_message(request)
+        if request.POST.get('_method') == 'run_assistant_group':
+            return self.run_assistant_group(request)
+        
+        if request.POST.get('_method') == 'run_assistant_message':
+            return self.run_assistant_message(request)
         
         if request.POST.get('_method') == 'create_post':
             return self.create_post(request)
         
         if request.POST.get('_method') == 'save':
-            return self.save(request, thread_id, message_id)
+            return self.save(request, thread_id)
 
     # View to delete a thread
 
@@ -431,85 +448,45 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
         return redirect('content_detail', content_detail_id=content_detail.id )  # Redirect back to the thread detail page
 
+    def run_assistant_group(self, request, thread_id=None, assistant_group_id=None):
+        # Retrieve the OpenAI client from the session
+        client = AppConfigClientMixin.get_client(self)
+
+        # Retrieve the thread instance
+        thread_id = request.POST.get('thread_id')
+        thread = Thread.objects.get(pk=thread_id)
+
+        # Retrieve the assistant group for the thread
+        assistant_group_id = request.POST.get('assistant_group_id')
+        assistant_group = thread.assistant_group
+
+        # Retrieve the assistant IDs in the assistant group
+        assistant_ids = AssistantGroupMembership.objects.filter(assistantgroup=assistant_group).values_list('assistants_id', flat=True).order_by('position')
+        
+        # Iterate over the assistant IDs in the group
+        for assistant_id in assistant_ids:
+            run, run_status, run_response = create_run(client, thread_id, assistant_id)
 
 
-    # View to run messages
-    def run_message(self, request, message_id=None, thread_id=None):
+        messages.success(request, "Assistant group run successfully.")
+        return redirect('thread_detail', thread_id=thread.id)
+
+    # View to run individual messages
+
+    def run_assistant_message(self, request, thread_id=None, message_id=None, assistant_id=None):
         # Retrieve the OpenAI client from the session
         client = AppConfigClientMixin.get_client(self)
 
         # retrieve the message instance of the selected message
-        message_id = request.POST.get('message_id')
-        message = Message.objects.get(id=message_id)  # Retrieve the message by its ID or return 404
+        thread_id = request.POST.get('thread_id') # Assuming thread_id is passed in the request
+        message_id = request.POST.get('message_id') # Assuming message_id is passed in the request
         assistant_id = request.POST.get('assistant_id')  # Assuming assistant_id is passed in the request
-        thread_id = message.thread_id  # Access the thread_id associated with the message
         
         # Call the create_run function to create a run for the message
-        run, run_status, message_data = create_run(client, thread_id, assistant_id)  
+        run, run_status, run_response = create_run(client, thread_id, assistant_id)  
         
-        # Update the message status and run_id
-        message.status = run_status.status
-        message.run_id = run.id
-        message.save()
-
-        # Create a new content item instance with the response content
-        new_content = ContentItem.objects.create(
-            assistant_id=assistant_id,
-            prompt=Assistant.objects.get(id=assistant_id).instructions,
-            content_text=message_data['content'],
-            detail_id=message.contentitem.detail_id,
-            content_type='message'
-        )
-
-        # Create a new message instance with the response content
-        new_message = Message.objects.create(
-            id=message_data['id'],
-            thread_id=thread_id,
-            assistant_id=None,
-            status=run_status.status,
-            run_id=run.id,
-            contentitem_id=new_content.id,
-        )
-        
-        new_content.save()
-        new_message.save()
-
         messages.success(request, "Message run successfully.")
 
-
-
-        thread = get_object_or_404(Thread, id=thread_id)
-        initial_message = get_object_or_404(Message, id=message_id, thread=thread)
-        
-        assistant_groups = initial_message.assistant.assistant_groups.all()
-        if assistant_groups.exists():
-            assistant_group = assistant_groups.first()
-            assistants = AssistantGroupMembership.objects.filter(
-                assistantgroup=assistant_group
-            ).order_by('position')
-            input_content = initial_message.contentitem.content_text
-            for membership in assistants:
-                assistant = membership.assistant
-                output_content = run_assistant(assistant, input_content)
-                content_item = ContentItem.objects.create(
-                    content_text=output_content,
-                    assistant=assistant,
-                    prompt=input_content,
-                    detail=initial_message.contentitem.detail
-                )
-                message = Message.objects.create(
-                    id=generate_unique_id(),
-                    contentitem=content_item,
-                    thread=thread,
-                    assistant=assistant,
-                    status='completed'
-                )
-                input_content = output_content
-            return redirect('thread_detail', thread_id=thread.id)
-        else:
-            # ...existing code...
-            pass
-        
         # Redirect to the thread_detail.html of the message
         return redirect('thread_message_detail', message_id=message_id, thread_id=thread_id)
     # View to create a post
@@ -592,10 +569,15 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         messages.success(request, "Post created successfully.")
         return redirect('post_detail', post_id=post.id)
     
-    def save(self, request, thread_id=None, message_id=None):
-        # Added the save method since it's called in post()
-        # ...implement the save logic or remove the call if not needed...
-        messages.success(request, "Message saved successfully.")
+    def save(self, request, thread_id=None):
+        thread_id = request.POST.get('thread_id')
+        thread_form = ThreadForm(request.POST, instance=Thread.objects.get(pk=thread_id))
+        if thread_form.is_valid():
+            thread = thread_form.save(commit=False)
+            thread.save()
+
+        messages.success(request, "Thread saved successfully.")
+        return redirect('thread_detail', thread_id=thread_id)
 
 
 class ManageMessageView(LoginRequiredMixin, View):

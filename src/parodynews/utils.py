@@ -2,7 +2,7 @@
 # https://platform.openai.com/docs/api-reference/chat-gpt-4o
 
 from django.db import connection
-from .models import AppConfig, Assistant
+from .models import AppConfig, Assistant, ContentItem, Message
 from openai import OpenAI
 from django.conf import settings
 
@@ -273,15 +273,19 @@ def openai_delete_message(client, message_id, thread_id):
     )
     return deleted_message
 
+
 def create_run(client, thread_id, assistant_id):
     import time
+    # https://platform.openai.com/docs/api-reference/runs/createRun
 
     run = client.beta.threads.runs.create(
     thread_id=thread_id,
     assistant_id=assistant_id,
     )
 
-    
+    start_time = time.time()
+    time_limit = 60  # Time limit in seconds
+
     while True:
         run_status = client.beta.threads.runs.retrieve(
             thread_id=thread_id,
@@ -290,20 +294,24 @@ def create_run(client, thread_id, assistant_id):
         
         if run_status.status == "completed":
             break
+        
+        if time.time() - start_time > time_limit:
+            raise TimeoutError("The operation timed out.")
+        
         time.sleep(2)
 
-    new_message = client.beta.threads.messages.list(
+    message_response = client.beta.threads.messages.list(
         thread_id=thread_id,
         run_id=run.id
         )
 
-    new_message_id = new_message.data[0].id
+    message_response_id = message_response.data[0].id
 
     # https://platform.openai.com/docs/api-reference/messages/getMessage
     response = client.beta.threads.messages.retrieve(
-    message_id=new_message_id,
-    thread_id=thread_id,
-    )
+        message_id=message_response_id,
+        thread_id=thread_id,
+        )
 
     data = response.content[0].text.value
     assistant_id = response.assistant_id
@@ -314,16 +322,47 @@ def create_run(client, thread_id, assistant_id):
         content_data = data
     
     if isinstance(content_data, dict) and 'Content' in content_data and 'body' in content_data['Content']:
-        content_section = content_data['Content']['body']
+        content_text = content_data['Content']['body']
     else:
-        content_section = content_data
+        content_text = content_data
 
-    message_data = {"id": new_message_id,
-                    "content": content_section,
+    # retrieve the content item detail from the thread id
+    
+    content_detail_id = Message.objects.filter(thread_id=thread_id).first().contentitem.detail_id
+
+    # Create a new content item instance with the response content
+    new_content = ContentItem.objects.create(
+        assistant_id=assistant_id,
+        prompt=Assistant.objects.get(id=assistant_id).instructions,
+        content_text=content_text,
+        detail_id=content_detail_id,
+        content_type='message'
+    )
+
+    # Create a new message instance with the response content
+    new_message = Message.objects.create(
+        id=message_response_id,
+        thread_id=thread_id,
+        assistant_id=None,
+        status=run_status.status,
+        run_id=run.id,
+        contentitem_id=new_content.id,
+    )
+    
+    new_content.save()
+    new_message.save()
+
+    run_response = {"id": message_response_id,
+                    "content_text": content_text,
                     "assistant_id": assistant_id,
+                    "status": run_status.status,
+                    "run_id": run.id,
+                    "detail_id": content_detail_id,
+                    "thread_id": thread_id
                 }
 
-    return run, run_status, message_data
+    # Return the run, run_status, and message_data
+    return run, run_status, run_response
 
 def openai_list_messages(client, thread_id):
     thread_messages = client.beta.threads.messages.list(

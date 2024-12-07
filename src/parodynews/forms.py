@@ -147,30 +147,25 @@ class AssistantGroupForm(forms.ModelForm):
             'group_type': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-
-class ContentProcessingForm(forms.Form):
-    thread_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    assistant_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    content_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    prompt = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
-    content = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
-
 class ThreadForm(forms.ModelForm):
     class Meta:
         model = Thread
-        fields = ['name']
+        fields = ['name', 'description', 'assistant_group',]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+            'assistant_group': forms.Select(attrs={'class': 'form-control'}),
         }
 
-class ThreadRunFrom(forms.Form):
-    thread_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    assistant_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    content_id = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    prompt = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
-    content = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control'}))
-    
-
+# class ThreadRunQueueFrom(forms.ModelForm):
+#     class Meta:
+#         model = ThreadRunQueue
+#         fields = ['thread', 'run_id']
+#         widgets = {
+#             'thread': forms.Select(attrs={'class': 'form-control'}),
+#             'run_id': forms.DateTimeInput(attrs={'class': 'form-control'}),
+#         }
+ 
 
 # Post form 
 class PostForm(forms.ModelForm):

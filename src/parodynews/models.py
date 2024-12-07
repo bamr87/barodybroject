@@ -151,17 +151,19 @@ class ContentItem(models.Model):
 class Thread(models.Model):
     id = models.CharField(max_length=255, primary_key=True) 
     name = models.CharField(max_length=100, default="New Thread")
+    description = models.TextField(blank=True)
+
+    assistant_group = models.ForeignKey(AssistantGroup, on_delete=models.CASCADE, null=True, blank=True, related_name='threads')
     created_at = models.DateTimeField(default=timezone.now)
-    assistant_group = models.ForeignKey(AssistantGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='threads')
     
 
     def get_display_fields(self):
         # List the fields you want to display
-        return [ 'name', 'created_at']
+        return [ 'name', 'description', 'assistant_group', 'created_at']
 
     def __str__(self):
         return self.name
-    
+
 # New model for storing messages
 # https://platform.openai.com/docs/api-reference/messages
 class Message(models.Model):
@@ -173,6 +175,11 @@ class Message(models.Model):
     assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, blank=True, related_name='messages')
     status = models.CharField(max_length=100, default="initial")
     run_id = models.CharField(max_length=255, null=True, blank=True)
+
+    def get_display_fields(self):
+        # List the fields you want to display
+        return [ 'contentitem', 'assistant', 'created_at', 'status']
+
     def __str__(self):
         return self.id
 

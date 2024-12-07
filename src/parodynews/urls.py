@@ -83,11 +83,13 @@ urlpatterns = [
     # Content Processing
     path('threads/', ProcessContentView.as_view(), name='process_content'),
     path('threads/<str:thread_id>/', ProcessContentView.as_view(), name='thread_detail'),
+    path('threads/save/<str:thread_id>/', ProcessContentView.as_view(), name='save_thread'),
     path('threads/delete/<str:thread_id>/', ProcessContentView.as_view(), name='delete_thread'),
     path('threads/<str:thread_id>/messages/<str:message_id>/', ProcessContentView.as_view(), name='thread_message_detail'),
     path('threads/<str:thread_id>/messages/delete/<str:message_id>/', ProcessContentView.as_view(), name='delete_thread_message'),
     path('threads/<str:thread_id>/messages/create/<str:message_id>/', ProcessContentView.as_view(), name='create_content'),
-    path('threads/<str:thread_id>/messages/run/<str:message_id>/', ProcessContentView.as_view(), name='run_message'),
+    path('threads/<str:thread_id>/messages/run/<str:message_id>/', ProcessContentView.as_view(), name='run_assistant_message'),
+    path('threads/<str:thread_id>/messages/run/<str:assistant_group_id>/', ProcessContentView.as_view(), name='run_assistant_group'),
     path('threads/<str:thread_id>/messages/post/<str:message_id>/', ProcessContentView.as_view(), name='create_post'),
 
     # Message management
