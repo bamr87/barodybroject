@@ -134,7 +134,7 @@ AssistantGroupMembershipFormSet = inlineformset_factory(
     AssistantGroup,
     AssistantGroupMembership,
     form=AssistantGroupMembershipForm,
-    extra=1,
+    extra=3,
     can_delete=True
 )
 
