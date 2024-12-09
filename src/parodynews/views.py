@@ -104,22 +104,6 @@ class FooterView(TemplateView):
 class UserLoginView(LoginView):
     template_name = 'login.html'
 
-
-
-def user_login(request):
-    # ...existing authentication code...
-    username = request.POST.get('username')
-    password = request.POST.get('password')
-    user = authenticate(username=username, password=password)
-    if user is not None:
-        login(request, user)
-        app_config = AppConfig.objects.first()
-        api_key = app_config.openai_api_key
-        org_id = app_config.openai_org_id
-        project_id = app_config.openai_project_id
-        client = OpenAI(organization=org_id, project=project_id, api_key=api_key)
-        request.session['openai_client'] = client
-
 # View to render the index page
 def index(request):
     # This view will render the root index page
@@ -641,7 +625,7 @@ class ManageMessageView(LoginRequiredMixin, View):
 
 from django.forms import inlineformset_factory
 
-class ManageAssistantsView(ModelFieldsMixin, AppConfigClientMixin, View):
+class ManageAssistantsView(LoginRequiredMixin, ModelFieldsMixin, AppConfigClientMixin, View):
     model = Assistant
     template_name = 'parodynews/assistant_detail.html'
     

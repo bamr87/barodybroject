@@ -33,7 +33,7 @@ from .views import (
     ManageAssistantGroupsView,
     )
 
-from django.contrib.auth.views import LogoutView
+from django.contrib.auth.views import LogoutView, LoginView
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -130,10 +130,9 @@ urlpatterns = [
     # Assistant Groups Membership Management
     
 
-
     # User management
-    path('login/', UserLoginView.as_view(), name='login'),
-    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
+    path('login/', LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('logout/', LogoutView.as_view(template_name='registration/logged_out.html', next_page='login'), name='logout'),
 
     # Object management
     path('objects/', MyObjectView.as_view(), name='object-list'),

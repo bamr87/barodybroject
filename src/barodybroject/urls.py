@@ -17,7 +17,7 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
-from django.contrib.auth.views import LogoutView
+from django.contrib.auth.views import LogoutView, LoginView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
@@ -35,6 +35,10 @@ router = routers.DefaultRouter()
 urlpatterns = [
     # Home page and admin page
     path('admin/', admin.site.urls),
+
+
+
+
     path('', views.index, name='index'),
     # Include your app's URLs under a specific prefix to avoid conflicts
     path('', include('parodynews.urls')),
