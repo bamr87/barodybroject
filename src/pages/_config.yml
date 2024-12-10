@@ -197,8 +197,8 @@ plugins:
 
 gisgus:
   enabled: true
-  data-repo-id: "MDEwOlJlcG9zaXRvcnkyODM4MjI1NzM"
-  data-category-id: "DIC_kwDOEOrJ7c4CAn8D"
+  data-repo-id: ""
+  data-category-id: ""
 
 # https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/
 
@@ -227,7 +227,7 @@ kramdown: # https://kramdown.gettalong.org/options.html
 # Collections: https://jekyllrb.com/docs/collections/
   # Permalinks: https://jekyllrb.com/docs/permalinks/
 
-collections_dir: &collections_dir pages
+collections_dir: &collections_dir ""
 local_repo_path: [ *collections_dir, '/', *local_repo ]
 
 collections:
@@ -324,10 +324,10 @@ defaults:
       sidebar:
         nav: quickstart
 
-  # pages/_posts
+  # _posts
   - 
     scope:
-      path: pages/_posts
+      path: _posts
     values:
       layout: journals
       author_profile: true
@@ -477,5 +477,5 @@ sitemap_include: ["html", "xml"]
 sitemap_exclude: ["secret.html", "private"]
 
 # Build settings
-# source: /
+source: .
 # destination: /_site
