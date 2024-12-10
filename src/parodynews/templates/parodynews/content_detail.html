@@ -7,7 +7,7 @@
 {% block content %}
 
 <!-- Content and Detail Form -->
-<div class="container mt-5" id="content-form">
+<div class="container" id="content-form">
     <h2>Content Detail and Prompt</h2>
     <form method="post" action="{% url 'manage_content' %}" class="needs-validation" novalidate>
         {% csrf_token %}

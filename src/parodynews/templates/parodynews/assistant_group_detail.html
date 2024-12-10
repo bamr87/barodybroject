@@ -3,7 +3,7 @@
 {% load custom_filters %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container">
     <h2>Assistant Group Form</h2>
     {% if assistant_group_id %}
         <form method="post" action="{% url 'assistant_group_detail' assistant_group_id=assistant_group.id %}">
