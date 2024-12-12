@@ -1,39 +1,41 @@
 services:
-  db:
-    image: postgres:14
+  # db:
+  #   image: postgres:14
 
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_DB: barodydb
-      POSTGRES_PASSWORD: postgres
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_DB: barodydb
+  #     POSTGRES_PASSWORD: postgres
 
-    restart: unless-stopped
+  #   restart: unless-stopped
 
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
 
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d barodydb"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    ports:
-      - "5432:5432"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres -d barodydb"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+  #   ports:
+  #     - "5432:5432"
 
   python:
     build:
       context: .
       dockerfile: Dockerfile
+    volumes:
+      - ./:/app
 
-    depends_on:
-      db:
-        condition: service_healthy
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
 
-    environment:
-      POSTGRES_USERNAME: postgres
-      POSTGRES_DATABASE: barodydb
-      POSTGRES_HOST: db
-      POSTGRES_PASSWORD: postgres
+    # environment:
+    #   POSTGRES_USERNAME: postgres
+    #   POSTGRES_DATABASE: barodydb
+    #   POSTGRES_HOST: db
+    #   POSTGRES_PASSWORD: postgres
     ports:
       - "8000:8000"
   jekyll:
@@ -41,12 +43,12 @@ services:
     command: jekyll serve --watch --force_polling --config "_config.yml,_config_dev.yml"
 
     volumes:
-      - ./pages:/srv/jekyll
+      - ./pages:/app/pages
     ports:
       - "4002:4002"
-    working_dir: /srv/jekyll
+    working_dir: /app/pages
     environment:
       JEKYLL_ENV: development
 
-volumes:
-  postgres-data:
+# volumes:
+#   postgres-data:
