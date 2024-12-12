@@ -21,8 +21,9 @@ from django.contrib.auth.views import LogoutView, LoginView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
-from rest_framework import routers
+from django.views.generic.base import TemplateView
 
+from rest_framework import routers
 from parodynews import views
 from parodynews.views import (
     FooterView,
@@ -34,12 +35,14 @@ router = routers.DefaultRouter()
 
 urlpatterns = [
     # Home page and admin page
+
+    path("", TemplateView.as_view(template_name="index.html")),
+    path('accounts/', include('allauth.urls')),
+    path("accounts/profile/", TemplateView.as_view(template_name="profile.html")),
     path('admin/', admin.site.urls),
+    path("i18n/", include("django.conf.urls.i18n")),
 
 
-
-
-    path('', views.index, name='index'),
     # Include your app's URLs under a specific prefix to avoid conflicts
     path('', include('parodynews.urls')),
     path('', include('cms.urls')),

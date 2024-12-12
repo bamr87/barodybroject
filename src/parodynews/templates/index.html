@@ -1,33 +1,20 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% load allauth %}
 
 {% block content %}
-    <h1>Post Pages: {{ view.namespace }}</h1>
-    <dl>
-        {% for entry in object_list %}
-            <dt>{{ entry.question }}</dt>
-            <dd>{{ entry.answer }}</dd>
-        {% endfor %}
-    </dl>
-
-    {% if is_paginated %}
-        <div class="pagination">
-            <span class="step-links">
-                {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-                {% else %}
-                    previous
-                {% endif %}
-
-                <span class="current">
-                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-                </span>
-
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}">next</a>
-                {% else %}
-                    next
-                {% endif %}
-            </span>
+    <div class="container">
+        <h1>Welcome to the AI Content Generator</h1>
+        <p>This is the root index page. Use the links below to navigate through the application.</p>
+        <div class="list-group">
+            <a href="/content/" class="list-group-item list-group-item-action">Create/View Content</a>
+            <a href="/threads/" class="list-group-item list-group-item-action">View Threads</a>
+            <a href="/messages/" class="list-group-item list-group-item-action">View Messages</a>
+            <a href="/assistants/" class="list-group-item list-group-item-action">Manage/View Assistants</a>
+            <a href="/assistant-groups/" class="list-group-item list-group-item-action">Manage/View Asst. Groups</a>
+            <a href="/schemas/" class="list-group-item list-group-item-action">Schemas</a>
+            <a href="/admin/" class="list-group-item list-group-item-action">Admin</a>
+            <!-- Add more links as needed -->
         </div>
-    {% endif %}
+    </div>
 {% endblock %}

@@ -61,7 +61,7 @@ urlpatterns = [
     path('martor/', include('martor.urls')),
 
     # Remove or adjust the root path to prevent conflict with django CMS
-    path('news/', index, name='index'),
+
     path('footer/', FooterView.as_view(), name='footer'),
 
     # Include API endpoints under 'api/' path

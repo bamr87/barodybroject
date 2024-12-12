@@ -17,6 +17,10 @@ from django.utils.translation import gettext_lazy as _
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+ADMINS = (
+    # ('Your Name', 'your_email@example.com'),
+)
+
 # Determine whether we're in production, as this will affect many settings.
 prod = bool(os.environ.get("RUNNING_IN_PRODUCTION", False))
 
@@ -54,17 +58,30 @@ SECRET_KEY = os.environ.get("SECRET_KEY", DEFAULT_SECRET)
 
 INSTALLED_APPS = [
 
-    'django.contrib.admin',
+    # Django core default apps
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    "django.contrib.humanize",
+    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',
-    'import_export',  # Add this line to include the import_export app in the project
+    'django.contrib.admin',
 
-    # CMS base apps
+    # Allauth apps
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.mfa",
+    "allauth.socialaccount.providers.github",
+    "allauth.usersessions",
+
+    # Django CMS base apps
     'djangocms_admin_style',
+    'djangocms_alias',
+    'djangocms_versioning',
+    'djangocms_text_ckeditor',
+
     'cms',
     'menus',
     'sekizai',
@@ -90,12 +107,6 @@ INSTALLED_APPS = [
     'djangocms_frontend.contrib.tabs',
     'djangocms_frontend.contrib.utilities',
 
-
-    # Third-party apps
-    'djangocms_text_ckeditor',  # Ensure this is included
-    'djangocms_alias',
-    'djangocms_versioning',
-
     # API and REST Framework
     'rest_framework', # Add this line to include the rest_framework app in the project
 
@@ -106,7 +117,7 @@ INSTALLED_APPS = [
     'django_json_widget',  # Add this line to include the JSON widget app in the project
     'markdownify',  # Add this line to include the markdownify app in the project
     'martor',  # Add this line to include the martor app in the project
-
+    'import_export',  # Add this line to include the import_export app in the project
 
 ]
 
@@ -124,15 +135,17 @@ MIDDLEWARE = [
     "cms.middleware.page.CurrentPageMiddleware",
     "cms.middleware.toolbar.ToolbarMiddleware",
     "cms.middleware.language.LanguageCookieMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'barodybroject.urls'
+
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, "barodybroject", "templates"),
+            BASE_DIR / 'parodynews' /'templates',
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -189,6 +202,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "OPTIONS": {
+            "min_length": 6,
+        },
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -198,6 +214,33 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+ACCOUNT_LOGIN_BY_CODE_ENABLED = True
+
+MFA_SUPPORTED_TYPES = [
+    "webauthn",
+    "totp",
+    "recovery_codes",
+]
+MFA_PASSKEY_LOGIN_ENABLED = False
+MFA_PASSKEY_SIGNUP_ENABLED = False
+
+SOCIALACCOUNT_PROVIDERS = {
+    'github': {
+        'APP': {
+            'client_id': 'Ov23liCmcQoyxNCKjB1b',
+            'secret': 'your_github_client_secret',
+        },
+    }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
