@@ -25,7 +25,8 @@ from .models import (
     OpenAIModel,
     Entry,
     AssistantGroup,
-    AssistantGroupMembership
+    AssistantGroupMembership,
+    PostVersion
 )
 
 from .resources import (
@@ -215,3 +216,4 @@ class AssistantGroupAdmin(admin.ModelAdmin):
     inlines = [AssistantGroupMembershipInline]
 
 admin.site.register(AssistantGroup, AssistantGroupAdmin)
+admin.site.register(PostVersion)

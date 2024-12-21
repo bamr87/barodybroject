@@ -1,6 +1,7 @@
 # global requirements
 gunicorn==22.0.0
 azure-monitor-opentelemetry
+pygithub
 
 # django requirements
 Django==4.2.17

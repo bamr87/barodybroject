@@ -21,6 +21,10 @@ class AppConfig(models.Model):
     api_key = models.CharField(max_length=255)
     project_id = models.CharField(max_length=255)
     org_id = models.CharField(max_length=255)
+    github_pages_repo = models.CharField(max_length=255)
+    github_pages_branch = models.CharField(max_length=255, default='main')
+    github_pages_token = models.CharField(max_length=255)
+    github_pages_post_dir = models.CharField(max_length=255, default='posts/')
 
     def __str__(self):
         return "App Configuration"
@@ -223,6 +227,7 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     filename = models.CharField(max_length=255, blank=True, default="")
     status = models.CharField(max_length=100, default="draft")
+    postfrontmatter = models.ForeignKey('PostFrontMatter', on_delete=models.SET_NULL, null=True, blank=True, related_name='posts')
 
     def get_display_fields(self):
         return ['id', 'content_detail', 'thread', 'message', 'assistant', 'created_at', 'status']
@@ -286,3 +291,13 @@ class GeneralizedCodes(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     def __str__(self):
         return self.name
+
+class PostVersion(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='versions')
+    version_number = models.PositiveIntegerField()
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    frontmatter = models.TextField()
+
+    def __str__(self):
+        return f"Version {self.version_number} of Post {self.post.id}"

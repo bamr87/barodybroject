@@ -33,9 +33,13 @@
             <input type="hidden" name="post_id" value="{{ post.id }}">
             <input type="hidden" name="_method" value="publish">
             <input type="hidden" name="action" value="publish">
-            <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Publish</button>
+            <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to publish this content and create a pull request on GitHub?');">Publish</button>
         </form>
     </form>
+{% endif %}
+
+{% if github_url %}
+    <p>Your post has been published. Review it on GitHub: <a href="{{ github_url }}">{{ github_url }}</a></p>
 {% endif %}
 
             <!-- Editable content section -->

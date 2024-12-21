@@ -235,10 +235,10 @@ MFA_PASSKEY_SIGNUP_ENABLED = False
 
 SOCIALACCOUNT_PROVIDERS = {
     'github': {
-        'APP': {
-            'client_id': 'Ov23liCmcQoyxNCKjB1b',
-            'secret': 'your_github_client_secret',
-        },
+        'SCOPE': [
+            'read:user',
+        ],
+        'VERIFIED_EMAIL': True,
     }
 }
 
@@ -255,8 +255,8 @@ USE_TZ = True
 
 LANGUAGES = [
     ('en', 'English'),
-    ("de", "German"),
-    ("fr", "French"),
+    # ("de", "German"),
+    # ("fr", "French"),
     # Add other languages if needed
 ]
 
