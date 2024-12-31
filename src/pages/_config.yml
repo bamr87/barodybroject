@@ -49,7 +49,7 @@ subtitle                 : "Breaking News"
 subtitle_url             : "localhost"
 subtitle_icon            : "code"
 title_separator          : "|" # Appears in the web browser tab name
-domain                   : &domain "parodynews.org"
+domain                   : &domain "barodybroject.com"
 domain_ext               : ".org"
 sub_domain               : &sub_domain ""
 baseurl                  : "/barodybroject" # the subpath of your site, e.g. /blog - Use this if you want this whole repo to be a domain branch

@@ -1,5 +1,7 @@
 -r src/requirements.txt
 
+django-environ
+
 # Cookiecutter Support
 cruft
 pip-tools

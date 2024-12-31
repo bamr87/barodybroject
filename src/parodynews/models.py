@@ -70,7 +70,7 @@ class Assistant(models.Model):
 
     def get_display_fields(self):
         # List the fields you want to display
-        return ['id', 'name', 'description', 'model', 'json_schema']
+        return ['name', 'description', 'model', 'json_schema']
     
     def __str__(self):
         return self.name

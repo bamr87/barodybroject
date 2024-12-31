@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 from django.utils.translation import gettext_lazy as _
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -53,6 +54,9 @@ else:  # Running in a Production environment
 
 SECRET_KEY = os.environ.get("SECRET_KEY", DEFAULT_SECRET)
 
+# Initialize environment variables
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Application definition
 
@@ -118,6 +122,7 @@ INSTALLED_APPS = [
     'markdownify',  # Add this line to include the markdownify app in the project
     'martor',  # Add this line to include the martor app in the project
     'import_export',  # Add this line to include the import_export app in the project
+    'django_ses',  # Add for AWS SES
 
 ]
 
@@ -222,6 +227,20 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
+
+# Email backend configuration
+EMAIL_BACKEND = 'django_ses.SESBackend'
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
+AWS_SES_REGION_NAME = 'us-east-1'
+AWS_SES_REGION_ENDPOINT = 'email.us-east-1.amazonaws.com'
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = "no-reply@barodybroject.com"
+SERVER_EMAIL = "server@barodybroject.com"
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
+ACCOUNT_EMAIL_SUBJECT_PREFIX = 'Parody News: '
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'
+
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 ACCOUNT_LOGIN_BY_CODE_ENABLED = True
 
@@ -241,6 +260,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'VERIFIED_EMAIL': True,
     }
 }
+# TODO: fix github login
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -324,6 +344,7 @@ CKEDITOR_CONFIGS = {
         'width': '100%',
     },
 }
+
 
 
 # Choices are: "semantic", "bootstrap"
@@ -432,3 +453,9 @@ ALLOWED_HTML_ATTRIBUTES = [
     "height", "href", "id", "name", "reversed", "rowspan",
     "scope", "src", "style", "title", "type", "width"
 ]
+ALLOWED_HTML_ATTRIBUTES = [
+    "alt", "class", "color", "colspan", "datetime",  # "data",
+    "height", "href", "id", "name", "reversed", "rowspan",
+    "scope", "src", "style", "title", "type", "width"
+]
+# No further changes needed for DNS or authentication

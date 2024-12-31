@@ -1,4 +1,1 @@
-{% load i18n %}
-{% autoescape off %}
-{% blocktrans %}Please Confirm Your Email Address{% endblocktrans %}
-{% endautoescape %}
+barodybroject.com - Please Confirm Your Email Address

@@ -7,13 +7,11 @@ from django.http import HttpResponse, JsonResponse
 from django.views.generic import TemplateView
 from django.views import View
 from datetime import datetime
-from cms.models import Placeholder
 
 from django.urls import reverse_lazy
 from .models import MyObject
 from .forms import MyObjectForm
 from .forms import PostForm, PostFrontMatterForm
-from .utils import generate_markdown_file
 import yaml
 
 from django.views.generic import ListView
@@ -26,7 +24,6 @@ from cms.utils import get_language_from_request
 from . import models
 
 from django.contrib.auth import authenticate, login
-from .utils import load_openai_client
 from .utils import get_openai_client, delete_assistant
 
 from django.shortcuts import render, get_object_or_404
@@ -93,6 +90,7 @@ from openai import OpenAI
 from github import Github
 from django.conf import settings
 
+from django.core.mail import send_mail
 print("Loading views.py")
 
 
@@ -1222,7 +1220,6 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
 
 
 def push_to_github_and_create_pr(post, post_version, app_config):
-    from github import Github
 
     token = app_config.github_pages_token
     repo_name = app_config.github_pages_repo
@@ -1403,3 +1400,11 @@ class PostPageView(AppHookConfigMixin, ListView):
             return self.config.paginate_by
         except AttributeError:
             return 10
+
+
+def send_welcome_email(user_email):
+    subject = 'Welcome to Barody Broject'
+    message = 'Thank you for signing up for Barody Broject.'
+    email_from = settings.DEFAULT_FROM_EMAIL
+    recipient_list = [user_email]
+    send_mail(subject, message, email_from, recipient_list)

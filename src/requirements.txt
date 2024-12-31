@@ -8,6 +8,14 @@ Django==4.2.17
 django-import-export
 django-json-widget
 django-markdownify
+django-filer
+djangorestframework
+django-allauth[mfa,saml,socialaccount,steam]
+django-ses
+
+boto3
+
+# django-extensions requirements
 jsonref
 jsonschema
 jsonschema-specifications
@@ -15,14 +23,16 @@ Markdown
 openai
 PyYAML
 martor
-djangorestframework
 psycopg
+psycopg2-binary
 setuptools
+aiosmtpd
+dkimpy
+
+# django-cms requirements
 django-cms
-django-filer
 djangocms_text_ckeditor
 djangocms-frontend
 djangocms-versioning
 djangocms-alias
 djangocms_admin_style
-django-allauth[mfa,saml,socialaccount,steam]
