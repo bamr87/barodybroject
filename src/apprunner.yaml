@@ -19,7 +19,7 @@ build:
       value: "example"
 
 run:
-  runtime-version: 3.12
+  runtime-version: 3.11
   command: pipenv run gunicorn barodybroject.wsgi --log-file -
   network: 
     port: 8000
