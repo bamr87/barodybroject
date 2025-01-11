@@ -12,6 +12,7 @@ django-filer
 djangorestframework
 django-allauth[mfa,saml,socialaccount,steam]
 django-ses
+django-environ
 
 boto3
 

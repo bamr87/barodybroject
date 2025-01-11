@@ -14,10 +14,8 @@ DB_PASSWORD = env("DB_PASSWORD", default="password")
 DB_CLUSTER_IDENTIFIER = env("DB_CLUSTER_IDENTIFIER", default="aurora-cluster")
 DB_INSTANCE_IDENTIFIER = env("DB_INSTANCE_IDENTIFIER", default="aurora-instance")
 DB_ENGINE = env("DB_ENGINE", default="aurora-postgresql")
-DB_ENGINE_VERSION = env("DB_ENGINE_VERSION", default="11.9")
+DB_ENGINE_VERSION = env("DB_ENGINE_VERSION", default="16.1")
 DB_REGION = env("DB_REGION", default="us-east-1")
-
-vpc_id = 'vpc-07105bcbf37fd3803'
 
 # Initialize boto3 client
 rds_client = boto3.client('rds', region_name=DB_REGION)
@@ -36,8 +34,6 @@ def create_db_cluster():
                 'MaxCapacity': 8    
             },
             BackupRetentionPeriod=7,
-            VpcSecurityGroupIds=[vpc_id],
-
             StorageEncrypted=True,
             EnableIAMDatabaseAuthentication=True
         )

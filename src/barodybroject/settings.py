@@ -10,10 +10,44 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
 import os
-from django.utils.translation import gettext_lazy as _
 import environ
+import json
+import boto3
+
+from pathlib import Path
+from django.utils.translation import gettext_lazy as _
+from botocore.exceptions import ClientError
+# https://aws.amazon.com/developer/language/python/
+
+def get_secret():
+
+    secret_name = "barodybroject/env"
+    region_name = "us-east-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        # For a list of exceptions thrown, see
+        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        raise e
+
+    secret = get_secret_value_response['SecretString']
+    secret_dict = json.loads(secret)
+    return secret_dict
+
+secret = get_secret()
+
+print (secret.get("SECRET_KEY"))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,7 +57,7 @@ ADMINS = (
 )
 
 # Determine whether we're in production, as this will affect many settings.
-prod = bool(os.environ.get("RUNNING_IN_PRODUCTION", False))
+prod = bool(os.environ.get("RUNNING_IN_PRODUCTION", True))
 
 if not prod:  # Running in a Test/Development environment
     DEBUG = True  # SECURITY WARNING: don't run with debug turned on in production!
@@ -40,8 +74,9 @@ if not prod:  # Running in a Test/Development environment
 else:  # Running in a Production environment
     DEBUG = True  # SECURITY WARNING: don't run with debug turned on in production!
     DEFAULT_SECRET = None
+    SECRET_KEY = os.environ.get("SECRET_KEY", secret.get("SECRET_KEY"))
     ALLOWED_HOSTS = [
-        os.environ["CONTAINER_APP_NAME"] + "." + os.environ["CONTAINER_APP_ENV_DNS_SUFFIX"],
+        os.environ.get("CONTAINER_APP_NAME", secret.get("CONTAINER_APP_NAME")) + "." + os.environ.get("CONTAINER_APP_ENV_DNS_SUFFIX", secret.get("CONTAINER_APP_ENV_DNS_SUFFIX")),
     ]
     CSRF_TRUSTED_ORIGINS = [
         "https://" + os.environ["CONTAINER_APP_NAME"] + "." + os.environ["CONTAINER_APP_ENV_DNS_SUFFIX"],
@@ -52,7 +87,7 @@ else:  # Running in a Production environment
 
 # SECRET_KEY = 'django-insecure-9=woki=bii5gfdzfb3igh$qcxb=i+-u+!c58xl76x1tk)gaqd3'
 
-SECRET_KEY = os.environ.get("SECRET_KEY", DEFAULT_SECRET)
+
 
 # Initialize environment variables
 env = environ.Env()

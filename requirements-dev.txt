@@ -1,5 +1,6 @@
 -r src/requirements.txt
 
+# Global Requirements
 django-environ
 
 # Cookiecutter Support
