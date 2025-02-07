@@ -28,7 +28,6 @@ run:
   network: 
     port: 8000
     env: MY_APP_PORT  
-  instanceRoleArn: "arn:aws:iam::535686818366:role/service-role/AppRunnerECRAccessRole"
   env:
     - name: DB_HOST
       value: "barody-cluster-prod.cluster-cqknrbkaqyx9.us-east-1.rds.amazonaws.com"
