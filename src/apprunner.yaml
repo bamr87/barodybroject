@@ -22,10 +22,12 @@ build:
       value: "false"
 run:
   runtime-version: 3.11
-  command: pipenv run gunicorn barodybroject.wsgi --log-file -
-  network: 
-    port: 8000
-    env: MY_APP_PORT  
+  pre-run:
+    - echo "pre-run"
+    - pip3 install pipenv
+    - pipenv install
+  command: pipenv run gunicorn barodybroject.wsgi:application --bind 0.0.0.0:8000 --log-file -
+  port: 8000
   env:
     - name: DB_HOST
       value: "barody-cluster-prod.cluster-cqknrbkaqyx9.us-east-1.rds.amazonaws.com"
