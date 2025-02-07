@@ -14,8 +14,6 @@ build:
     post-build:
       - echo "post-build"
       - python3 manage.py collectstatic --noinput
-      - python3 manage.py makemigrations
-      - python3 manage.py migrate
 
   env:
     - name: DJANGO_SETTINGS_MODULE
