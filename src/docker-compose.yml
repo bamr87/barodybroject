@@ -1,24 +1,24 @@
 services:
-  # db:
-  #   image: postgres:14
+  db:
+    image: postgres:latest
 
-  #   environment:
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_DB: barodydb
-  #     POSTGRES_PASSWORD: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: barodydb
+      POSTGRES_PASSWORD: postgres
 
-  #   restart: unless-stopped
+    restart: unless-stopped
 
-  #   volumes:
-  #     - postgres-data:/var/lib/postgresql/data
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U postgres -d barodydb"]
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 5
-  #   ports:
-  #     - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d barodydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
 
   python:
     build:
@@ -27,15 +27,15 @@ services:
     volumes:
       - ./:/app
 
-    # depends_on:
-    #   db:
-    #     condition: service_healthy
+    depends_on:
+      db:
+        condition: service_healthy
 
-    # environment:
-    #   POSTGRES_USERNAME: postgres
-    #   POSTGRES_DATABASE: barodydb
-    #   POSTGRES_HOST: db
-    #   POSTGRES_PASSWORD: postgres
+    environment:
+      POSTGRES_USERNAME: postgres
+      POSTGRES_DATABASE: barodydb   # updated from barodysql to barodydb
+      POSTGRES_HOST: barodydb
+      POSTGRES_PASSWORD: postgres
     ports:
       - "8000:8000"
   jekyll:
@@ -50,5 +50,5 @@ services:
     environment:
       JEKYLL_ENV: development
 
-# volumes:
-#   postgres-data:
+volumes:
+  postgres-data:

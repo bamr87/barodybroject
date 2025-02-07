@@ -30,13 +30,13 @@ run:
     env: MY_APP_PORT  
   env:
     - name: DB_HOST
-      value: "barody-cluster-test-3.cluster-cqknrbkaqyx9.us-east-1.rds.amazonaws.com"
+      value: "barody-cluster-prod.cluster-cqknrbkaqyx9.us-east-1.rds.amazonaws.com"
     - name: DB_NAME
-      value: "amr"
+      value: "barodydb"
     - name: DB_USER
-      value: "amr123$%^"
+      value: "postgres"
     - name: DB_PASSWORD
-      value: "barody123"
+      value: "postgres"
     - name: DB_PORT
       value: "5432"
     - name: CONTAINER_APP_NAME

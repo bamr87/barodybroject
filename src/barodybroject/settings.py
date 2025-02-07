@@ -20,6 +20,18 @@ from django.utils.translation import gettext_lazy as _
 from botocore.exceptions import ClientError
 # https://aws.amazon.com/developer/language/python/
 
+ADMINS = (
+    # ('Your Name', 'your_email@example.com'),
+)
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Initialize environment variables
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+# Get secrets from AWS Secrets Manager
 def get_secret():
 
     secret_name = "barodybroject/env"
@@ -33,31 +45,36 @@ def get_secret():
     )
 
     try:
-        get_secret_value_response = client.get_secret_value(
+        response = client.get_secret_value(
             SecretId=secret_name
         )
+        # Parse the secret string into a dictionary
+        secrets = json.loads(response['SecretString'])
+        return secrets 
     except ClientError as e:
-        # For a list of exceptions thrown, see
-        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-        raise e
+        # Handle specific AWS exceptions
+        if e.response['Error']['Code'] == 'DecryptionFailureException':
+            raise Exception("Error: Unable to decrypt the secret")
+        elif e.response['Error']['Code'] == 'ResourceNotFoundException':
+            raise Exception("Error: Secret not found")
+        else:
+            raise e
 
-    secret = get_secret_value_response['SecretString']
-    secret_dict = json.loads(secret)
-    return secret_dict
+# Get secrets early in the settings file
+try:
+    secrets = get_secret()
+except Exception as e:
+    print(f"Failed to load secrets: {e}")
+    secrets = {}
 
-secret = get_secret()
 
-print (secret.get("SECRET_KEY"))
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
-)
+SECRET_KEY_FALLBACK = os.environ.get("DJANGO_SECRET_KEY_DEV_FALLBACK")
+SECRET_KEY = secrets.get('DJANGO_SECRET_KEY', SECRET_KEY_FALLBACK)
 
 # Determine whether we're in production, as this will affect many settings.
 prod = bool(os.environ.get("RUNNING_IN_PRODUCTION", True))
+
+print (prod)
 
 if not prod:  # Running in a Test/Development environment
     DEBUG = True  # SECURITY WARNING: don't run with debug turned on in production!
@@ -74,9 +91,11 @@ if not prod:  # Running in a Test/Development environment
 else:  # Running in a Production environment
     DEBUG = True  # SECURITY WARNING: don't run with debug turned on in production!
     DEFAULT_SECRET = None
-    SECRET_KEY = os.environ.get("SECRET_KEY", secret.get("SECRET_KEY"))
+    SECRET_KEY = os.environ.get("SECRET_KEY", secrets.get("SECRET_KEY"))
     ALLOWED_HOSTS = [
-        os.environ.get("CONTAINER_APP_NAME", secret.get("CONTAINER_APP_NAME")) + "." + os.environ.get("CONTAINER_APP_ENV_DNS_SUFFIX", secret.get("CONTAINER_APP_ENV_DNS_SUFFIX")),
+        "localhost",
+        "127.0.0.1",
+        os.environ.get("CONTAINER_APP_NAME", secrets.get("CONTAINER_APP_NAME")) + "." + os.environ.get("CONTAINER_APP_ENV_DNS_SUFFIX", secrets.get("CONTAINER_APP_ENV_DNS_SUFFIX")),
     ]
     CSRF_TRUSTED_ORIGINS = [
         "https://" + os.environ["CONTAINER_APP_NAME"] + "." + os.environ["CONTAINER_APP_ENV_DNS_SUFFIX"],
@@ -84,14 +103,6 @@ else:  # Running in a Production environment
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECRET_KEY = 'django-insecure-9=woki=bii5gfdzfb3igh$qcxb=i+-u+!c58xl76x1tk)gaqd3'
-
-
-
-# Initialize environment variables
-env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Application definition
 
@@ -210,31 +221,34 @@ WSGI_APPLICATION = 'barodybroject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-db_options = {}
-if ssl_mode := os.environ.get("POSTGRES_SSL"):
-    db_options = {"sslmode": ssl_mode}
+# Database configuration
+db_choice = os.environ.get("DB_CHOICE", "postgres")
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME"),
-        "USER": os.environ.get("DB_USER"),
-        "PASSWORD": os.environ.get("DB_PASSWORD"),
-        "HOST": os.environ.get("DB_HOST"),
-        "PORT": os.environ.get("DB_PORT", 5432),
-        "OPTIONS": {
-            "options": "-c search_path=public",
-            **db_options
-        },
+if db_choice == "sqlite":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+elif db_choice == "postgres":
+    db_options = {}
+    if ssl_mode := os.environ.get("POSTGRES_SSL"):
+        db_options = {"sslmode": ssl_mode}
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME"),
+            "USER": os.environ.get("DB_USER"),
+            "PASSWORD": os.environ.get("DB_PASSWORD"),
+            "HOST": os.environ.get("DB_HOST"),
+            "PORT": os.environ.get("DB_PORT", 5432),
+            "OPTIONS": {
+                "options": "-c search_path=public",
+                **db_options
+            },
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
