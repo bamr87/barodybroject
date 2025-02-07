@@ -92,13 +92,18 @@ else:  # Running in a Production environment
     DEBUG = True  # SECURITY WARNING: don't run with debug turned on in production!
     DEFAULT_SECRET = None
     SECRET_KEY = os.environ.get("SECRET_KEY", secrets.get("SECRET_KEY"))
+    
+    # Safe fallbacks for container configuration
+    CONTAINER_APP_NAME = os.environ.get("CONTAINER_APP_NAME") or secrets.get("CONTAINER_APP_NAME") or "barodybroject"
+    CONTAINER_APP_ENV_DNS_SUFFIX = os.environ.get("CONTAINER_APP_ENV_DNS_SUFFIX") or secrets.get("CONTAINER_APP_ENV_DNS_SUFFIX") or "com"
+    
     ALLOWED_HOSTS = [
         "localhost",
         "127.0.0.1",
-        os.environ.get("CONTAINER_APP_NAME", secrets.get("CONTAINER_APP_NAME")) + "." + os.environ.get("CONTAINER_APP_ENV_DNS_SUFFIX", secrets.get("CONTAINER_APP_ENV_DNS_SUFFIX")),
+        f"{CONTAINER_APP_NAME}.{CONTAINER_APP_ENV_DNS_SUFFIX}",
     ]
     CSRF_TRUSTED_ORIGINS = [
-        "https://" + os.environ["CONTAINER_APP_NAME"] + "." + os.environ["CONTAINER_APP_ENV_DNS_SUFFIX"],
+        f"https://{CONTAINER_APP_NAME}.{CONTAINER_APP_ENV_DNS_SUFFIX}",
     ]
 
 # Quick-start development settings - unsuitable for production
