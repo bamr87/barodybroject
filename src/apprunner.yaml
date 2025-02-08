@@ -24,9 +24,7 @@ run:
   runtime-version: 3.11
   pre-run:
     - echo "pre-run"
-    - pip3 install pipenv
-    - pipenv install
-  command: pipenv run gunicorn barodybroject.wsgi:application --bind 0.0.0.0:8000 --log-file -
+  command: gunicorn barodybroject.wsgi:application --bind 0.0.0.0:8000 --log-file -
   port: 8000
   env:
     - name: DB_HOST
