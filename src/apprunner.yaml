@@ -7,8 +7,6 @@ build:
       - echo "pre-build"
     build:
       - echo "build"
-      - pip3 install pipenv
-      - pipenv install
       - pip3 install -r requirements.txt
 
     post-build:
