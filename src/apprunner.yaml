@@ -23,7 +23,6 @@ run:
   pre-run:
     - echo "pre-run"
   command: gunicorn barodybroject.wsgi:application --bind 0.0.0.0:8000 --log-file -
-  port: 8000
   env:
     - name: DB_HOST
       value: "barody-cluster-prod.cluster-cqknrbkaqyx9.us-east-1.rds.amazonaws.com"
