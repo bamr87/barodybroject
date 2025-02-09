@@ -83,11 +83,11 @@ if not prod:  # Running in a Test/Development environment
     ALLOWED_HOSTS = [
         "localhost",
         "127.0.0.1",
-        "https://4itba3fqvd.us-east-1.awsapprunner.com",
+        "4itba3fqvd.us-east-1.awsapprunner.com",
     ]
     CSRF_TRUSTED_ORIGINS = [
         "http://localhost:8000",
-        "https://4itba3fqvd.us-east-1.awsapprunner.com:8080",
+        "https://4itba3fqvd.us-east-1.awsapprunner.com",
     ]
 
 else:  # Running in a Production environment
