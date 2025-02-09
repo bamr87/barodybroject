@@ -87,6 +87,7 @@ if not prod:  # Running in a Test/Development environment
     ]
     CSRF_TRUSTED_ORIGINS = [
         "http://localhost:8000",
+        "https://4itba3fqvd.us-east-1.awsapprunner.com:8080",
     ]
 
 else:  # Running in a Production environment
