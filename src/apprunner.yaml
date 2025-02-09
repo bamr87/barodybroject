@@ -23,7 +23,10 @@ run:
   pre-run:
     - echo "pre-run"
     - pip3 install -r requirements.txt
-  command: python3 -m gunicorn barodybroject.wsgi:application --bind 0.0.0.0:8000 --log-file -
+    - pip3 install gunicorn
+  command: gunicorn barodybroject.wsgi:application --bind 0.0.0.0:8000 --log-file -
+  network: 
+    port: 8080
   env:
     - name: DB_HOST
       value: "barody-cluster-prod.cluster-cqknrbkaqyx9.us-east-1.rds.amazonaws.com"
