@@ -22,6 +22,7 @@ run:
   runtime-version: 3.11
   pre-run:
     - echo "pre-run"
+    - pip3 install -r requirements.txt
   command: python3 -m gunicorn barodybroject.wsgi:application --bind 0.0.0.0:8000 --log-file -
   env:
     - name: DB_HOST
