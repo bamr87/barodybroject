@@ -22,7 +22,7 @@ run:
   runtime-version: 3.11
   pre-run:
     - echo "pre-run"
-  command: python -m pipenv run gunicorn barodybroject.wsgi:application --bind 0.0.0.0:8000 --log-file -
+  command: python3 -m pipenv run gunicorn barodybroject.wsgi:application --bind 0.0.0.0:8000 --log-file -
   env:
     - name: DB_HOST
       value: "barody-cluster-prod.cluster-cqknrbkaqyx9.us-east-1.rds.amazonaws.com"
