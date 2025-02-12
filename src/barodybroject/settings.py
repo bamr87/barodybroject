@@ -103,9 +103,11 @@ else:  # Running in a Production environment
         "localhost",
         "127.0.0.1",
         f"{CONTAINER_APP_NAME}.{CONTAINER_APP_ENV_DNS_SUFFIX}",
+        "4itba3fqvd.us-east-1.awsapprunner.com",
     ]
     CSRF_TRUSTED_ORIGINS = [
         f"https://{CONTAINER_APP_NAME}.{CONTAINER_APP_ENV_DNS_SUFFIX}",
+        "https://4itba3fqvd.us-east-1.awsapprunner.com",
     ]
 
 # Quick-start development settings - unsuitable for production
