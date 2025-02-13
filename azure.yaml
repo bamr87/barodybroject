@@ -2,11 +2,11 @@
 
 name: barodybroject
 metadata:
-    template: azd-init@1.10.3
+  template: azd-init@1.10.3
 services:
-    src:
-        project: src
-        host: containerapp
-        language: python
-        docker:
-            path: Dockerfile
+  src:
+    project: src
+    host: containerapp
+    language: python
+    docker:
+      path: Dockerfile

@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: barodydb
-      POSTGRES_PASSWORD: postgres
+      DB_PASSWORD: postgres
 
     restart: unless-stopped
 
@@ -28,10 +28,10 @@ services:
         condition: service_healthy
     network_mode: service:db
     environment:
-      POSTGRES_USERNAME: postgres
-      POSTGRES_DATABASE: barodydb
-      POSTGRES_HOST: db
-      POSTGRES_PASSWORD: postgres
+      DB_USERNAME: postgres
+      DB_NAME: barodydb
+      DB_HOST: db
+      DB_PASSWORD: postgres
 
     command: sleep infinity
 

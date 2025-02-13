@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: barodydb
-      POSTGRES_PASSWORD: postgres
+      DB_PASSWORD: postgres
 
     restart: unless-stopped
 
@@ -32,12 +32,12 @@ services:
         condition: service_healthy
 
     environment:
-      POSTGRES_USERNAME: postgres
-      POSTGRES_DATABASE: barodydb   # updated from barodysql to barodydb
-      POSTGRES_HOST: barodydb
-      POSTGRES_PASSWORD: postgres
+      DB_USERNAME: postgres
+      DB_NAME: barodydb   # updated from barodysql to barodydb
+      DB_HOST: barodydb
+      DB_PASSWORD: postgres
     ports:
-      - "8000:8000"
+      - "8080:8080"
   jekyll:
     image: jekyll/jekyll:latest
     command: jekyll serve --watch --force_polling --config "_config.yml,_config_dev.yml"

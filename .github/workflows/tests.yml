@@ -47,23 +47,23 @@ jobs:
           python3 src/manage.py migrate
 
         env:
-          POSTGRES_HOST: localhost
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DATABASE: postgres
+          DB_HOST: localhost
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: postgres
       - name: Run tests Windows
         if: runner.os == 'windows'
         run: python3 -m pytest --ignore=src/tests/local/test_gunicorn.py
         env:
-          POSTGRES_HOST: localhost
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DATABASE: postgres
+          DB_HOST: localhost
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: postgres
       - name: Run tests 
         if: runner.os != 'windows'
         run: python3 -m pytest
         env:
-          POSTGRES_HOST: localhost
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DATABASE: postgres
+          DB_HOST: localhost
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: postgres

@@ -96,18 +96,18 @@ resource vault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   scope: rg
 }
 
-// module postgresDb './app/db-postgres.bicep' = {
-//   name: 'postgresDb'
-//   params: {
-//     serverName: '${abbrs.dBforPostgreSQLServers}${resourceToken}'
-//     location: location
-//     tags: tags
-//     databasePassword: databasePassword
-//     keyVaultName: keyVault.outputs.name
-//     allowAllIPsFirewall: true
-//   }
-//   scope: rg
-// }
+module postgresDb './app/db-postgres.bicep' = {
+  name: 'postgresDb'
+  params: {
+    serverName: '${abbrs.dBforPostgreSQLServers}${resourceToken}'
+    location: location
+    tags: tags
+    databasePassword: databasePassword
+    keyVaultName: keyVault.outputs.name
+    allowAllIPsFirewall: true
+  }
+  scope: rg
+}
 
 module src './app/src.bicep' = {
   name: 'src'
@@ -121,10 +121,10 @@ module src './app/src.bicep' = {
     containerRegistryName: registry.outputs.name
     exists: srcExists
     appDefinition: srcDefinition
-    // databaseName: postgresDb.outputs.databaseName
-    // databaseHost: postgresDb.outputs.databaseHost
-    // databaseUser: postgresDb.outputs.databaseUser
-    // databasePassword: vault.getSecret(postgresDb.outputs.databaseConnectionKey)
+    databaseName: postgresDb.outputs.databaseName
+    databaseHost: postgresDb.outputs.databaseHost
+    databaseUser: postgresDb.outputs.databaseUser
+    databasePassword: vault.getSecret(postgresDb.outputs.databaseConnectionKey)
   }
   scope: rg
 }
