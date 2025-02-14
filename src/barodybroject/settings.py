@@ -83,11 +83,16 @@ if not prod:  # Running in a Test/Development environment
     ALLOWED_HOSTS = [
         "localhost",
         "127.0.0.1",
+        f"{CONTAINER_APP_NAME}.{CONTAINER_APP_ENV_DNS_SUFFIX}",
         "4itba3fqvd.us-east-1.awsapprunner.com",
+        "barodybroject.com",
     ]
     CSRF_TRUSTED_ORIGINS = [
         "http://localhost:8000",
+        f"{CONTAINER_APP_NAME}.{CONTAINER_APP_ENV_DNS_SUFFIX}",
+        f"{AZURE_CONTAINER_REGISTRY_ENDPOINT}.{CONTAINER_APP_ENV_DNS_SUFFIX}",
         "https://4itba3fqvd.us-east-1.awsapprunner.com",
+        "https://barodybroject.com",
     ]
 
 else:  # Running in a Production environment
@@ -104,10 +109,12 @@ else:  # Running in a Production environment
         "127.0.0.1",
         f"{CONTAINER_APP_NAME}.{CONTAINER_APP_ENV_DNS_SUFFIX}",
         "4itba3fqvd.us-east-1.awsapprunner.com",
+        "barodybroject.com",
     ]
     CSRF_TRUSTED_ORIGINS = [
         f"https://{CONTAINER_APP_NAME}.{CONTAINER_APP_ENV_DNS_SUFFIX}",
         "https://4itba3fqvd.us-east-1.awsapprunner.com",
+        "https://barodybroject.com",
     ]
 
 # Quick-start development settings - unsuitable for production
@@ -248,7 +255,7 @@ elif db_choice == "postgres":
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.environ.get("DB_NAME"),
-            "USER": os.environ.get("DB_USER"),
+            "USER": os.environ.get("DB_USERNAME"),
             "PASSWORD": os.environ.get("DB_PASSWORD"),
             "HOST": os.environ.get("DB_HOST"),
             "PORT": os.environ.get("DB_PORT", 5432),

@@ -37,7 +37,7 @@ services:
       DB_HOST: barodydb
       DB_PASSWORD: postgres
     ports:
-      - "8080:8080"
+      - "80:80"
   jekyll:
     image: jekyll/jekyll:latest
     command: jekyll serve --watch --force_polling --config "_config.yml,_config_dev.yml"

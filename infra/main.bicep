@@ -133,4 +133,4 @@ output AZURE_CONTAINER_REGISTRY_ENDPOINT string = registry.outputs.loginServer
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.endpoint
 
-output RUNNING_IN_PRODUCTION bool = true
+output RUNNING_IN_PRODUCTION bool = false
