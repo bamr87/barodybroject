@@ -7,7 +7,7 @@
 <!-- Assistant Forms -->
 <div class="container" id="assistant-form">
     <div class="row">
-        <div class="col-md-6">
+        <div class="col">
             <h2>Assistant Form</h2>
             {% if selected_asssistant%}
             <form method="post" action="{% url 'assistant_detail' assistant_id=selected_assistant.id %}" class="needs-validation" novalidate>
@@ -29,6 +29,14 @@
                     <input type="hidden" name="save_form" value="assistant_form">
 
                     <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Save</button>
+                </form>
+                <!-- Delete Button Form -->
+                <form action="/assistants/delete/{{ assistant.id }}/" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="assistant_id" value="{{ assistant.id }}">
+                    <input type="hidden" name="_method" value="delete">
+                    <input type="hidden" name="action" value="delete">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this content?');">Delete</button>
                 </form>
                 {% else %}
                 <!-- Create Button Form -->
@@ -60,33 +68,16 @@
                             <th>{{ field.verbose_name }}</th>
                         {% endif %}
                     {% endfor %}
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for assistant in assistants_info %}
-                    <tr>
+                    <tr onclick="window.location.href='{% url 'assistant_detail' assistant.id %}'" style="cursor: pointer;">
                         {% for field in fields %}
                             {% if field.name in display_fields %}
                                 <td>{{ assistant|get_field_value:field.name|truncate_chars:1024 }}</td>
                             {% endif %}
                         {% endfor %}
-                        <td>
-                            <!-- Delete button form -->
-                            <form action="/assistants/delete/{{ assistant.id }}/" method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="assistant_id" value="{{ assistant.id }}">
-                                <input type="hidden" name="_method" value="delete">
-                                <input type="hidden" name="action" value="delete">
-                                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this content?');">Delete</button>
-                                </form>
-                            <!-- Edit Button Form -->
-                            <form action="{% url 'edit_assistant' assistant.id %}" method="GET" class="edit-form ml-2">
-                                <input type="hidden" name="assistant_id" value="{{ assistant.id }}">
-                                <input type="hidden" name="_method" value="get">
-                                <input type="hidden" name="action" value="save">
-                                <button type="submit" class="btn btn-warning">Edit</button>
-                            </form>                        </td>
                     </tr>
                 {% endfor %}
             </tbody>

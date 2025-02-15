@@ -15,7 +15,7 @@
             {% for power in powered_by %}
             <li class="btn">
                 <a href="{{ power.url }}" rel="nofollow">
-                    <i class="{{ power.icon }}" aria-hidden="true"></i>
+                    <i class="bi bi-{{ power.icon }}" aria-hidden="true"></i>
                     <!-- display name if there's enough space, else icon only -->
                     <span class="d-none d-md-inline">
                         {{ power.name }}
@@ -27,7 +27,7 @@
     </li>
 
     <!-- RSS Feed -->
-    <li class="btn">
+    {% comment %} <li class="btn">
         <a href="/feed.xml">
             <i class="bi bi-rss" aria-hidden="true"></i>
             <!-- https://icons.getbootstrap.com/icons/rss/ -->
@@ -35,7 +35,7 @@
                 Feed
             </span>
         </a>
-    </li>
+    </li> {% endcomment %}
 </ul>
 
     </div>

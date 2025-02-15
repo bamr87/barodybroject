@@ -783,7 +783,9 @@ class ManageAssistantsView(
                 assistant_form.save_m2m()
 
                 messages.success(request, "Assistant created successfully.")
-                return redirect("manage_assistants")
+                return redirect("assistant_detail", assistant_id=assistant.id)
+            else:
+                messages.error(request, "Error creating assistant.")
 
         else:
             messages.error(request, "Error creating assistant.")
