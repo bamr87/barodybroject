@@ -102,7 +102,7 @@ class AssistantForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_name'}),
             'description': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_assist_description'}),
             'instructions': forms.Textarea(attrs={'class': 'form-control', 'id': 'id_instructions'}),
-            'model': forms.Select(attrs={'class': 'form-select', 'id': 'id_model'}),
+            'model': forms.Select(attrs={'class': 'form-select', 'id': 'id_model', 'required': 'required'}),
             'json_schema': forms.Select(attrs={'class': 'form-control', 'id': 'id_json_schema'}),
             'assistant_group_memberships': forms.SelectMultiple(attrs={'class': 'form-control', 'id': 'id_assistant_group_memberships'}),
         }

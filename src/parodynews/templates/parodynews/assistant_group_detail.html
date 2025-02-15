@@ -43,40 +43,41 @@
                 {% endfor %}
             </tbody>
         </table>
+        <div class="d-grid gap-2">
         {% if assistant_group_id %}
-        <!-- Save Button Form -->
-        <form action="{% url 'edit_assistant_group' assistant_group_id %}" method="POST" class="save-form mr-2">
-            {% csrf_token %}
-            <input type="hidden" name="assistant_group_id" value="{{ assistant_group_id }}">
-            <input type="hidden" name="_method" value="save">
-            <input type="hidden" name="action" value="save">
-            <input type="hidden" name="save_form" value="assistant_group_form">
+            <!-- Save Button Form -->
+            <form action="{% url 'edit_assistant_group' assistant_group_id %}" method="POST" class="save-form mr-2 d-grid gap-2">
+                {% csrf_token %}
+                <input type="hidden" name="assistant_group_id" value="{{ assistant_group_id }}">
+                <input type="hidden" name="_method" value="save">
+                <input type="hidden" name="action" value="save">
+                <input type="hidden" name="save_form" value="assistant_group_form">
 
-            <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this Group?');">Save</button>
-        </form>
-        <!-- Delete Button Form -->
-        <form action="{% url 'delete_assistant_group' assistant_group_id %}" method="POST" class="delete-form mr-2">
-            {% csrf_token %}
-            <input type="hidden" name="assistant_group_id" value="{{ assistant_group_id }}">
-            <input type="hidden" name="_method" value="delete">
-            <input type="hidden" name="action" value="delete">
-            <input type="hidden" name="delete_form" value="assistant_group_form">
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this Group?');">Save</button>
+            </form>
+            <!-- Delete Button Form -->
+            <form action="{% url 'delete_assistant_group' assistant_group_id %}" method="POST" class="delete-form mr-2 d-grid gap-2">
+                {% csrf_token %}
+                <input type="hidden" name="assistant_group_id" value="{{ assistant_group_id }}">
+                <input type="hidden" name="_method" value="delete">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="delete_form" value="assistant_group_form">
 
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this Group?');">Delete</button>
-        {% else %}
-        <!-- Create Button Form -->
-        <form action="{% url 'manage_assistant_groups' %}" method="POST" class="save-form mr-2">
-            {% csrf_token %}
-            <input type="hidden" name="_method" value="save">
-            <input type="hidden" name="action" value="save">
-            <input type="hidden" name="save_form" value="assistant_group_form">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this Group?');">Delete</button>
+            {% else %}
+            <!-- Create Button Form -->
+            <form action="{% url 'manage_assistant_groups' %}" method="POST" class="save-form mr-2 d-grid gap-2">
+                {% csrf_token %}
+                <input type="hidden" name="_method" value="save">
+                <input type="hidden" name="action" value="save">
+                <input type="hidden" name="save_form" value="assistant_group_form">
 
-            <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
-        </form>    
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
+            </form>    
         {% endif %}
+        </div>
     </form>
     <br>
-        
 
 <!-- Assistant Group List -->
 <div class="container mt-5">
@@ -89,21 +90,16 @@
                         <th>{{ field.verbose_name }}</th>
                     {% endif %}
                 {% endfor %}
-                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for group in assistant_groups_info %}
-                <tr>
+            <tr onclick="window.location.href='{% url 'assistant_group_detail' group.id %}'" style="cursor: pointer;">
                     {% for field in fields %}
                         {% if field.name in display_fields %}
                             <td>{{ group|get_field_value:field.name|truncatechars:1024 }}</td>
                         {% endif %}
                     {% endfor %}
-                    <td>
-                        <a href="{% url 'assistant_group_detail' group.id %}" class="btn btn-primary">Edit</a>
-                        <!-- Add delete action if needed -->
-                    </td>
                 </tr>
             {% endfor %}
         </tbody>

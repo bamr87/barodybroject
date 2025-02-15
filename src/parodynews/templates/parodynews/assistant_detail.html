@@ -10,48 +10,50 @@
         <div class="col">
             <h2>Assistant Form</h2>
             {% if selected_asssistant%}
-            <form method="post" action="{% url 'assistant_detail' assistant_id=selected_assistant.id %}" class="needs-validation" novalidate>
+            <form method="post" action="{% url 'assistant_detail' assistant_id=selected_assistant.id %}" class="needs-validation">
             {% else %}
-            <form method="post" action="{% url 'manage_assistants' %}" class="needs-validation" novalidate>
+            <form method="post" action="{% url 'manage_assistants' %}" class="needs-validation">
             {% endif %}
                 {% csrf_token %}
                     <!-- Assistant Form -->
                 <div class="form-group">
                     {{ assistant_form.as_p }}
                 </div>
+
+                <div class="d-grid gap-2">
                 {% if assistant_id %}
-                <!-- Save Button Form -->
-                <form action="{% url 'edit_assistant' assistant_id %}" method="POST" class="save-form mr-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="assistant_id" value="{{ assistant_id }}">
-                    <input type="hidden" name="_method" value="save">
-                    <input type="hidden" name="action" value="save">
-                    <input type="hidden" name="save_form" value="assistant_form">
+                    <!-- Save Button Form -->
+                    <form action="{% url 'edit_assistant' assistant_id %}" method="POST" class="save-form mr-2 d-grid gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="assistant_id" value="{{ assistant_id }}">
+                        <input type="hidden" name="_method" value="save">
+                        <input type="hidden" name="action" value="save">
+                        <input type="hidden" name="save_form" value="assistant_form">
 
-                    <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Save</button>
-                </form>
-                <!-- Delete Button Form -->
-                <form action="/assistants/delete/{{ assistant.id }}/" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="assistant_id" value="{{ assistant.id }}">
-                    <input type="hidden" name="_method" value="delete">
-                    <input type="hidden" name="action" value="delete">
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this content?');">Delete</button>
-                </form>
-                {% else %}
-                <!-- Create Button Form -->
-                <form action="{% url 'manage_assistants' %}" method="POST" class="save-form mr-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="_method" value="save">
-                    <input type="hidden" name="action" value="save">
-                    <input type="hidden" name="save_form" value="assistant_form">
+                        <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Save</button>
+                    </form>
+                    <!-- Delete Button Form -->
+                    <form action="/assistants/delete/{{ assistant.id }}/" method="post" class="delete-form mr-2 d-grid gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="assistant_id" value="{{ assistant.id }}">
+                        <input type="hidden" name="_method" value="delete">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this content?');">Delete</button>
+                    </form>
+                    {% else %}
+                    <!-- Create Button Form -->
+                    <form action="{% url 'manage_assistants' %}" method="POST" class="save-form mr-2 d-grid gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="_method" value="save">
+                        <input type="hidden" name="action" value="save">
+                        <input type="hidden" name="save_form" value="assistant_form">
 
-                    <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
-                </form>
+                        <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
+                    </form>
                 {% endif %}
+                </div>
             </form>
         </div>
-
     </div>
 </div>
             

@@ -203,8 +203,16 @@
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         const overlay = document.getElementById('loadingOverlay');
-        document.querySelectorAll('button[type="submit"]').forEach(btn => {
-          btn.addEventListener('click', () => { overlay.style.display = 'block'; });
+        document.querySelectorAll('form.needs-validation').forEach(form => {
+          form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+              event.preventDefault();
+              event.stopPropagation();
+            } else {
+              overlay.style.display = 'block';
+            }
+            form.classList.add('was-validated');
+          }, false);
         });
       });
     </script>

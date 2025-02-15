@@ -57,7 +57,7 @@ class Assistant(models.Model):
     instructions = models.TextField(max_length=256000, default="you are a helpful assistant.")
     prompt = models.TextField(max_length=256000, default="you are a helpful assistant.")
     object = models.CharField(max_length=50, default="assistant")
-    model = models.ForeignKey(OpenAIModel, on_delete=models.SET_NULL, null=True, blank=True)
+    model = models.ForeignKey(OpenAIModel, on_delete=models.SET_NULL, null=True, blank=False)
     created_at = models.DateTimeField(default=timezone.now)
     tools = models.JSONField(default=list, null=True, blank=True,)
     metadata = models.JSONField(default=dict, null=True, blank=True)
