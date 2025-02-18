@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.cache import cache
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from cms.models.fields import PlaceholderRelationField
@@ -109,11 +110,38 @@ class AssistantGroup(models.Model):
         return self.name
 
 
+class FieldDefaults(models.Model):
+    """
+    Stores default values for your models.
+    Each instance corresponds to a specific model's defaults.
+    Example:
+      {
+          "field1": "default string",
+          "field2": 42
+      }
+    """
+    model_name = models.CharField(max_length=255, unique=True)
+    defaults = models.JSONField(
+        default=dict,
+        help_text="Mapping of field names to default values for the given model."
+    )
+
+    def __str__(self):
+        return f"Defaults for {self.model_name}"
+
+    def save(self, *args, **kwargs):
+        # Clear cached defaults when updated
+        cache.delete('field_defaults')
+        super().save(*args, **kwargs)
+
+
+
+
 class ContentDetail(models.Model):
     id = models.AutoField(primary_key=True)
-    title = models.CharField(max_length=255, default="NEED TITLE.")
+    title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
-    author = models.CharField(max_length=100, default="NEED AUTHOR.")
+    author = models.CharField(max_length=100, blank=True)
     published_at = models.DateTimeField(default=timezone.now)
     slug = models.SlugField(max_length=255, unique=False, default="slug")
     keywords = models.JSONField(default=list)
@@ -132,7 +160,7 @@ class ContentItem(models.Model):
     content_text = models.TextField()
 
     assistant = models.ForeignKey(Assistant, on_delete=models.SET_NULL, null=True, blank=True, related_name='contentitem')
-    prompt = models.TextField(default="say this is a test")
+    prompt = models.TextField()
     detail = models.ForeignKey(ContentDetail, on_delete=models.CASCADE, related_name='contentitem')
 
     def get_display_fields(self):

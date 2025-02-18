@@ -1,0 +1,1 @@
+[{"id": "1", "model_name": "ContentDetail", "defaults": "{\"slug\": \"default-slug\", \"title\": \"Default Title\", \"author\": \"Default Author\", \"description\": \"This is the default description.\", \"published_at\": \"2025-02-17T00:00:00Z\"}"}]

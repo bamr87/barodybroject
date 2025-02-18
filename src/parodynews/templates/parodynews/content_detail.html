@@ -1,7 +1,7 @@
 <!-- content_detail.html -->
 {% extends "base.html" %}
+{% block title %}{{ content_detail.title|default:"Content Detail" }}{% endblock %}
 {% load custom_filters %}
-
 {% load markdownify %}
 
 {% block content %}
@@ -9,7 +9,7 @@
 <!-- Content and Detail Form -->
 <div class="container" id="content-form">
     <h2>Content Prompt and Detail</h2>
-    <form method="post" action="{% url 'manage_content' %}" class="needs-validation" novalidate>
+    <form method="post" action="{% url 'manage_content' %}" class="needs-validation">
         {% csrf_token %}
         <div class="row">
             <!-- Content Form -->
@@ -81,7 +81,7 @@
 <div class="container mt-5">
 
     <h2>Content List</h2>
-    <table class="table" id="content-table">
+    <table class="table table-hover" id="content-table">
         <thead>
             <tr>
                 {% for field in fields %}

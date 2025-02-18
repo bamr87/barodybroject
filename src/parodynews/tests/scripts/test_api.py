@@ -9,7 +9,7 @@ def assistant_id():
         'description': 'This is a test assistant.',
         'instructions': 'This is a test instruction.',
         'prompt': 'you are a helpful assistant',
-        'model': 'gpt-4o-mini'
+        'model': 1  # Updated from a string to a valid numeric id
     }
     response = requests.post(url, json=data)
     assert response.status_code == 201

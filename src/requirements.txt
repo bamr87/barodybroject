@@ -1,7 +1,10 @@
 # global requirements
 gunicorn==22.0.0
-azure-monitor-opentelemetry
 pygithub
+
+# Cloud requirements
+azure-monitor-opentelemetry
+boto3
 
 # django requirements
 Django==4.2.17
@@ -14,14 +17,11 @@ django-allauth[mfa,saml,socialaccount,steam]
 django-ses
 django-environ
 
-boto3
-
 # django-extensions requirements
 jsonref
 jsonschema
 jsonschema-specifications
 Markdown
-openai
 PyYAML
 martor
 psycopg
@@ -37,3 +37,7 @@ djangocms-frontend
 djangocms-versioning
 djangocms-alias
 djangocms_admin_style
+
+# BarodyBroject requirements
+
+openai

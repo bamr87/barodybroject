@@ -83,6 +83,22 @@ class JSONSchemaAdmin(ImportExportModelAdmin):
 
 admin.site.register(JSONSchema, JSONSchemaAdmin)
 
+# myapp/admin.py
+from .models import FieldDefaults
+
+class FieldDefaultsForm(forms.ModelForm):
+    class Meta:
+        model = FieldDefaults
+        fields = ['model_name', 'defaults']
+        widgets = {
+            'defaults': JSONEditorWidget
+        }
+
+@admin.register(FieldDefaults)
+class FieldDefaultsAdmin(admin.ModelAdmin):
+    form = FieldDefaultsForm
+    list_display = ['model_name']
+
 class AssistantAdmin(ImportExportModelAdmin):
     list_display = ('name', 'description', 'created_at', 'model')
     resource_class = AssistantResource

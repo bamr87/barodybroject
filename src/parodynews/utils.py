@@ -517,3 +517,21 @@ def run_assistant(assistant, input_content):
 def generate_unique_id():
     import uuid
     return str(uuid.uuid4())
+
+
+# utils.py
+from django.core.cache import cache
+
+def get_model_defaults(model_name):
+    # Local import to avoid circular references:
+    from .models import FieldDefaults
+
+    defaults = cache.get('field_defaults')
+    if defaults is None:
+        fd = FieldDefaults.objects.first()
+        defaults = fd.defaults if fd else {}
+        cache.set('field_defaults', defaults)
+
+    # Return dictionary of defaults for just this model
+    return defaults.get(model_name, {})
+

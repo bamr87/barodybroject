@@ -15,6 +15,10 @@ from .models import (
     PostFrontMatter,
     )
 
+from .mixins import (
+    DefaultFormFieldsMixin,
+    )
+
 # from martor.fields import MartorFormField
 from cms.models.fields import PlaceholderField
 from django.forms import inlineformset_factory
@@ -23,7 +27,7 @@ from .models import AssistantGroup, AssistantGroupMembership
 print("Loading forms...")
 
 # Content detail form that contains the main content details and metadata. Converted to post front matter form for the blog
-class ContentDetailForm(forms.ModelForm):
+class ContentDetailForm(DefaultFormFieldsMixin, forms.ModelForm):
     class Meta:
         model = ContentDetail
         fields = ['id', 'title', 'description', 'author', 'published_at', 'slug']
@@ -38,7 +42,7 @@ class ContentDetailForm(forms.ModelForm):
 
 # Content item form that contains the main content details and metadata. Converted to post form for the blog
 
-class ContentItemForm(forms.ModelForm):
+class ContentItemForm(DefaultFormFieldsMixin, forms.ModelForm):
 
     # Define the form fields for the assistant to be displayed in the form
     assistant = forms.ModelChoiceField(
@@ -223,4 +227,6 @@ class JSONSchemaForm(forms.ModelForm):
         if not re.match(r'^[a-zA-Z0-9_-]+$', name):
             raise ValidationError('Name can only contain letters, numbers, underscores, and hyphens.')
         return name
+
+
 
