@@ -89,7 +89,7 @@ from .models import FieldDefaults
 class FieldDefaultsForm(forms.ModelForm):
     class Meta:
         model = FieldDefaults
-        fields = ['model_name', 'defaults']
+        fields = ['type', 'defaults']
         widgets = {
             'defaults': JSONEditorWidget
         }
@@ -97,7 +97,7 @@ class FieldDefaultsForm(forms.ModelForm):
 @admin.register(FieldDefaults)
 class FieldDefaultsAdmin(admin.ModelAdmin):
     form = FieldDefaultsForm
-    list_display = ['model_name']
+    list_display = ['type']
 
 class AssistantAdmin(ImportExportModelAdmin):
     list_display = ('name', 'description', 'created_at', 'model')

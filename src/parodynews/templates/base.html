@@ -217,29 +217,6 @@
       });
     </script>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const overlay = document.getElementById('loadingOverlay');
-
-        // Show overlay when user leaves or refreshes the page
-        window.addEventListener('beforeunload', () => {
-          overlay.style.display = 'block';
-        });
-
-        // Show overlay when any link, button, or submit input is clicked
-        document.querySelectorAll('a, button, input[type="submit"]')
-          .forEach(el => el.addEventListener('click', (evt) => {
-            if (el.hasAttribute('data-bs-toggle') && el.getAttribute('data-bs-toggle') === 'dropdown') {
-              return;
-            }
-            if (el.hasAttribute('data-bs-theme-value')) {
-              return;
-            }
-            overlay.style.display = 'block';
-          }));
-      });
-    </script>
-
     <!-- Theme Toggle Script -->
     <script>
         (() => {

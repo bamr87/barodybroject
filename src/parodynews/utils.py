@@ -522,16 +522,25 @@ def generate_unique_id():
 # utils.py
 from django.core.cache import cache
 
-def get_model_defaults(model_name):
-    # Local import to avoid circular references:
+def get_model_defaults(model_name, default_type="default_type"):
     from .models import FieldDefaults
 
-    defaults = cache.get('field_defaults')
-    if defaults is None:
-        fd = FieldDefaults.objects.first()
-        defaults = fd.defaults if fd else {}
-        cache.set('field_defaults', defaults)
+    cache_key = f"field_defaults:{default_type}"
+    defaults_list = cache.get(cache_key)
+    if defaults_list is None:
+        fd = FieldDefaults.objects.filter(type=default_type).first()
+        defaults_list = fd.defaults if fd else []
+        cache.set(cache_key, defaults_list)
 
-    # Return dictionary of defaults for just this model
-    return defaults.get(model_name, {})
+    for item in defaults_list:
+        # If item is a string, try to parse it as JSON
+        if isinstance(item, str):
+            try:
+                item = json.loads(item)
+            except json.JSONDecodeError:
+                continue
 
+        if isinstance(item, dict) and item.get("model_name") == model_name:
+            return item.get("fields", {})
+
+    return {}
