@@ -22,22 +22,15 @@ def test_content_create(ensure_logged_in):
     page.wait_for_timeout(1000)  # or wait for condition
 
     current_content = page.input_value("textarea[name='content_text']")
-    page.fill("textarea[name='content_text']", f"prepending content.{current_content}")
+    page.fill("textarea[name='content_text']", f"TEST CONTENT: {current_content}")
+    page.wait_for_timeout(1000)  # or wait for condition
+
+    page.once("dialog", lambda dialog: dialog.accept())
+    page.click("button#save-btn")
+    page.wait_for_timeout(1000)  # or wait for condition
 
     page.click("button#thread-btn")
     page.wait_for_timeout(1000)  # or wait for condition
 
     page.wait_for_selector("text=Message created successfully.")
-    assert 'Message created successfully!' in page.content()
-
-def test_fill_and_save_content(page):
-    page.goto("http://localhost:8000/content/")
-    # Fill out the new content form
-    page.fill("input[name='title']", "My Test Title")
-    page.fill("textarea[name='description']", "Test description text.")
-    page.fill("input[name='author']", "TestAuthor")
-    page.fill("input[name='slug']", "test-slug")
-    # Wait for "Save" button to become enabled
-    page.wait_for_timeout(1000)  # or wait for condition
-    # Click the "Save" button
-    page.click("button#save-btn")
+    assert 'Message created successfully.' in page.content()

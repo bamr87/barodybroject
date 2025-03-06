@@ -185,3 +185,4 @@ package-lock.json
 package.json
 .venv*
 .azure
+src/parodynews/migrations/0*

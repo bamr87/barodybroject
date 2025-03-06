@@ -1,11 +1,13 @@
 services:
-  db:
+  barodydb:
     image: postgres:latest
 
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: barodydb
+      POSTGRES_PASSWORD: postgres
       DB_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
 
     restart: unless-stopped
 
@@ -28,7 +30,7 @@ services:
       - ./:/app
 
     depends_on:
-      db:
+      barodydb:
         condition: service_healthy
 
     environment:

@@ -521,6 +521,7 @@ def generate_unique_id():
 
 # utils.py
 from django.core.cache import cache
+from django.db.utils import ProgrammingError
 
 def get_model_defaults(model_name, default_type="default_type"):
     from .models import FieldDefaults
@@ -528,8 +529,13 @@ def get_model_defaults(model_name, default_type="default_type"):
     cache_key = f"field_defaults:{default_type}"
     defaults_list = cache.get(cache_key)
     if defaults_list is None:
-        fd = FieldDefaults.objects.filter(type=default_type).first()
-        defaults_list = fd.defaults if fd else []
+        try:
+            fd = FieldDefaults.objects.filter(type=default_type).first()
+            if not fd:
+                return {}
+            defaults_list = fd.defaults
+        except ProgrammingError:
+            return {}
         cache.set(cache_key, defaults_list)
 
     for item in defaults_list:

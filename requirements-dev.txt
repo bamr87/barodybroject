@@ -20,3 +20,8 @@ requests
 
 # Linters
 ruff
+
+# Documentation
+sphinx
+sphinx-autodoc-typehints
+sphinx-rtd-theme

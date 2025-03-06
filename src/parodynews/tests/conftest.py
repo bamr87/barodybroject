@@ -1,8 +1,13 @@
 import pytest
+import os
 from playwright.sync_api import sync_playwright
 from parodynews.tests.scripts.functions.user_login import login_user
 from parodynews.tests.scripts.functions.user_create import create_new_account
 import time
+
+# Set the DJANGO_SETTINGS_MODULE environment variable
+os.environ['DJANGO_SETTINGS_MODULE'] = 'barodybroject.settings'
+
 
 @pytest.fixture(scope="session")
 def browser_context():
@@ -29,4 +34,3 @@ def ensure_logged_in(browser_context):
         time.sleep(5)  # wait for account creation
         assert login_user(page, username, password), "Login failed after account creation"
     return page
-

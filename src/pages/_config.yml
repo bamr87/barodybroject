@@ -46,7 +46,7 @@ title                    : "Barody Broject"
 title_url                : "/"
 title_icon               : "globe"
 subtitle                 : "Breaking News"
-subtitle_url             : "localhost"
+subtitle_url             : "https://bamr87.github.io/barodybroject/posts/"
 subtitle_icon            : "code"
 title_separator          : "|" # Appears in the web browser tab name
 domain                   : &domain "barodybroject.com"

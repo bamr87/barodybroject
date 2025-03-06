@@ -72,9 +72,15 @@ SECRET_KEY_FALLBACK = os.environ.get("DJANGO_SECRET_KEY_DEV_FALLBACK")
 SECRET_KEY = secrets.get('DJANGO_SECRET_KEY', SECRET_KEY_FALLBACK)
 
 # Determine whether we're in production, as this will affect many settings.
-prod = bool(os.environ.get("RUNNING_IN_PRODUCTION", True))
+prod = env.bool("RUNNING_IN_PRODUCTION", default=True)
 
 print (prod)
+
+# Safe fallbacks for container configuration
+CONTAINER_APP_NAME = os.environ.get("CONTAINER_APP_NAME") or secrets.get("CONTAINER_APP_NAME") or "barodybroject"
+CONTAINER_APP_ENV_DNS_SUFFIX = os.environ.get("CONTAINER_APP_ENV_DNS_SUFFIX") or secrets.get("CONTAINER_APP_ENV_DNS_SUFFIX") or "com"
+
+AZURE_CONTAINER_REGISTRY_ENDPOINT = os.environ.get("AZURE_CONTAINER_REGISTRY_ENDPOINT") or secrets.get("AZURE_CONTAINER_REGISTRY_ENDPOINT") or "https://barodybroject.azurecr.io"
 
 if not prod:  # Running in a Test/Development environment
     DEBUG = True  # SECURITY WARNING: don't run with debug turned on in production!
@@ -89,21 +95,17 @@ if not prod:  # Running in a Test/Development environment
     ]
     CSRF_TRUSTED_ORIGINS = [
         "http://localhost:8000",
-        f"{CONTAINER_APP_NAME}.{CONTAINER_APP_ENV_DNS_SUFFIX}",
+        f"https://{CONTAINER_APP_NAME}.{CONTAINER_APP_ENV_DNS_SUFFIX}",
         f"{AZURE_CONTAINER_REGISTRY_ENDPOINT}.{CONTAINER_APP_ENV_DNS_SUFFIX}",
         "https://4itba3fqvd.us-east-1.awsapprunner.com",
         "https://barodybroject.com",
     ]
 
 else:  # Running in a Production environment
-    DEBUG = True  # SECURITY WARNING: don't run with debug turned on in production!
+    DEBUG = False  # SECURITY WARNING: don't run with debug turned on in production!
     DEFAULT_SECRET = None
     SECRET_KEY = os.environ.get("SECRET_KEY", secrets.get("SECRET_KEY"))
-    
-    # Safe fallbacks for container configuration
-    CONTAINER_APP_NAME = os.environ.get("CONTAINER_APP_NAME") or secrets.get("CONTAINER_APP_NAME") or "barodybroject"
-    CONTAINER_APP_ENV_DNS_SUFFIX = os.environ.get("CONTAINER_APP_ENV_DNS_SUFFIX") or secrets.get("CONTAINER_APP_ENV_DNS_SUFFIX") or "com"
-    
+
     ALLOWED_HOSTS = [
         "localhost",
         "127.0.0.1",
@@ -245,6 +247,7 @@ if db_choice == "sqlite":
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
+            'ATOMIC_REQUESTS': True,
         }
     }
 elif db_choice == "postgres":
@@ -259,12 +262,17 @@ elif db_choice == "postgres":
             "PASSWORD": os.environ.get("DB_PASSWORD"),
             "HOST": os.environ.get("DB_HOST"),
             "PORT": os.environ.get("DB_PORT", 5432),
+            'ATOMIC_REQUESTS': True,
             "OPTIONS": {
                 "options": "-c search_path=public",
                 **db_options
             },
         }
     }
+
+# Ensure every database has an ATOMIC_REQUESTS key.
+for db_config in DATABASES.values():
+    db_config.setdefault('ATOMIC_REQUESTS', True)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

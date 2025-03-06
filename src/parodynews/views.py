@@ -405,9 +405,9 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
 
         # Delete the message
         message.delete()
-
+        client = AppConfigClientMixin.get_client(self)
         # Delete the message from OpenAI
-        openai_delete_message(message_id, thread_id)
+        openai_delete_message(client, message_id, thread_id)
 
         messages.success(request, "Message deleted successfully.")
         return redirect("thread_detail", thread_id=thread_id)

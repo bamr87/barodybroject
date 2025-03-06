@@ -146,7 +146,6 @@ class ContentDetail(models.Model):
     slug = models.SlugField(max_length=255, unique=False, default="slug")
     keywords = models.JSONField(default=list)
 
-
     def get_display_fields(self):
         # List the fields you want to display
         return ['id', 'title', 'description', 'author', 'published_at']

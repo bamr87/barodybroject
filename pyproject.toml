@@ -1,0 +1,95 @@
+# pyproject.toml
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "barodybroject"
+version = "0.1.0"
+description = "Barodybroject is a sample project."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+authors = [
+  { name = "bamr87", email = "bamr87@users.noreply.github.com" }
+]
+# Production dependencies should be defined in src/requirements.txt.
+dependencies = [
+  "gunicorn==22.0.0",
+  "pygithub",
+  "azure-monitor-opentelemetry",
+  "boto3",
+  "Django==4.2.17",
+  "django-import-export",
+  "django-json-widget",
+  "django-markdownify",
+  "django-filer",
+  "djangorestframework",
+  "django-allauth[mfa,saml,socialaccount,steam]",
+  "django-ses",
+  "django-environ",
+  "jsonref",
+  "jsonschema",
+  "jsonschema-specifications",
+  "Markdown",
+  "PyYAML",
+  "martor",
+  "psycopg",
+  "psycopg2-binary",
+  "setuptools",
+  "aiosmtpd",
+  "dkimpy",
+  "django-cms",
+  "djangocms_text_ckeditor",
+  "djangocms-frontend",
+  "djangocms-versioning",
+  "djangocms-alias",
+  "djangocms_admin_style",
+  "openai"
+]
+
+[project.urls]
+Homepage = "https://github.com/bamr87/barodybroject"
+Repository = "https://github.com/bamr87/barodybroject"
+
+[project.optional-dependencies]
+dev = [
+  "django-environ",
+  "cruft",
+  "pip-tools",
+  "pytest",
+  "pytest-django",
+  "pytest-playwright",
+  "coverage",
+  "pytest-cov",
+  "axe-playwright-python",
+  "selenium",
+  "beautifulsoup4",
+  "requests",
+  "ruff",
+  "sphinx",
+  "sphinx-autodoc-typehints",
+  "sphinx-rtd-theme"
+]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--strict-markers"
+testpaths = [
+  "tests",
+]
