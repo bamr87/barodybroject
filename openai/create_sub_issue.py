@@ -1,14 +1,15 @@
 import os
 import requests
-import openai
+from openai import OpenAI
 import argparse
 import yaml
 import re
 
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 HEADERS = {'Authorization': f'token {GITHUB_TOKEN}'}
-openai.api_key = os.getenv('OPENAI_API_KEY')
-openai.organization = os.getenv('OPENAI_ORG_ID')
+
+# Initialize the OpenAI client
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -51,12 +52,16 @@ def call_openai(prompt, parent_issue_content, template_body):
         f"Fill out all sections completely."
     )
 
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4-turbo",
-        messages=[{"role": "user", "content": full_prompt}],
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": full_prompt}
+        ],
         temperature=0.2,
         max_tokens=2500
     )
+
     return response.choices[0].message.content.strip()
 
 def create_sub_issue(repo, title, body, parent_issue_number, labels):
