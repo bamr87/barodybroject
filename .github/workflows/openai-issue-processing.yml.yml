@@ -1,4 +1,4 @@
-name: Process Issues with OpenAI
+name: OpenAI Unified Issue Processing
 
 on:
   issues:
@@ -7,11 +7,10 @@ on:
 jobs:
   process-issue:
     runs-on: ubuntu-latest
-
     env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_ORG_ID: ${{ secrets.OPENAI_ORG_ID }}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -19,12 +18,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r openai/requirements.txt
 
-      - name: Run OpenAI Issue Processor
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Process Issue via OpenAI
         run: |
-          python openai/client.py \
-            --issue-number "${{ github.event.issue.number }}" \
-            --repo "${{ github.repository }}"
+          python openai/create_sub_issue.py \
+            --repo "${{ github.repository }}" \
+            --parent-issue-number "${{ github.event.issue.number }}"
