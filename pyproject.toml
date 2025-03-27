@@ -46,7 +46,6 @@ dependencies = [
   "djangocms-alias",
   "djangocms_admin_style",
   "openai",
-  "xmlsec1",
   "xmlsec",
 ]
 

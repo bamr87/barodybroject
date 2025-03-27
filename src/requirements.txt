@@ -1,7 +1,7 @@
 # global requirements
 gunicorn==22.0.0
 pygithub
-xmlsec1
+xmlsec
 
 # Cloud requirements
 azure-monitor-opentelemetry
