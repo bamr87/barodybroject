@@ -345,3 +345,6 @@ to be stored as Github action secrets. To set that up, run:
 azd pipeline config
 ```
 
+## Contributing
+
+We welcome contributions from the community! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get involved.
