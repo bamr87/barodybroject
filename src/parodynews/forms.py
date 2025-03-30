@@ -26,6 +26,8 @@ from .models import AssistantGroup, AssistantGroupMembership
 
 print("Loading forms...")
 
+# TODO: Add additional fields to Post frontmatter to handle dynamic fields (i.e., based on JSON schema)
+
 # Content detail form that contains the main content details and metadata. Converted to post front matter form for the blog
 class ContentDetailForm(DefaultFormFieldsMixin, forms.ModelForm):
     class Meta:

@@ -93,7 +93,8 @@ from django.conf import settings
 from django.core.mail import send_mail
 print("Loading views.py")
 
-
+# TODO: Post Frontmatter needs to be dynamic and populated based on the assistant schema, otherwise the front matter is defaulted
+# TODO: Link post to the URL and filename, and github location
 class FooterView(TemplateView):
     template_name = "footer.html"
 
@@ -233,6 +234,7 @@ class ManageContentView(
         return self.get(request)
 
     def generate_content(self, request, content_detail=None):
+        # FIXME: if an assistant is assigned to a schema, generate content fails
         # Retrieve the OpenAI client from the session
         client = AppConfigClientMixin.get_client(self)
 

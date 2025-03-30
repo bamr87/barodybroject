@@ -4,6 +4,12 @@
 {% load markdownify %}
 
 {% block content %}
+
+{% comment %} 
+TODO: Need to add processing overlay with status of each assistant run.
+TODO: after assigning assistant, return to assigned message.
+{% endcomment %}
+
 <!-- content_processing.html -->
 <div class="container">
     <h1>Content Processing</h1>
@@ -46,6 +52,13 @@
     </div>
 
     <!-- Message List and Assistants -->
+
+    {% comment %} 
+    TODO: Organize message list and assistant assignment better. Maybe add a TOC, or "on-this-page" navigation.
+    TODO: Add better UI/UX for assigning assistants and running messages
+
+    {% endcomment %}
+    
     <div class="container mt-5" id="message-list">
         <h2>Messages</h2>
         <div class="mb-3">

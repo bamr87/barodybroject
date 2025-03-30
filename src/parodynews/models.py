@@ -7,8 +7,10 @@ from cms.models.pluginmodel import CMSPlugin
 from django.urls import reverse
 from martor.models import MartorField
 
-
 print("Loading models.py")
+# TODO: Update assistant model to include dynamic type fields for categorization and organization of assistants.
+# TODO: add attachment file handling for image storage (use an image description placeholder for now)
+# TODO: Add user id to models for tracking and ownership
 
 class PoweredBy(models.Model):
     name = models.CharField(max_length=100)
