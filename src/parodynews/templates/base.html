@@ -272,6 +272,66 @@
             tables.forEach(function(table) {
                 table.classList.add('table-hover');
             });
+
+            // Function to handle sorting
+            function sortTable(table, columnIndex, ascending) {
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const dataType = table.querySelector(`th:nth-child(${columnIndex + 1})`).getAttribute('data-type');
+
+                rows.sort((a, b) => {
+                    const aText = a.querySelector(`td:nth-child(${columnIndex + 1})`).textContent.trim();
+                    const bText = b.querySelector(`td:nth-child(${columnIndex + 1})`).textContent.trim();
+
+                    if (dataType === 'number') {
+                        return ascending ? aText - bText : bText - aText;
+                    } else if (dataType === 'date') {
+                        return ascending ? new Date(aText) - new Date(bText) : new Date(bText) - new Date(aText);
+                    } else {
+                        return ascending ? aText.localeCompare(bText) : bText.localeCompare(aText);
+                    }
+                });
+
+                rows.forEach(row => tbody.appendChild(row));
+            }
+
+            // Attach event listeners to the column headers for sorting
+            tables.forEach(function(table) {
+                const headers = table.querySelectorAll('th');
+                headers.forEach((header, index) => {
+                    header.style.cursor = 'pointer';
+                    header.addEventListener('click', function() {
+                        const ascending = !header.classList.contains('ascending');
+                        headers.forEach(h => h.classList.remove('ascending', 'descending'));
+                        header.classList.add(ascending ? 'ascending' : 'descending');
+                        sortTable(table, index, ascending);
+                    });
+                });
+            });
+
+            // Function to handle filtering
+            function filterTable(table, columnIndex, filterValue) {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const cellValue = row.querySelector(`td:nth-child(${columnIndex + 1})`).textContent.trim().toLowerCase();
+                    row.style.display = cellValue.includes(filterValue.toLowerCase()) ? '' : 'none';
+                });
+            }
+
+            // Attach event listeners to the filter input fields for filtering
+            tables.forEach(function(table) {
+                const headers = table.querySelectorAll('th');
+                headers.forEach((header, index) => {
+                    const filterInput = document.createElement('input');
+                    filterInput.type = 'text';
+                    filterInput.placeholder = 'Filter';
+                    filterInput.classList.add('form-control', 'form-control-sm');
+                    filterInput.addEventListener('input', function() {
+                        filterTable(table, index, filterInput.value);
+                    });
+                    header.appendChild(filterInput);
+                });
+            });
         });
     </script>
     {% endblock %}

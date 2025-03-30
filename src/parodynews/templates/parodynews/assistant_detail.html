@@ -67,7 +67,11 @@
                 <tr>
                     {% for field in fields %}
                         {% if field.name in display_fields %}
-                            <th>{{ field.verbose_name }}</th>
+                            <th>
+                                {{ field.verbose_name }}
+                                <span class="sort-indicator"></span>
+                                <input type="text" class="form-control form-control-sm" placeholder="Filter">
+                            </th>
                         {% endif %}
                     {% endfor %}
                 </tr>
