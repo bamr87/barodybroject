@@ -1,5 +1,4 @@
 # parodynews/management/commands/fetch_models.py
-import json
 from django.core.management.base import BaseCommand
 from openai import OpenAI
 from parodynews.models import OpenAIModel

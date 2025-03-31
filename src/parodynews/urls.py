@@ -19,17 +19,14 @@ from .views import (
     ManageMessageView,
     ProcessContentView,
     ManagePostView,
-    UserLoginView,
     PostPageView,
     get_assistant_details,
-    index,
     list_schemas,
     edit_schema,
     create_schema,
     delete_schema,
     export_schema,
     MyObjectView,
-    post_detail,
     ManageAssistantGroupsView,
     )
 

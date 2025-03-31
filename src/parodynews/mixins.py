@@ -25,7 +25,6 @@ class AppConfigClientMixin(View):
     
 
 # myapp/mixins.py
-from django import forms
 
 class DefaultFormFieldsMixin:
     """

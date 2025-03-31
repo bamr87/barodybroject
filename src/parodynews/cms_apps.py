@@ -4,7 +4,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 
 
-from .models import PostPageConfigModel
 
 
 @apphook_pool.register

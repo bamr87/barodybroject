@@ -1,6 +1,5 @@
 from cms.app_base import CMSAppConfig
 from cms.apphook_pool import apphook_pool
-from . import models, views
 
 class ParodyNewsCMSConfig(CMSAppConfig):
     name = "parodynews"
@@ -10,7 +9,6 @@ class ParodyNewsCMSConfig(CMSAppConfig):
         apphook_pool.register(ParodyNewsApphook)
 
 from cms.app_base import CMSApp
-from . import models, views
 
 class ParodyNewsApphook(CMSApp):
     app_name = "parodynews"

@@ -20,9 +20,8 @@ from .mixins import (
     )
 
 # from martor.fields import MartorFormField
-from cms.models.fields import PlaceholderField
 from django.forms import inlineformset_factory
-from .models import AssistantGroup, AssistantGroupMembership
+from .models import AssistantGroupMembership
 
 print("Loading forms...")
 

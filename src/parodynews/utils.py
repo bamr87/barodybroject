@@ -1,9 +1,7 @@
 # Chat GPT-4o API
 # https://platform.openai.com/docs/api-reference/chat-gpt-4o
 
-from django.db import connection
 from .models import AppConfig, Assistant, ContentItem, Message
-from openai import OpenAI
 from django.conf import settings
 
 print("Loading utils.py")
@@ -394,7 +392,6 @@ def json_to_markdown(data):
 
     return convert_to_md(data)
 
-from django.conf import settings
 
 def generate_markdown_file(data, filename):
     """

@@ -17,14 +17,11 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
-from django.contrib.auth.views import LogoutView, LoginView
 from django.conf import settings
 from django.conf.urls.static import static
-from django.conf.urls.i18n import i18n_patterns
 from django.views.generic.base import TemplateView
 
 from rest_framework import routers
-from parodynews import views
 from parodynews.views import (
     FooterView,
 )

@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.views.generic import TemplateView
 from django.views import View
 from datetime import datetime
@@ -23,10 +23,8 @@ from cms.utils import get_language_from_request
 
 from . import models
 
-from django.contrib.auth import authenticate, login
 from .utils import get_openai_client, delete_assistant
 
-from django.shortcuts import render, get_object_or_404
 
 
 from .models import JSONSchema
@@ -41,7 +39,6 @@ from .forms import (
     ContentDetailForm,
     ThreadForm,
     AssistantGroupForm,
-    AssistantGroupMembershipForm,
     AssistantGroupMembershipFormSet,
 )
 from .models import (
@@ -54,7 +51,6 @@ from .models import (
     Thread,
     PoweredBy,
     Post,
-    MyObject,
     GeneralizedCodes,
     PostFrontMatter,
     AppConfig,
@@ -62,7 +58,6 @@ from .models import (
 )
 from .utils import (
     save_assistant,
-    openai_delete_assistant,
     create_run,
     generate_content,
     openai_create_message,
@@ -704,7 +699,6 @@ class ManageMessageView(LoginRequiredMixin, View):
         )  # Redirect to the messages list page or wherever appropriate
 
 
-from django.forms import inlineformset_factory
 
 
 class ManageAssistantsView(

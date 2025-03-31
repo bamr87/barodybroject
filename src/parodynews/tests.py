@@ -2,12 +2,11 @@ from django.test import TestCase
 
 print("Performing tests...")
 # Create your tests here.
-from django.test import TestCase
 from .forms import ContentItemForm
 
-from django.test import TestCase, Client
+from django.test import Client
 from django.urls import reverse
-from .models import ContentItem, ContentDetail
+from .models import ContentDetail
 from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 

@@ -11,7 +11,6 @@ from django import forms
 from django_json_widget.widgets import JSONEditorWidget
 from import_export.admin import ImportExportModelAdmin
 from cms.admin.placeholderadmin import FrontendEditableAdminMixin
-from django.contrib.admin import TabularInline
 
 from .models import (
     AppConfig,
