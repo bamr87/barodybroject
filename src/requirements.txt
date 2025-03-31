@@ -25,7 +25,6 @@ jsonschema-specifications
 Markdown
 PyYAML
 martor
-psycopg
 psycopg2-binary
 setuptools
 aiosmtpd

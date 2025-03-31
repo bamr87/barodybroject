@@ -34,7 +34,6 @@ dependencies = [
   "Markdown",
   "PyYAML",
   "martor",
-  "psycopg",
   "psycopg2-binary",
   "setuptools",
   "aiosmtpd",
@@ -46,7 +45,6 @@ dependencies = [
   "djangocms-alias",
   "djangocms_admin_style",
   "openai",
-  "xmlsec",
 ]
 
 [project.urls]
