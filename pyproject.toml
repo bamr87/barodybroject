@@ -19,7 +19,7 @@ dependencies = [
   "pygithub",
   "azure-monitor-opentelemetry",
   "boto3",
-  "Django==4.2.17",
+  "Django==4.2.20",
   "django-import-export",
   "django-json-widget",
   "django-markdownify",
