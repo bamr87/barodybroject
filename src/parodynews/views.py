@@ -144,7 +144,7 @@ class ManageContentView(
         # Initialize the forms
 
         # Get the fields and display fields for the model
-        content_detail_info = ContentDetail.objects.all()
+        content_detail_info = ContentDetail.objects.filter(user=request.user)
         fields, display_fields = self.get_model_fields()
 
         context = {
@@ -197,10 +197,12 @@ class ManageContentView(
             content_detail_form = ContentDetailForm(
                 request.POST, instance=content_detail
             )
+        else:
+            content_detail = content_detail_form.save(commit=False)
+            content_detail.user = request.user
 
         # Save the forms if they are valid
         if content_form.is_valid() and content_detail_form.is_valid():
-            content_detail = content_detail_form.save(commit=False)
             content_detail.save()
 
             content = content_form.save(commit=False)
@@ -335,7 +337,7 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         if message_id:
             current_message = Message.objects.get(pk=message_id)
 
-        threads = Thread.objects.all()  # Retrieve all threads
+        threads = Thread.objects.filter(user=request.user)  # Retrieve all threads
         fields, display_fields = self.get_model_fields()
 
         message_list = Message.objects.all()
@@ -598,6 +600,7 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
             assistant=assistant,
             content_detail=content_detail,
             post_content=message_content,
+            user=request.user,
         )
 
         post_frontmatter = PostFrontMatter.objects.create(
@@ -1078,7 +1081,7 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
         form_post_frontmatter = PostFrontMatterForm(instance=post_frontmatter)
 
         # Get all posts and fields
-        post_list = Post.objects.all()
+        post_list = Post.objects.filter(user=request.user)
         fields, display_fields = self.get_model_fields()
 
         context = {
@@ -1133,14 +1136,15 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
             form_post_frontmatter = PostFrontMatterForm(
                 request.POST, instance=post_frontmatter
             )
+        else:
+            post = form_post.save(commit=False)
+            post.user = request.user
 
         # Save the forms if they are valid
         if form_post.is_valid() and form_post_frontmatter.is_valid():
             post_front_matter = form_post_frontmatter.save(commit=False)
             post_front_matter.save()
 
-            post = form_post.save(commit=False)
-            post.frontmatter = post_front_matter
             post.save()
 
             messages.success(request, "Post and front matter saved successfully.")

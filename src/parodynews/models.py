@@ -6,6 +6,7 @@ from cms.models.fields import PlaceholderRelationField
 from cms.models.pluginmodel import CMSPlugin
 from django.urls import reverse
 from martor.models import MartorField
+from django.contrib.auth.models import User
 
 print("Loading models.py")
 # TODO: Update assistant model to include dynamic type fields for categorization and organization of assistants.
@@ -147,6 +148,7 @@ class ContentDetail(models.Model):
     published_at = models.DateTimeField(default=timezone.now)
     slug = models.SlugField(max_length=255, unique=False, default="slug")
     keywords = models.JSONField(default=list)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name="content_details")
 
     def get_display_fields(self):
         # List the fields you want to display
@@ -154,6 +156,7 @@ class ContentDetail(models.Model):
 
     def __str__(self):
         return self.title
+
 class ContentItem(models.Model):
     id = models.AutoField(primary_key=True)
     line_number = models.IntegerField(default=0)
@@ -188,6 +191,7 @@ class Thread(models.Model):
 
     assistant_group = models.ForeignKey(AssistantGroup, on_delete=models.CASCADE, null=True, blank=True, related_name='threads')
     created_at = models.DateTimeField(default=timezone.now)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name="threads")
     
 
     def get_display_fields(self):
@@ -257,6 +261,7 @@ class Post(models.Model):
     filename = models.CharField(max_length=255, blank=True, default="")
     status = models.CharField(max_length=100, default="draft")
     postfrontmatter = models.ForeignKey('PostFrontMatter', on_delete=models.SET_NULL, null=True, blank=True, related_name='posts')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name="posts")
 
     def get_display_fields(self):
         return ['id', 'content_detail', 'thread', 'message', 'assistant', 'created_at', 'status']
