@@ -15,7 +15,7 @@ authors = [
 ]
 # Production dependencies should be defined in src/requirements.txt.
 dependencies = [
-  "gunicorn==22.0.0",
+  "gunicorn==23.0.0",
   "pygithub",
   "azure-monitor-opentelemetry",
   "boto3",
