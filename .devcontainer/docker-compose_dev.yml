@@ -26,15 +26,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    network_mode: service:db
     environment:
       DB_USERNAME: postgres
       DB_NAME: barodydb
       DB_HOST: db
-      DB_PASSWORD: postgres
-
+      POSTGRES_PASSWORD: postgres
     command: sleep infinity
-
     volumes:
       - ..:/workspace:cached
 

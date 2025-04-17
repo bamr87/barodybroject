@@ -56,6 +56,6 @@
         "ghcr.io/azure/azure-dev/azd:latest": {}
     },
     
-    "postCreateCommand": "playwright install chromium --with-deps && python src/manage.py migrate"
+    "postCreateCommand": "python src/manage.py migrate"
 }
 

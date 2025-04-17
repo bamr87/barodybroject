@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN gem install bundler jekyll
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /workspace
 
 # Copy dependency files
 COPY requirements.txt Gemfile ./
@@ -33,11 +33,11 @@ RUN bundle install
 RUN pip install --no-cache-dir supervisor
 
 # Copy the application code
-COPY src/ /app/
+COPY src/ /workspace/
 
 # Create a non-root user and set permissions
 RUN adduser --disabled-password --gecos '' appuser \
-    && chown -R appuser:appuser /app
+    && chown -R appuser:appuser /workspace
 
 # Switch to the non-root user
 USER appuser
