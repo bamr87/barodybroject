@@ -28,16 +28,4 @@ jobs:
         node-version: 20.x
     - name: Install devcontainers CLI
       run: npm install -g @devcontainers/cli
-    - name: Create placeholder .env for CI
-      run: |
-        mkdir -p src
-        if [ ! -f src/.env ]; then
-          cat <<EOF > src/.env
-          POSTGRES_USER=postgres
-          POSTGRES_PASSWORD=postgres
-          POSTGRES_DB=barodydb
-          DB_PASSWORD=postgres
-          DB_HOST=barodydb
-          EOF
-        fi
     - run: devcontainer build --config ./.devcontainer/devcontainer.json --workspace-folder "$(pwd)"
