@@ -19,11 +19,11 @@ RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
 # Copy entrypoint script and make it executable
-COPY ../src/entrypoint.sh ./
-RUN chmod +x entrypoint.sh
+COPY ../src/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Copy the rest of the application code
 COPY ../src ./
 
-# Set the entrypoint
-CMD ["bash", "-c", "./entrypoint.sh"]
+# Use the absolute entrypoint so it isn't masked by a /workspace bind mount
+CMD ["/entrypoint.sh"]
