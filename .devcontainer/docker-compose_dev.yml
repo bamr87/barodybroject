@@ -40,6 +40,8 @@ services:
     ports:
       - "80:80"
     working_dir: /workspace/src
+    volumes:
+      - ../src/.env:/workspace/.env:ro
 
   jekyll:
     image: jekyll/jekyll:latest
