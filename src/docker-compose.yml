@@ -3,10 +3,10 @@ services:
     image: postgres:latest
 
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_DB: barodydb
-      POSTGRES_PASSWORD: postgres
-      DB_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-barodydb}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_HOST_AUTH_METHOD: trust
 
     restart: unless-stopped
@@ -34,10 +34,10 @@ services:
         condition: service_healthy
 
     environment:
-      DB_USERNAME: postgres
-      DB_NAME: barodydb   # updated from barodysql to barodydb
-      DB_HOST: barodydb
-      DB_PASSWORD: postgres
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_NAME: ${DB_NAME:-barodydb}
+      DB_HOST: ${DB_HOST:-barodydb}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
     ports:
       - "80:80"
   jekyll:
@@ -50,7 +50,7 @@ services:
       - "4002:4002"
     working_dir: /app/pages
     environment:
-      JEKYLL_ENV: development
+      JEKYLL_ENV: ${JEKYLL_ENV:-development}
 
 volumes:
   postgres-data:
