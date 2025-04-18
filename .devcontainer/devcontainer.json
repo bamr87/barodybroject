@@ -11,6 +11,9 @@
     "service": "python",
     "shutdownAction": "stopCompose",
     "workspaceFolder": "/workspace",
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/workspace,type=bind"
+    ],
     "forwardPorts": [8000, 5432],
     "portsAttributes": {
         "8000": {"label": "frontend web port", "onAutoForward": "notify"},

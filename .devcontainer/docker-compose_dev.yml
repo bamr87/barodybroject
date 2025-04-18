@@ -27,8 +27,6 @@ services:
     build:
       context: ../
       dockerfile: .devcontainer/Dockerfile_dev
-    volumes:
-      - ../src:/workspace
     depends_on:
       barodydb:
         condition: service_healthy
@@ -41,6 +39,7 @@ services:
       DB_PASSWORD: postgres
     ports:
       - "80:80"
+    working_dir: /workspace/src
 
   jekyll:
     image: jekyll/jekyll:latest
