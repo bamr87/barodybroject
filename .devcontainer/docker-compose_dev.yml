@@ -22,6 +22,7 @@ services:
 
   python:
     image: amrabdel/barody-python:latest
+    platform: linux/amd64
     depends_on:
       barodydb:
         condition: service_healthy
