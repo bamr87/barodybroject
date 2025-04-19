@@ -16,6 +16,15 @@ Django application integrated with OpenAI to generate content with the help of a
 - **Search Functionality**: Integrated search functionality for finding content within the site.
 - **Security Features**: Implements Django's built-in security features to protect against XSS, CSRF, SQL Injection, and more.
 
+### New or Updated Features
+
+- **Dynamic Form Support**: Added a reusable Django `DynamicFieldsMixin` and supporting JavaScript file for automatically updating form fields via AJAX.
+- **CMS Integration**: Extended `urls.py` to include Django CMS routes under the root URL.
+- **AWS App Runner Configuration**: Added an `apprunner.yaml` to streamline build and deployment steps for AWS.
+- **Jekyll Config**: Included development and production config overrides and YAML files for advanced static site generation needs.
+- **Enhanced Navigation**: Added or updated YAML data files under `_data/navigation` and `_data/ui-text` for easier menu and UI text management.
+- **GitHub Automation**: Prepared scripts inside `githubai` directory for AI-assisted GitHub issue handling and README updates.r
+
 ### Powered By
 
 - **Django**: High-level Python Web framework that encourages rapid development and clean, pragmatic design.
