@@ -29,4 +29,3 @@ jobs:
     - name: Install devcontainers CLI
       run: npm install -g @devcontainers/cli
     - run: devcontainer build --config ./.devcontainer/devcontainer.json --workspace-folder "$(pwd)"
-∏
