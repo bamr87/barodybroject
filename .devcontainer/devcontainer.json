@@ -59,6 +59,6 @@
         "ghcr.io/azure/azure-dev/azd:latest": {}
     },
     
-    "postCreateCommand": "python src/manage.py migrate"
+    "postCreateCommand": "bash -lc 'cd src && python3 manage.py migrate'"
 }
 
