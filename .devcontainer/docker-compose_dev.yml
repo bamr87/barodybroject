@@ -21,9 +21,7 @@ services:
       - "5432:5432"
 
   python:
-    build:
-      context: ../
-      dockerfile: .devcontainer/Dockerfile_dev
+    image: amrabdel/barody-python:latest
     depends_on:
       barodydb:
         condition: service_healthy
@@ -35,7 +33,8 @@ services:
     ports:
       - "80:80"
     working_dir: /workspace/src
-    # ...existing mounts for code and data...
+    volumes:
+      - ../:/workspace
 
   jekyll:
     image: jekyll/jekyll:latest

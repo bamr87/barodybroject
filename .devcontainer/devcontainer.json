@@ -11,9 +11,7 @@
     "service": "python",
     "shutdownAction": "stopCompose",
     "workspaceFolder": "/workspace",
-    "mounts": [
-        "source=${localWorkspaceFolder},target=/workspace,type=bind"
-    ],
+    // No need for the mounts field as we're defining volumes in docker-compose_dev.yml
     "forwardPorts": [8000, 5432],
     "portsAttributes": {
         "8000": {"label": "frontend web port", "onAutoForward": "notify"},
@@ -54,7 +52,6 @@
     },
     "features": {
         // Required for azd to package the app to ACA
-        
         "ghcr.io/devcontainers/features/docker-in-docker:2": {},
         "ghcr.io/azure/azure-dev/azd:latest": {}
     },

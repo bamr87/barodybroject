@@ -354,6 +354,59 @@ to be stored as Github action secrets. To set that up, run:
 azd pipeline config
 ```
 
+## Development Container Workflow
+
+We've implemented a "push-it-once, pull-it-forever" development container workflow to significantly speed up the development onboarding and environment setup process.
+
+## How It Works
+
+1. **Pre-built Development Image**: Instead of each developer building the Docker image from scratch, we now maintain a pre-built image on Docker Hub that contains all dependencies.
+
+2. **Automatic Image Updates**: When the Dockerfile or requirements change, GitHub Actions automatically builds and publishes a new image to Docker Hub.
+
+3. **Developer Experience**:
+   - First-time setup: `docker compose pull && docker compose up`
+   - Daily development: Code changes are mounted into the container for instant reload
+   - Adding new dependencies: Update `requirements.txt`, push the change, and CI builds a new image
+
+## Manual Image Build (if needed)
+
+You can manually build and push the development container with:
+
+```bash
+# From the repository root
+docker build -f .devcontainer/Dockerfile_dev \
+             -t amrabdel/barody-python:0.1 \
+             -t amrabdel/barody-python:latest \
+             .
+
+docker login   # enter your Docker Hub credentials
+docker push amrabdel/barody-python:0.1
+docker push amrabdel/barody-python:latest
+```
+
+## Benefits
+
+- **Faster Setup**: New team members can be productive in minutes rather than waiting for lengthy builds
+- **Consistent Environment**: Everyone uses exactly the same container image
+- **Reduced Resource Usage**: BuildKit caching reduces CI build times and bandwidth usage
+- **Hot Reload**: Your local code changes are immediately available inside the container
+
+## Required GitHub Secrets
+
+For the CI workflow to function, add these secrets to your GitHub repository:
+
+- `DOCKERHUB_USERNAME`: Your Docker Hub username
+- `DOCKERHUB_TOKEN`: A Personal Access Token from Docker Hub (not your password)
+
+## Troubleshooting
+
+If you encounter issues with the development container:
+
+1. Try pulling the latest image: `docker pull amrabdel/barody-python:latest`
+2. Check for any pending changes in the GitHub Actions "Build & publish dev-container" workflow
+3. For local debugging, you can temporarily switch back to building locally by changing `image:` to `build:` in the docker-compose file
+
 ## Contributing
 
 We welcome contributions from the community! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get involved.

@@ -1,0 +1,58 @@
+# Git
+.git
+.gitignore
+.github
+
+# Environment and configuration
+.env
+.env.*
+*.env
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/*.so
+.Python
+**/venv/
+**/ENV/
+**/env/
+**/src_env/
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+**/.tox/
+**/.nox/
+**/.hypothesis/
+**/.ruff_cache/
+
+# Development
+**/.vscode/
+**/.idea/
+**/.DS_Store
+
+# Documentation
+**/*.md
+docs/
+
+# Node/Frontend
+**/node_modules/
+**/npm-debug.log
+**/yarn-debug.log*
+**/yarn-error.log*
+**/package-lock.json
+**/yarn.lock
+
+# Build artifacts
+**/dist/
+**/build/
+**/*.egg-info/
+
+# Local database files
+**/*.sqlite3
+**/*.db
+
+# Docker
+**/*.Dockerfile*
+**/docker-compose*
+**/.devcontainer/
