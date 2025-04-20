@@ -28,6 +28,9 @@ from .views import (
     export_schema,
     MyObjectView,
     ManageAssistantGroupsView,
+    IssueTemplateListView,
+    IssueTemplateDetailView,
+    CreateIssueAPIView,
     )
 
 from django.contrib.auth.views import LogoutView, LoginView
@@ -144,5 +147,10 @@ urlpatterns = [
     path('schemas/edit/<int:pk>/', edit_schema, name='edit_schema'),
     path('schemas/export/<int:pk>/', export_schema, name='export_schema'),
     path('schemas/delete/<int:pk>/', delete_schema, name='delete_schema'),
+
+    # Issue Templates and Issue Creation
+    path('api/issues/templates/', IssueTemplateListView.as_view(), name='issue_template_list'),
+    path('api/issues/templates/<str:name>/', IssueTemplateDetailView.as_view(), name='issue_template_detail'),
+    path('api/issues/create/', CreateIssueAPIView.as_view(), name='create_issue_api'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
