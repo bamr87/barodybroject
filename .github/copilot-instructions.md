@@ -67,3 +67,5 @@ function f(x: number, y: string): void { }
 ## Django Project Functionality
 
 This Django application handles AI-driven content creation, user authentication, messaging, and content management. It uses class-based and function-based views, model relationships for grouping assistants, and built-in Django features for security and scalability. Maintain clear separation of concerns between models, views, and templates. Configure app settings (API keys, etc.) in the database or via environment variables for flexible deployment.
+
+Always try to utilize a Django app's built-in features and best practices. For example, use Django's built-in authentication system for user management, and leverage Django's ORM for database interactions. This ensures that the application is maintainable, scalable, and secure.
