@@ -10,14 +10,15 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-import os
-import environ
 import json
-import boto3
-
+import os
 from pathlib import Path
-from django.utils.translation import gettext_lazy as _
+
+import boto3
+import environ
 from botocore.exceptions import ClientError
+from django.utils.translation import gettext_lazy as _
+
 # https://aws.amazon.com/developer/language/python/
 
 ADMINS = (
@@ -149,7 +150,7 @@ INSTALLED_APPS = [
     'djangocms_alias',
     'djangocms_versioning',
     'djangocms_text_ckeditor',
-    'djangocms_link',
+    # 'djangocms_link',
 
     'cms',
     'menus',
