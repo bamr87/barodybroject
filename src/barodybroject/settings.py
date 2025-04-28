@@ -30,36 +30,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Initialize environment variables
 env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+
 
 # Get secrets from AWS Secrets Manager
 def get_secret():
-
     secret_name = "barodybroject/env"
     region_name = "us-east-1"
 
     # Create a Secrets Manager client
     session = boto3.session.Session()
-    client = session.client(
-        service_name='secretsmanager',
-        region_name=region_name
-    )
+    client = session.client(service_name="secretsmanager", region_name=region_name)
 
     try:
-        response = client.get_secret_value(
-            SecretId=secret_name
-        )
+        response = client.get_secret_value(SecretId=secret_name)
         # Parse the secret string into a dictionary
-        secrets = json.loads(response['SecretString'])
-        return secrets 
+        secrets = json.loads(response["SecretString"])
+        return secrets
     except ClientError as e:
         # Handle specific AWS exceptions
-        if e.response['Error']['Code'] == 'DecryptionFailureException':
+        if e.response["Error"]["Code"] == "DecryptionFailureException":
             raise Exception("Error: Unable to decrypt the secret")
-        elif e.response['Error']['Code'] == 'ResourceNotFoundException':
+        elif e.response["Error"]["Code"] == "ResourceNotFoundException":
             raise Exception("Error: Secret not found")
         else:
             raise e
+
 
 # Get secrets early in the settings file
 try:
@@ -70,18 +66,30 @@ except Exception as e:
 
 
 SECRET_KEY_FALLBACK = os.environ.get("DJANGO_SECRET_KEY_DEV_FALLBACK")
-SECRET_KEY = secrets.get('DJANGO_SECRET_KEY', SECRET_KEY_FALLBACK)
+SECRET_KEY = secrets.get("DJANGO_SECRET_KEY", SECRET_KEY_FALLBACK)
 
 # Determine whether we're in production, as this will affect many settings.
 prod = env.bool("RUNNING_IN_PRODUCTION", default=True)
 
-print (prod)
+print(prod)
 
 # Safe fallbacks for container configuration
-CONTAINER_APP_NAME = os.environ.get("CONTAINER_APP_NAME") or secrets.get("CONTAINER_APP_NAME") or "barodybroject"
-CONTAINER_APP_ENV_DNS_SUFFIX = os.environ.get("CONTAINER_APP_ENV_DNS_SUFFIX") or secrets.get("CONTAINER_APP_ENV_DNS_SUFFIX") or "com"
+CONTAINER_APP_NAME = (
+    os.environ.get("CONTAINER_APP_NAME")
+    or secrets.get("CONTAINER_APP_NAME")
+    or "barodybroject"
+)
+CONTAINER_APP_ENV_DNS_SUFFIX = (
+    os.environ.get("CONTAINER_APP_ENV_DNS_SUFFIX")
+    or secrets.get("CONTAINER_APP_ENV_DNS_SUFFIX")
+    or "com"
+)
 
-AZURE_CONTAINER_REGISTRY_ENDPOINT = os.environ.get("AZURE_CONTAINER_REGISTRY_ENDPOINT") or secrets.get("AZURE_CONTAINER_REGISTRY_ENDPOINT") or "https://barodybroject.azurecr.io"
+AZURE_CONTAINER_REGISTRY_ENDPOINT = (
+    os.environ.get("AZURE_CONTAINER_REGISTRY_ENDPOINT")
+    or secrets.get("AZURE_CONTAINER_REGISTRY_ENDPOINT")
+    or "https://barodybroject.azurecr.io"
+)
 
 if not prod:  # Running in a Test/Development environment
     DEBUG = True  # SECURITY WARNING: don't run with debug turned on in production!
@@ -120,23 +128,26 @@ else:  # Running in a Production environment
         "https://barodybroject.com",
     ]
 
+# GitHub issue integration
+GITHUB_ISSUE_REPO = os.environ.get("GITHUB_ISSUE_REPO") or secrets.get(
+    "GITHUB_ISSUE_REPO"
+)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # Application definition
 
 INSTALLED_APPS = [
-
     # Django core default apps
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
     "django.contrib.humanize",
-    'django.contrib.sites',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.admin',
-
+    "django.contrib.sites",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.admin",
     # Allauth apps
     "allauth",
     "allauth.account",
@@ -144,7 +155,6 @@ INSTALLED_APPS = [
     "allauth.mfa",
     "allauth.socialaccount.providers.github",
     "allauth.usersessions",
-
     # Django CMS base apps
     'djangocms_admin_style',
     'djangocms_alias',
@@ -176,32 +186,29 @@ INSTALLED_APPS = [
     'djangocms_frontend.contrib.navigation',
     'djangocms_frontend.contrib.tabs',
     'djangocms_frontend.contrib.utilities',
-
+  
     # API and REST Framework
-    'rest_framework', # Add this line to include the rest_framework app in the project
-
+    "rest_framework",  # Add this line to include the rest_framework app in the project
     # Baroydy Broject apps
-    'parodynews',  # Add this line to include the app in the project
-
+    "parodynews",  # Add this line to include the app in the project
     # Third-party apps
-    'django_json_widget',  # Add this line to include the JSON widget app in the project
-    'markdownify',  # Add this line to include the markdownify app in the project
-    'martor',  # Add this line to include the martor app in the project
-    'import_export',  # Add this line to include the import_export app in the project
-    'django_ses',  # Add for AWS SES
-
+    "django_json_widget",  # Add this line to include the JSON widget app in the project
+    "markdownify",  # Add this line to include the markdownify app in the project
+    "martor",  # Add this line to include the martor app in the project
+    "import_export",  # Add this line to include the import_export app in the project
+    "django_ses",  # Add for AWS SES
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'cms.middleware.utils.ApphookReloadMiddleware',  # Add this middleware
-    'django.middleware.locale.LocaleMiddleware',  # Corrected middleware path
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "cms.middleware.utils.ApphookReloadMiddleware",  # Add this middleware
+    "django.middleware.locale.LocaleMiddleware",  # Corrected middleware path
     "cms.middleware.user.CurrentUserMiddleware",
     "cms.middleware.page.CurrentPageMiddleware",
     "cms.middleware.toolbar.ToolbarMiddleware",
@@ -209,33 +216,33 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
-ROOT_URLCONF = 'barodybroject.urls'
+ROOT_URLCONF = "barodybroject.urls"
 
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            BASE_DIR / 'parodynews' /'templates',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [
+            BASE_DIR / "parodynews" / "templates",
         ],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.template.context_processors.i18n',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'parodynews.context_processors.footer_items',  # Add this line to include the footer_items context processor
-                'django.template.context_processors.static',
-                'sekizai.context_processors.sekizai',
-                'cms.context_processors.cms_settings',
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "parodynews.context_processors.footer_items",  # Add this line to include the footer_items context processor
+                "django.template.context_processors.static",
+                "sekizai.context_processors.sekizai",
+                "cms.context_processors.cms_settings",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'barodybroject.wsgi.application'
+WSGI_APPLICATION = "barodybroject.wsgi.application"
 
 
 # Database
@@ -249,7 +256,7 @@ if db_choice == "sqlite":
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
-            'ATOMIC_REQUESTS': True,
+            "ATOMIC_REQUESTS": True,
         }
     }
 elif db_choice == "postgres":
@@ -264,60 +271,56 @@ elif db_choice == "postgres":
             "PASSWORD": os.environ.get("DB_PASSWORD"),
             "HOST": os.environ.get("DB_HOST"),
             "PORT": os.environ.get("DB_PORT", 5432),
-            'ATOMIC_REQUESTS': True,
-            "OPTIONS": {
-                "options": "-c search_path=public",
-                **db_options
-            },
+            "ATOMIC_REQUESTS": True,
+            "OPTIONS": {"options": "-c search_path=public", **db_options},
         }
     }
 
 # Ensure every database has an ATOMIC_REQUESTS key.
 for db_config in DATABASES.values():
-    db_config.setdefault('ATOMIC_REQUESTS', True)
+    db_config.setdefault("ATOMIC_REQUESTS", True)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
         "OPTIONS": {
             "min_length": 6,
         },
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 AUTHENTICATION_BACKENDS = [
     # Needed to login by username in Django admin, regardless of `allauth`
-    'django.contrib.auth.backends.ModelBackend',
-
+    "django.contrib.auth.backends.ModelBackend",
     # `allauth` specific authentication methods, such as login by email
-    'allauth.account.auth_backends.AuthenticationBackend',
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 
 # Email backend configuration
-EMAIL_BACKEND = 'django_ses.SESBackend'
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_SES_REGION_NAME = 'us-east-1'
-AWS_SES_REGION_ENDPOINT = 'email.us-east-1.amazonaws.com'
+EMAIL_BACKEND = "django_ses.SESBackend"
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+AWS_SES_REGION_NAME = "us-east-1"
+AWS_SES_REGION_ENDPOINT = "email.us-east-1.amazonaws.com"
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = "no-reply@barodybroject.com"
 SERVER_EMAIL = "server@barodybroject.com"
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
-ACCOUNT_EMAIL_SUBJECT_PREFIX = 'Parody News: '
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "Parody News: "
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 ACCOUNT_LOGIN_BY_CODE_ENABLED = True
@@ -331,11 +334,11 @@ MFA_PASSKEY_LOGIN_ENABLED = False
 MFA_PASSKEY_SIGNUP_ENABLED = False
 
 SOCIALACCOUNT_PROVIDERS = {
-    'github': {
-        'SCOPE': [
-            'read:user',
+    "github": {
+        "SCOPE": [
+            "read:user",
         ],
-        'VERIFIED_EMAIL': True,
+        "VERIFIED_EMAIL": True,
     }
 }
 # TODO: fix github login
@@ -343,16 +346,16 @@ SOCIALACCOUNT_PROVIDERS = {
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en'
+LANGUAGE_CODE = "en"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
 USE_TZ = True
 
 LANGUAGES = [
-    ('en', 'English'),
+    ("en", "English"),
     # ("de", "German"),
     # ("fr", "French"),
     # Add other languages if needed
@@ -362,32 +365,32 @@ CMS_CONFIRM_VERSION4 = True
 
 CMS_TEMPLATES = [
     ("base.html", _("Base Template")),
-    ('parodynews/cms.html', 'CMS Template'),
+    ("parodynews/cms.html", "CMS Template"),
     # ...existing templates...
 ]
 
 CMS_PLACEHOLDERS = [
-    ('content', 'Content'),
+    ("content", "Content"),
     # Add other placeholders if necessary
 ]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-LOGIN_URL = 'login'
+LOGIN_URL = "login"
 
-LOGIN_REDIRECT_URL = 'index'  # Redirect users to a 'home' page defined in your urls.py
-LOGOUT_REDIRECT_URL = 'index'
+LOGIN_REDIRECT_URL = "index"  # Redirect users to a 'home' page defined in your urls.py
+LOGOUT_REDIRECT_URL = "index"
 
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 # Add your static files directory
 STATICFILES_DIRS = [
     BASE_DIR / "assets",
@@ -416,36 +419,46 @@ DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS = True
 
 # CKEditor settings
 CKEDITOR_CONFIGS = {
-    'default': {
-        'toolbar': 'full',
-        'height': 300,
-        'width': '100%',
+    "default": {
+        "toolbar": "full",
+        "height": 300,
+        "width": "100%",
     },
 }
 
 
-
 # Choices are: "semantic", "bootstrap"
-MARTOR_THEME = 'bootstrap'
+MARTOR_THEME = "bootstrap"
 
 # Global martor settings
 # Input: string boolean, `true/false`
 MARTOR_ENABLE_CONFIGS = {
-    'emoji': 'true',        # to enable/disable emoji icons.
-    'imgur': 'true',        # to enable/disable imgur/custom uploader.
-    'mention': 'false',     # to enable/disable mention
-    'jquery': 'true',       # to include/revoke jquery (require for admin default django)
-    'living': 'false',      # to enable/disable live updates in preview
-    'spellcheck': 'false',  # to enable/disable spellcheck in form textareas
-    'hljs': 'true',         # to enable/disable hljs highlighting in preview
+    "emoji": "true",  # to enable/disable emoji icons.
+    "imgur": "true",  # to enable/disable imgur/custom uploader.
+    "mention": "false",  # to enable/disable mention
+    "jquery": "true",  # to include/revoke jquery (require for admin default django)
+    "living": "false",  # to enable/disable live updates in preview
+    "spellcheck": "false",  # to enable/disable spellcheck in form textareas
+    "hljs": "true",  # to enable/disable hljs highlighting in preview
 }
 
 # To show the toolbar buttons
 MARTOR_TOOLBAR_BUTTONS = [
-    'bold', 'italic', 'horizontal', 'heading', 'pre-code',
-    'blockquote', 'unordered-list', 'ordered-list',
-    'link', 'image-link', 'image-upload', 'emoji',
-    'direct-mention', 'toggle-maximize', 'help'
+    "bold",
+    "italic",
+    "horizontal",
+    "heading",
+    "pre-code",
+    "blockquote",
+    "unordered-list",
+    "ordered-list",
+    "link",
+    "image-link",
+    "image-upload",
+    "emoji",
+    "direct-mention",
+    "toggle-maximize",
+    "help",
 ]
 
 # To setup the martor editor with title label or not (default is False)
@@ -455,33 +468,32 @@ MARTOR_ENABLE_LABEL = False
 MARTOR_ENABLE_ADMIN_CSS = False
 
 # Imgur API Keys
-MARTOR_IMGUR_CLIENT_ID = 'your-client-id'
-MARTOR_IMGUR_API_KEY   = 'your-api-key'
+MARTOR_IMGUR_CLIENT_ID = "your-client-id"
+MARTOR_IMGUR_API_KEY = "your-api-key"
 
 # Markdownify
-MARTOR_MARKDOWNIFY_FUNCTION = 'martor.utils.markdownify' # default
-MARTOR_MARKDOWNIFY_URL = '/martor/markdownify/' # default
+MARTOR_MARKDOWNIFY_FUNCTION = "martor.utils.markdownify"  # default
+MARTOR_MARKDOWNIFY_URL = "/martor/markdownify/"  # default
 
 # Delay in milliseconds to update editor preview when in living mode.
-MARTOR_MARKDOWNIFY_TIMEOUT = 0 # update the preview instantly
+MARTOR_MARKDOWNIFY_TIMEOUT = 0  # update the preview instantly
 # or:
-MARTOR_MARKDOWNIFY_TIMEOUT = 1000 # default
+MARTOR_MARKDOWNIFY_TIMEOUT = 1000  # default
 
 # Markdown extensions (default)
 MARTOR_MARKDOWN_EXTENSIONS = [
-    'markdown.extensions.extra',
-    'markdown.extensions.nl2br',
-    'markdown.extensions.smarty',
-    'markdown.extensions.fenced_code',
-    'markdown.extensions.sane_lists',
-
+    "markdown.extensions.extra",
+    "markdown.extensions.nl2br",
+    "markdown.extensions.smarty",
+    "markdown.extensions.fenced_code",
+    "markdown.extensions.sane_lists",
     # Custom markdown extensions.
-    'martor.extensions.urlize',
-    'martor.extensions.del_ins',      # ~~strikethrough~~ and ++underscores++
-    'martor.extensions.mention',      # to parse markdown mention
-    'martor.extensions.emoji',        # to parse markdown emoji
-    'martor.extensions.mdx_video',    # to parse embed/iframe video
-    'martor.extensions.escape_html',  # to handle the XSS vulnerabilities
+    "martor.extensions.urlize",
+    "martor.extensions.del_ins",  # ~~strikethrough~~ and ++underscores++
+    "martor.extensions.mention",  # to parse markdown mention
+    "martor.extensions.emoji",  # to parse markdown emoji
+    "martor.extensions.mdx_video",  # to parse embed/iframe video
+    "martor.extensions.escape_html",  # to handle the XSS vulnerabilities
     "martor.extensions.mdx_add_id",  # to parse id like {#this_is_id}
 ]
 
@@ -489,20 +501,24 @@ MARTOR_MARKDOWN_EXTENSIONS = [
 MARTOR_MARKDOWN_EXTENSION_CONFIGS = {}
 
 # Markdown urls
-MARTOR_UPLOAD_URL = '' # Completely disable the endpoint
+MARTOR_UPLOAD_URL = ""  # Completely disable the endpoint
 # or:
-MARTOR_UPLOAD_URL = '/martor/uploader/' # default
+MARTOR_UPLOAD_URL = "/martor/uploader/"  # default
 
-MARTOR_SEARCH_USERS_URL = '' # Completely disables the endpoint
+MARTOR_SEARCH_USERS_URL = ""  # Completely disables the endpoint
 # or:
-MARTOR_SEARCH_USERS_URL = '/martor/search-user/' # default
+MARTOR_SEARCH_USERS_URL = "/martor/search-user/"  # default
 
 # Markdown Extensions
 # MARTOR_MARKDOWN_BASE_EMOJI_URL = 'https://www.webfx.com/tools/emoji-cheat-sheet/graphics/emojis/'     # from webfx
-MARTOR_MARKDOWN_BASE_EMOJI_URL = 'https://github.githubassets.com/images/icons/emoji/'                  # default from github
+MARTOR_MARKDOWN_BASE_EMOJI_URL = (
+    "https://github.githubassets.com/images/icons/emoji/"  # default from github
+)
 # or:
-MARTOR_MARKDOWN_BASE_EMOJI_URL = ''  # Completely disables the endpoint
-MARTOR_MARKDOWN_BASE_MENTION_URL = 'https://python.web.id/author/'                                      # please change this to your domain
+MARTOR_MARKDOWN_BASE_EMOJI_URL = ""  # Completely disables the endpoint
+MARTOR_MARKDOWN_BASE_MENTION_URL = (
+    "https://python.web.id/author/"  # please change this to your domain
+)
 
 # If you need to use your own themed "bootstrap" or "semantic ui" dependency
 # replace the values with the file in your static files dir
@@ -512,28 +528,112 @@ MARTOR_MARKDOWN_BASE_MENTION_URL = 'https://python.web.id/author/'              
 
 # URL schemes that are allowed within links
 ALLOWED_URL_SCHEMES = [
-    "file", "ftp", "ftps", "http", "https", "irc", "mailto",
-    "sftp", "ssh", "tel", "telnet", "tftp", "vnc", "xmpp",
+    "file",
+    "ftp",
+    "ftps",
+    "http",
+    "https",
+    "irc",
+    "mailto",
+    "sftp",
+    "ssh",
+    "tel",
+    "telnet",
+    "tftp",
+    "vnc",
+    "xmpp",
 ]
 
 # https://gist.github.com/mrmrs/7650266
 ALLOWED_HTML_TAGS = [
-    "a", "abbr", "b", "blockquote", "br", "cite", "code", "command",
-    "dd", "del", "dl", "dt", "em", "fieldset", "h1", "h2", "h3", "h4", "h5", "h6",
-    "hr", "i", "iframe", "img", "input", "ins", "kbd", "label", "legend",
-    "li", "ol", "optgroup", "option", "p", "pre", "small", "span", "strong",
-    "sub", "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "u", "ul"
+    "a",
+    "abbr",
+    "b",
+    "blockquote",
+    "br",
+    "cite",
+    "code",
+    "command",
+    "dd",
+    "del",
+    "dl",
+    "dt",
+    "em",
+    "fieldset",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "hr",
+    "i",
+    "iframe",
+    "img",
+    "input",
+    "ins",
+    "kbd",
+    "label",
+    "legend",
+    "li",
+    "ol",
+    "optgroup",
+    "option",
+    "p",
+    "pre",
+    "small",
+    "span",
+    "strong",
+    "sub",
+    "sup",
+    "table",
+    "tbody",
+    "td",
+    "tfoot",
+    "th",
+    "thead",
+    "tr",
+    "u",
+    "ul",
 ]
 
 # https://github.com/decal/werdlists/blob/master/html-words/html-attributes-list.txt
 ALLOWED_HTML_ATTRIBUTES = [
-    "alt", "class", "color", "colspan", "datetime",  # "data",
-    "height", "href", "id", "name", "reversed", "rowspan",
-    "scope", "src", "style", "title", "type", "width"
+    "alt",
+    "class",
+    "color",
+    "colspan",
+    "datetime",  # "data",
+    "height",
+    "href",
+    "id",
+    "name",
+    "reversed",
+    "rowspan",
+    "scope",
+    "src",
+    "style",
+    "title",
+    "type",
+    "width",
 ]
 ALLOWED_HTML_ATTRIBUTES = [
-    "alt", "class", "color", "colspan", "datetime",  # "data",
-    "height", "href", "id", "name", "reversed", "rowspan",
-    "scope", "src", "style", "title", "type", "width"
+    "alt",
+    "class",
+    "color",
+    "colspan",
+    "datetime",  # "data",
+    "height",
+    "href",
+    "id",
+    "name",
+    "reversed",
+    "rowspan",
+    "scope",
+    "src",
+    "style",
+    "title",
+    "type",
+    "width",
 ]
 # No further changes needed for DNS or authentication

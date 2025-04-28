@@ -1,92 +1,88 @@
 import json
-from django.contrib import messages
-from django.contrib.auth.views import LoginView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import get_object_or_404, redirect, render
-from django.http import JsonResponse
-from django.views.generic import TemplateView
-from django.views import View
+import os
 from datetime import datetime
 
-from django.urls import reverse_lazy
-from .models import MyObject
-from .forms import MyObjectForm
-from .forms import PostForm, PostFrontMatterForm
 import yaml
-
-from django.views.generic import ListView
-from django.urls import Resolver404, resolve
-from django.utils.translation import override
-
 from cms.apphook_pool import apphook_pool
 from cms.utils import get_language_from_request
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView
+from django.core.mail import send_mail
+from django.http import HttpResponseBadRequest, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import Resolver404, resolve, reverse_lazy
+from django.utils.translation import override
+from django.views import View
+from django.views.generic import ListView, TemplateView
+from github import Github
+from openai import OpenAI
+from rest_framework import status, viewsets
+from rest_framework.response import Response
+from utils.template_utils import load_template_from_path
+
+from githubai.create_issue import run_create_issue
 
 from . import models
-
-from .utils import get_openai_client, delete_assistant
-
-
-
-from .models import JSONSchema
-from .forms import JSONSchemaForm
-
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-
 from .forms import (
     AssistantForm,
-    ContentItemForm,
-    ContentDetailForm,
-    ThreadForm,
     AssistantGroupForm,
     AssistantGroupMembershipFormSet,
+    ContentDetailForm,
+    ContentItemForm,
+    JSONSchemaForm,
+    MyObjectForm,
+    PostForm,
+    PostFrontMatterForm,
+    ThreadForm,
 )
+from .mixins import AppConfigClientMixin, ModelFieldsMixin
 from .models import (
+    AppConfig,
     Assistant,
     AssistantGroup,
     AssistantGroupMembership,
-    ContentItem,
     ContentDetail,
-    Message,
-    Thread,
-    PoweredBy,
-    Post,
+    ContentItem,
     GeneralizedCodes,
+    JSONSchema,
+    Message,
+    MyObject,
+    Post,
     PostFrontMatter,
-    AppConfig,
     PostVersion,
-)
-from .utils import (
-    save_assistant,
-    create_run,
-    generate_content,
-    openai_create_message,
-    openai_delete_message,
-    generate_content_detail,
-    create_or_update_assistant,
+    PoweredBy,
+    Thread,
 )
 from .serializers import (
-    AssistantSerializer,
     AssistantGroupSerializer,
-    ContentItemSerializer,
+    AssistantSerializer,
     ContentDetailSerializer,
-    ThreadSerializer,
-    MessageSerializer,
-    PostSerializer,
-    PostFrontMatterSerializer,
-    JSONSchemaSerializer,
-    PoweredBySerializer,
-    MyObjectSerializer,
+    ContentItemSerializer,
     GeneralizedCodesSerializer,
+    JSONSchemaSerializer,
+    MessageSerializer,
+    MyObjectSerializer,
+    PostFrontMatterSerializer,
+    PostSerializer,
+    PoweredBySerializer,
+    ThreadSerializer,
 )
-from .mixins import ModelFieldsMixin, AppConfigClientMixin
+from .utils import (
+    create_or_update_assistant,
+    create_run,
+    delete_assistant,
+    generate_content,
+    generate_content_detail,
+    get_openai_client,
+    openai_create_message,
+    openai_delete_message,
+    save_assistant,
+)
 
-from openai import OpenAI
-from github import Github
-from django.conf import settings
-
-from django.core.mail import send_mail
 print("Loading views.py")
+
 
 # TODO: Post Frontmatter needs to be dynamic and populated based on the assistant schema, otherwise the front matter is defaulted
 # TODO: Link post to the URL and filename, and github location
@@ -702,8 +698,6 @@ class ManageMessageView(LoginRequiredMixin, View):
         )  # Redirect to the messages list page or wherever appropriate
 
 
-
-
 class ManageAssistantsView(
     LoginRequiredMixin, ModelFieldsMixin, AppConfigClientMixin, View
 ):
@@ -1167,7 +1161,7 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
             return render(request, self.template_name, context)
 
     def publish(self, request, post_id=None):
-        post_id = request.POST.get('post_id')
+        post_id = request.POST.get("post_id")
         post = Post.objects.get(id=post_id)
 
         # Fetch the related PostFrontMatter
@@ -1175,11 +1169,11 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
 
         # Create the frontmatter as a dictionary
         frontmatter = {
-            'title': post_frontmatter.title,
-            'description': post_frontmatter.description,
-            'author': post_frontmatter.author,
-            'published_at': post_frontmatter.published_at.strftime("%Y-%m-%d"),
-            'slug': post_frontmatter.slug,
+            "title": post_frontmatter.title,
+            "description": post_frontmatter.description,
+            "author": post_frontmatter.author,
+            "published_at": post_frontmatter.published_at.strftime("%Y-%m-%d"),
+            "slug": post_frontmatter.slug,
         }
 
         # Convert the frontmatter dictionary to a YAML string
@@ -1189,7 +1183,7 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
         data = f"---\n{frontmatter_yaml}---\n\n{post.post_content}"
 
         # Increment version number
-        latest_version = post.versions.order_by('-version_number').first()
+        latest_version = post.versions.order_by("-version_number").first()
         version_number = latest_version.version_number + 1 if latest_version else 1
 
         # Save the content to PostVersion
@@ -1197,14 +1191,14 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
             post=post,
             version_number=version_number,
             content=data,
-            frontmatter=frontmatter_yaml
+            frontmatter=frontmatter_yaml,
         )
 
         # Fetch GitHub config from AppConfig
         app_config = AppConfig.objects.first()
         if not app_config:
             messages.error(request, "GitHub configuration is missing.")
-            return redirect('manage_post')
+            return redirect("manage_post")
 
         # Push to GitHub and create a PR
         github_url = push_to_github_and_create_pr(post, post_version, app_config)
@@ -1222,26 +1216,27 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
 
 
 def push_to_github_and_create_pr(post, post_version, app_config):
-
     token = app_config.github_pages_token
     repo_name = app_config.github_pages_repo
     base_branch = app_config.github_pages_branch
-    post_dir = app_config.github_pages_post_dir.rstrip('/')
+    post_dir = app_config.github_pages_post_dir.rstrip("/")
 
     g = Github(token)
     repo = g.get_repo(repo_name)
     main_branch = repo.get_branch(base_branch)
-    new_branch_name = f'publish/{post.id}-v{post_version.version_number}'
+    new_branch_name = f"publish/{post.id}-v{post_version.version_number}"
 
     # Create a new branch from the base branch
     from github.GithubException import GithubException
-    
+
     try:
         repo.get_branch(new_branch_name)
         # Branch already exists
-    except GithubException: 
+    except GithubException:
         # Create branch if it doesn't exist
-        repo.create_git_ref(ref=f"refs/heads/{new_branch_name}", sha=main_branch.commit.sha)
+        repo.create_git_ref(
+            ref=f"refs/heads/{new_branch_name}", sha=main_branch.commit.sha
+        )
     content = post_version.content
 
     # Fetch the related PostFrontMatter
@@ -1258,25 +1253,25 @@ def push_to_github_and_create_pr(post, post_version, app_config):
         existing_file = repo.get_contents(repo_path, ref=new_branch_name)
         repo.update_file(
             path=repo_path,
-            message=f'Update post {post.content_detail.title}',
+            message=f"Update post {post.content_detail.title}",
             content=content,
             sha=existing_file.sha,
-            branch=new_branch_name
+            branch=new_branch_name,
         )
     except Exception:
         repo.create_file(
             path=repo_path,
-            message=f'Add post {post.content_detail.title}',
+            message=f"Add post {post.content_detail.title}",
             content=content,
-            branch=new_branch_name
+            branch=new_branch_name,
         )
 
     # Create a pull request
     pr = repo.create_pull(
-        title=f'Add post {post.content_detail.title}',
-        body='Please review the new post.',
+        title=f"Add post {post.content_detail.title}",
+        body="Please review the new post.",
         head=new_branch_name,
-        base=base_branch
+        base=base_branch,
     )
     return pr.html_url
 
@@ -1405,8 +1400,68 @@ class PostPageView(AppHookConfigMixin, ListView):
 
 
 def send_welcome_email(user_email):
-    subject = 'Welcome to Barody Broject'
-    message = 'Thank you for signing up for Barody Broject.'
+    subject = "Welcome to Barody Broject"
+    message = "Thank you for signing up for Barody Broject."
     email_from = settings.DEFAULT_FROM_EMAIL
     recipient_list = [user_email]
     send_mail(subject, message, email_from, recipient_list)
+
+
+# Issue template API endpoints
+class IssueTemplateListView(View):
+    """Return list of available issue templates."""
+
+    def get(self, request):
+        templates_dir = os.path.join(settings.BASE_DIR, ".github", "ISSUE_TEMPLATE")
+        names = []
+        try:
+            for fname in os.listdir(templates_dir):
+                if fname.endswith(".md"):
+                    yaml_conf, _ = load_template_from_path(
+                        os.path.join(templates_dir, fname)
+                    )
+                    title = yaml_conf.get("name", fname)
+                    names.append({"name": fname, "title": title})
+        except Exception:
+            return JsonResponse({"error": "Cannot load templates"}, status=500)
+        return JsonResponse({"templates": names})
+
+
+class IssueTemplateDetailView(View):
+    """Return template frontmatter and body for a given template name."""
+
+    def get(self, request, name):
+        templates_dir = os.path.join(settings.BASE_DIR, ".github", "ISSUE_TEMPLATE")
+        path = os.path.join(templates_dir, name)
+        if not os.path.exists(path):
+            return JsonResponse({"error": "Template not found"}, status=404)
+        yaml_conf, body = load_template_from_path(path)
+        return JsonResponse({"config": yaml_conf, "body": body})
+
+
+class CreateIssueAPIView(View):
+    """Create a GitHub issue based on submitted template data."""
+
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            template_name = data.get("template")
+            fields = data.get("fields", {})
+            repo = getattr(settings, "GITHUB_ISSUE_REPO")
+            if not (template_name and repo):
+                return HttpResponseBadRequest("Missing parameters")
+            # Build issue body from fields
+            body_lines = []
+            for key, val in fields.items():
+                body_lines.append(f"## {key}\n{val}\n")
+            body = "\n".join(body_lines)
+            url = run_create_issue(
+                repo=repo,
+                title=fields.get("Title", ""),
+                body=body,
+                parent_issue_number=None,
+                labels=[],
+            )
+            return JsonResponse({"url": url})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
