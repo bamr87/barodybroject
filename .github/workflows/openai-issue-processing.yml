@@ -10,29 +10,45 @@ permissions:
 
 jobs:
   process-issue:
-    if: contains(github.event.issue.labels.*.name, 'ai-assist') || contains(github.event.issue.labels.*.name, 'README-update')
+    if: >
+      contains(github.event.issue.labels.*.name, 'ai-assist') ||
+      contains(github.event.issue.labels.*.name, 'README-update')
     runs-on: ubuntu-latest
 
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      # 1) Check out bamr87/githubai instead of the current repo
+      - name: Check out githubai source
+        uses: actions/checkout@v4
+        with:
+          repository: bamr87/githubai
+          ref: main               # or whichever branch you want
+          token: ${{ secrets.REPO_PAT }}
+          path: githubai
+
+      # 2) Set up Python
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # 3) Install dependencies from that checkout
       - name: Install dependencies
+        working-directory: githubai
         run: pip install -r src/githubai/requirements.txt
 
+      # 4) Run your issue-processing script against bamr87/githubai
       - name: Process AI Assist Issue
         if: contains(github.event.issue.labels.*.name, 'ai-assist')
+        working-directory: githubai
         run: |
           python src/githubai/create_issue.py \
-            --repo "${{ github.repository }}" \
+            --repo "bamr87/githubai" \
             --parent-issue-number "${{ github.event.issue.number }}"
 
       - name: Display Log File
         if: always()
+        working-directory: githubai
         run: cat openai_api.log
