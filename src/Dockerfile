@@ -3,9 +3,15 @@ FROM python:3-slim
 
 # Install dependencies
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends postgresql-client xmlsec1 \
-    && apt-get install -y libxmlsec1 libxmlsec1-dev \
-    && apt-get update && apt-get install -y xdg-utils \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        python3-dev \
+        libxml2-dev \
+        libxmlsec1-dev \
+        pkg-config \
+        libffi-dev \
+        postgresql-client \
+        xdg-utils \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
