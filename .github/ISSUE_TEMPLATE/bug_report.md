@@ -1,8 +1,8 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Bug report of a specific issue or glitch
 title: 'Bug [BUG] '
-labels: bug
+labels: [bug, ai-assist]
 assignees: bamr87
 
 ---
