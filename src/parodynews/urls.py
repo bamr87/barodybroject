@@ -1,41 +1,38 @@
-from django.urls import path, include
-from rest_framework import routers
-from .views import (
-    AssistantViewSet,
-    AssistantGroupViewSet,
-    ContentItemViewSet,
-    ContentDetailViewSet,
-    ThreadViewSet,
-    MessageViewSet,
-    PostViewSet,
-    PostFrontMatterViewSet,
-    JSONSchemaViewSet,
-    PoweredByViewSet,
-    MyObjectViewSet,
-    GeneralizedCodesViewSet,
-    FooterView,
-    ManageContentView,
-    ManageAssistantsView,
-    ManageMessageView,
-    ProcessContentView,
-    ManagePostView,
-    PostPageView,
-    get_assistant_details,
-    list_schemas,
-    edit_schema,
-    create_schema,
-    delete_schema,
-    export_schema,
-    MyObjectView,
-    ManageAssistantGroupsView,
-    IssueTemplateListView,
-    IssueTemplateDetailView,
-    CreateIssueAPIView,
-    )
-
-from django.contrib.auth.views import LogoutView, LoginView
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth.views import LoginView, LogoutView
+from django.urls import include, path
+from rest_framework import routers
+
+from .views import (
+                    AssistantGroupViewSet,
+                    AssistantViewSet,
+                    ContentDetailViewSet,
+                    ContentItemViewSet,
+                    FooterView,
+                    GeneralizedCodesViewSet,
+                    JSONSchemaViewSet,
+                    ManageAssistantGroupsView,
+                    ManageAssistantsView,
+                    ManageContentView,
+                    ManageMessageView,
+                    ManagePostView,
+                    MessageViewSet,
+                    MyObjectView,
+                    MyObjectViewSet,
+                    PostFrontMatterViewSet,
+                    PostPageView,
+                    PostViewSet,
+                    PoweredByViewSet,
+                    ProcessContentView,
+                    ThreadViewSet,
+                    create_schema,
+                    delete_schema,
+                    edit_schema,
+                    export_schema,
+                    get_assistant_details,
+                    list_schemas,
+)
 
 print("Registering parodynews urls")
 
@@ -147,10 +144,5 @@ urlpatterns = [
     path('schemas/edit/<int:pk>/', edit_schema, name='edit_schema'),
     path('schemas/export/<int:pk>/', export_schema, name='export_schema'),
     path('schemas/delete/<int:pk>/', delete_schema, name='delete_schema'),
-
-    # Issue Templates and Issue Creation
-    path('api/issues/templates/', IssueTemplateListView.as_view(), name='issue_template_list'),
-    path('api/issues/templates/<str:name>/', IssueTemplateDetailView.as_view(), name='issue_template_detail'),
-    path('api/issues/create/', CreateIssueAPIView.as_view(), name='create_issue_api'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

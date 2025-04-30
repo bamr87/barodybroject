@@ -233,7 +233,8 @@ TEMPLATES = [
                 "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "parodynews.context_processors.footer_items",  # Add this line to include the footer_items context processor
+                "parodynews.context_processors.footer_items",
+                "parodynews.context_processors.issue_templates",
                 "django.template.context_processors.static",
                 "sekizai.context_processors.sekizai",
                 "cms.context_processors.cms_settings",
@@ -271,8 +272,11 @@ elif db_choice == "postgres":
             "PASSWORD": os.environ.get("DB_PASSWORD"),
             "HOST": os.environ.get("DB_HOST"),
             "PORT": os.environ.get("DB_PORT", 5432),
-            "ATOMIC_REQUESTS": True,
-            "OPTIONS": {"options": "-c search_path=public", **db_options},
+            'ATOMIC_REQUESTS': True,
+            "OPTIONS": {
+                "options": "-c search_path=public",
+                **db_options
+            },
         }
     }
 
@@ -444,21 +448,10 @@ MARTOR_ENABLE_CONFIGS = {
 
 # To show the toolbar buttons
 MARTOR_TOOLBAR_BUTTONS = [
-    "bold",
-    "italic",
-    "horizontal",
-    "heading",
-    "pre-code",
-    "blockquote",
-    "unordered-list",
-    "ordered-list",
-    "link",
-    "image-link",
-    "image-upload",
-    "emoji",
-    "direct-mention",
-    "toggle-maximize",
-    "help",
+    'bold', 'italic', 'horizontal', 'heading', 'pre-code',
+    'blockquote', 'unordered-list', 'ordered-list',
+    'link', 'image-link', 'image-upload', 'emoji',
+    'direct-mention', 'toggle-maximize', 'help'
 ]
 
 # To setup the martor editor with title label or not (default is False)
@@ -511,14 +504,10 @@ MARTOR_SEARCH_USERS_URL = "/martor/search-user/"  # default
 
 # Markdown Extensions
 # MARTOR_MARKDOWN_BASE_EMOJI_URL = 'https://www.webfx.com/tools/emoji-cheat-sheet/graphics/emojis/'     # from webfx
-MARTOR_MARKDOWN_BASE_EMOJI_URL = (
-    "https://github.githubassets.com/images/icons/emoji/"  # default from github
-)
+MARTOR_MARKDOWN_BASE_EMOJI_URL = 'https://github.githubassets.com/images/icons/emoji/'                  # default from github
 # or:
-MARTOR_MARKDOWN_BASE_EMOJI_URL = ""  # Completely disables the endpoint
-MARTOR_MARKDOWN_BASE_MENTION_URL = (
-    "https://python.web.id/author/"  # please change this to your domain
-)
+MARTOR_MARKDOWN_BASE_EMOJI_URL = ''  # Completely disables the endpoint
+MARTOR_MARKDOWN_BASE_MENTION_URL = 'https://python.web.id/author/'                                      # please change this to your domain
 
 # If you need to use your own themed "bootstrap" or "semantic ui" dependency
 # replace the values with the file in your static files dir
@@ -528,112 +517,28 @@ MARTOR_MARKDOWN_BASE_MENTION_URL = (
 
 # URL schemes that are allowed within links
 ALLOWED_URL_SCHEMES = [
-    "file",
-    "ftp",
-    "ftps",
-    "http",
-    "https",
-    "irc",
-    "mailto",
-    "sftp",
-    "ssh",
-    "tel",
-    "telnet",
-    "tftp",
-    "vnc",
-    "xmpp",
+    "file", "ftp", "ftps", "http", "https", "irc", "mailto",
+    "sftp", "ssh", "tel", "telnet", "tftp", "vnc", "xmpp",
 ]
 
 # https://gist.github.com/mrmrs/7650266
 ALLOWED_HTML_TAGS = [
-    "a",
-    "abbr",
-    "b",
-    "blockquote",
-    "br",
-    "cite",
-    "code",
-    "command",
-    "dd",
-    "del",
-    "dl",
-    "dt",
-    "em",
-    "fieldset",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "hr",
-    "i",
-    "iframe",
-    "img",
-    "input",
-    "ins",
-    "kbd",
-    "label",
-    "legend",
-    "li",
-    "ol",
-    "optgroup",
-    "option",
-    "p",
-    "pre",
-    "small",
-    "span",
-    "strong",
-    "sub",
-    "sup",
-    "table",
-    "tbody",
-    "td",
-    "tfoot",
-    "th",
-    "thead",
-    "tr",
-    "u",
-    "ul",
+    "a", "abbr", "b", "blockquote", "br", "cite", "code", "command",
+    "dd", "del", "dl", "dt", "em", "fieldset", "h1", "h2", "h3", "h4", "h5", "h6",
+    "hr", "i", "iframe", "img", "input", "ins", "kbd", "label", "legend",
+    "li", "ol", "optgroup", "option", "p", "pre", "small", "span", "strong",
+    "sub", "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "u", "ul"
 ]
 
 # https://github.com/decal/werdlists/blob/master/html-words/html-attributes-list.txt
 ALLOWED_HTML_ATTRIBUTES = [
-    "alt",
-    "class",
-    "color",
-    "colspan",
-    "datetime",  # "data",
-    "height",
-    "href",
-    "id",
-    "name",
-    "reversed",
-    "rowspan",
-    "scope",
-    "src",
-    "style",
-    "title",
-    "type",
-    "width",
+    "alt", "class", "color", "colspan", "datetime",  # "data",
+    "height", "href", "id", "name", "reversed", "rowspan",
+    "scope", "src", "style", "title", "type", "width"
 ]
 ALLOWED_HTML_ATTRIBUTES = [
-    "alt",
-    "class",
-    "color",
-    "colspan",
-    "datetime",  # "data",
-    "height",
-    "href",
-    "id",
-    "name",
-    "reversed",
-    "rowspan",
-    "scope",
-    "src",
-    "style",
-    "title",
-    "type",
-    "width",
+    "alt", "class", "color", "colspan", "datetime",  # "data",
+    "height", "href", "id", "name", "reversed", "rowspan",
+    "scope", "src", "style", "title", "type", "width"
 ]
 # No further changes needed for DNS or authentication

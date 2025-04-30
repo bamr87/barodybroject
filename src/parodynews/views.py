@@ -1,5 +1,4 @@
 import json
-import os
 from datetime import datetime
 
 import yaml
@@ -10,7 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
-from django.http import HttpResponseBadRequest, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import Resolver404, resolve, reverse_lazy
 from django.utils.translation import override
@@ -20,9 +19,6 @@ from github import Github
 from openai import OpenAI
 from rest_framework import status, viewsets
 from rest_framework.response import Response
-from utils.template_utils import load_template_from_path
-
-from githubai.create_issue import run_create_issue
 
 from . import models
 from .forms import (
@@ -1405,63 +1401,3 @@ def send_welcome_email(user_email):
     email_from = settings.DEFAULT_FROM_EMAIL
     recipient_list = [user_email]
     send_mail(subject, message, email_from, recipient_list)
-
-
-# Issue template API endpoints
-class IssueTemplateListView(View):
-    """Return list of available issue templates."""
-
-    def get(self, request):
-        templates_dir = os.path.join(settings.BASE_DIR, ".github", "ISSUE_TEMPLATE")
-        names = []
-        try:
-            for fname in os.listdir(templates_dir):
-                if fname.endswith(".md"):
-                    yaml_conf, _ = load_template_from_path(
-                        os.path.join(templates_dir, fname)
-                    )
-                    title = yaml_conf.get("name", fname)
-                    names.append({"name": fname, "title": title})
-        except Exception:
-            return JsonResponse({"error": "Cannot load templates"}, status=500)
-        return JsonResponse({"templates": names})
-
-
-class IssueTemplateDetailView(View):
-    """Return template frontmatter and body for a given template name."""
-
-    def get(self, request, name):
-        templates_dir = os.path.join(settings.BASE_DIR, ".github", "ISSUE_TEMPLATE")
-        path = os.path.join(templates_dir, name)
-        if not os.path.exists(path):
-            return JsonResponse({"error": "Template not found"}, status=404)
-        yaml_conf, body = load_template_from_path(path)
-        return JsonResponse({"config": yaml_conf, "body": body})
-
-
-class CreateIssueAPIView(View):
-    """Create a GitHub issue based on submitted template data."""
-
-    def post(self, request):
-        try:
-            data = json.loads(request.body)
-            template_name = data.get("template")
-            fields = data.get("fields", {})
-            repo = getattr(settings, "GITHUB_ISSUE_REPO")
-            if not (template_name and repo):
-                return HttpResponseBadRequest("Missing parameters")
-            # Build issue body from fields
-            body_lines = []
-            for key, val in fields.items():
-                body_lines.append(f"## {key}\n{val}\n")
-            body = "\n".join(body_lines)
-            url = run_create_issue(
-                repo=repo,
-                title=fields.get("Title", ""),
-                body=body,
-                parent_issue_number=None,
-                labels=[],
-            )
-            return JsonResponse({"url": url})
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)

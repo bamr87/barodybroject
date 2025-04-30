@@ -1,15 +1,16 @@
 # Chat GPT-4o API
 # https://platform.openai.com/docs/api-reference/chat-gpt-4o
 
-from .models import AppConfig, Assistant, ContentItem, Message
 from django.conf import settings
+
+from .models import AppConfig, Assistant, ContentItem, Message
 
 print("Loading utils.py")
 
 # Start up and load the OpenAI API key
 from django.apps import apps
-
 from django.db.models import Q
+
 
 def table_exists_and_fields_populated(model_name):
     try:
@@ -110,8 +111,10 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 import json
-import jsonref
 import os
+
+import jsonref
+
 
 def load_schemas():
     # Define the path to the schema directory
@@ -274,6 +277,7 @@ def openai_delete_message(client, message_id, thread_id):
 
 def create_run(client, thread_id, assistant_id):
     import time
+
     # https://platform.openai.com/docs/api-reference/runs/createRun
 
     run = client.beta.threads.runs.create(
@@ -520,6 +524,7 @@ def generate_unique_id():
 from django.core.cache import cache
 from django.db.utils import ProgrammingError
 
+
 def get_model_defaults(model_name, default_type="default_type"):
     from .models import FieldDefaults
 
@@ -547,3 +552,31 @@ def get_model_defaults(model_name, default_type="default_type"):
             return item.get("fields", {})
 
     return {}
+
+
+import re
+
+import yaml
+
+
+def load_template_from_path(template_path: str):
+    with open(template_path, 'r') as file:
+        content = file.read()
+    front_matter_match = re.search(r'^---(.*?)---', content, re.DOTALL)
+    if not front_matter_match:
+        raise ValueError("YAML front matter not found in template.")
+    yaml_config = yaml.safe_load(front_matter_match.group(1))
+    template_body = content[front_matter_match.end():].strip()
+    return yaml_config, template_body
+
+def extract_file_paths_from_frontmatter(yaml_config: dict) -> list:
+    """
+    Extract file paths from the template frontmatter.
+
+    Args:
+        yaml_config (dict): The YAML configuration loaded from the template frontmatter.
+
+    Returns:
+        list: A list of file paths included in the template frontmatter.
+    """
+    return yaml_config.get('include_files', [])
