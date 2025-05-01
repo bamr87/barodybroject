@@ -1,9 +1,10 @@
-import pytest
-import os
-from playwright.sync_api import sync_playwright
-from parodynews.tests.scripts.functions.user_login import login_user
-from parodynews.tests.scripts.functions.user_create import create_new_account
 import time
+
+import pytest  # noqa: F401import os
+from playwright.sync_api import sync_playwright
+
+from parodynews.tests.scripts.functions.user_create import create_new_account
+from parodynews.tests.scripts.functions.user_login import login_user
 
 # Set the DJANGO_SETTINGS_MODULE environment variable
 os.environ['DJANGO_SETTINGS_MODULE'] = 'barodybroject.settings'
