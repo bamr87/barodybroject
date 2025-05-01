@@ -24,6 +24,17 @@
     <h2>Selected Thread</h2>
     <div class="list-group" id="messages-list">
         <h3>Thread ID: {{ current_thread.thread_id }}</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    {% for field in fields %}
+                        {% if field.name in display_fields %}
+                            <th>{{ field.verbose_name }} <input type="text" class="filter" placeholder="Filter..." /></th>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            </thead>
+        </table>
         {% for message in thread_messages %}
         <div class="list-group-item">
             <p class="fw-bold">{{ message.id }}</p>
