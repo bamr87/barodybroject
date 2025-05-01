@@ -25,6 +25,7 @@ jobs:
         with:
           repository: bamr87/githubai
           ref: main               # or whichever branch you want
+          token: ${{ secrets.GITHUB_TOKEN }}
           path: githubai
 
       # 2) Set up Python
