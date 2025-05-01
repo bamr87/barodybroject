@@ -34,24 +34,30 @@
                     {% endfor %}
                 </tr>
             </thead>
+            <tbody>
+                {% for message in thread_messages %}
+                <tr>
+                    <td>{{ message.id }}</td>
+                    <td>{{ message.contentitem.content_text|markdownify|linebreaksbr }}</td>
+                    <td>
+                        <!-- Form to add message to database -->
+                        <form action="{% url 'add_message_to_db' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="thread_id" value="{{ current_thread.thread_id }}">
+                            <input type="hidden" name="assistant_id" value="{{ message.assistant_id }}">
+                            <input type="hidden" name="message_id" value="{{ message.id }}">
+                            <input type="hidden" name="message_content" value="{{ message.text }}">
+                            <button type="submit" class="btn btn-primary btn-sm">Add to Database</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{{ display_fields|length }}">No messages found for this thread.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
-        {% for message in thread_messages %}
-        <div class="list-group-item">
-            <p class="fw-bold">{{ message.id }}</p>
-            <div class="message-content">{{ message.contentitem.content_text|markdownify|linebreaksbr }}</div>
-            <!-- Form to add message to database -->
-            <form action="{% url 'add_message_to_db' %}" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="thread_id" value="{{ current_thread.thread_id }}">
-                <input type="hidden" name="assistant_id" value="{{ message.assistant_id }}">
-                <input type="hidden" name="message_id" value="{{ message.id }}">
-                <input type="hidden" name="message_content" value="{{ message.text }}">
-                <button type="submit" class="btn btn-primary btn-sm">Add to Database</button>
-            </form>
-        </div>
-        {% empty %}
-        <p>No messages found for this thread.</p>
-        {% endfor %}
         {% endif %}
     </div>
 </div>

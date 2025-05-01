@@ -278,6 +278,7 @@ class ManageContentView(
 
         # Create a new Thread instance and save it
         new_thread = Thread(id=thread_id, name=contentitem.detail.title)
+        new_thread.user = request.user
         new_thread.save()
         # new_thread.create_run_queue()
 
@@ -310,8 +311,10 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
     # View to list all threads and messages
 
     def get(self, request, message_id=None, thread_id=None, assistant_group_id=None):
+        # support selecting a thread via GET param
+        if not thread_id and request.GET.get('thread_id'):
+            thread_id = request.GET.get('thread_id')
         # Check if thread_id is provided
-
         if thread_id:
             current_thread = Thread.objects.get(pk=thread_id)
             thread_messages = Message.objects.filter(thread_id=thread_id)
@@ -329,7 +332,7 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         if message_id:
             current_message = Message.objects.get(pk=message_id)
 
-        threads = Thread.objects.filter(user=request.user)  # Retrieve all threads
+        threads = Thread.objects.all()  # Retrieve all threads regardless of user assignment
         fields, display_fields = self.get_model_fields()
 
         message_list = Message.objects.all()
