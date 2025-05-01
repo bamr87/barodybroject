@@ -10,23 +10,26 @@ TODO: Need to add processing overlay with status of each assistant run.
 TODO: after assigning assistant, return to assigned message.
 {% endcomment %}
 
-<!-- dropdown to select an existing thread -->
-<form method="get" action="{% url 'process_content' %}" class="mb-4">
-    <div class="input-group">
-        <label class="input-group-text" for="thread-select">Thread</label>
-        <select id="thread-select" name="thread_id" class="form-select">
-            <option value="">-- Select Thread --</option>
-            {% for thread in threads %}
-                <option value="{{ thread.id }}">{{ thread.name }}</option>
-            {% endfor %}
-        </select>
-        <button class="btn btn-outline-secondary" type="submit">Load</button>
-    </div>
-</form>
+
 
 <!-- content_processing.html -->
 <div class="container">
     <h1>Content Processing</h1>
+
+        <!-- dropdown to select an existing thread -->
+        <form method="get" action="{% url 'process_content' %}" class="mb-4">
+            <div class="input-group">
+                <label class="input-group-text" for="thread-select">Thread</label>
+                <select id="thread-select" name="thread_id" class="form-select">
+                    <option value="">-- Select Thread --</option>
+                    {% for thread in threads %}
+                        <option value="{{ thread.id }}">{{ thread.name }}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn btn-outline-secondary" type="submit">Load</button>
+            </div>
+        </form>
+
 
     {% if current_thread %}
     <!-- Thread Form -->
