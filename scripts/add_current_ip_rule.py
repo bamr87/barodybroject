@@ -1,7 +1,8 @@
 import os
-import requests
+
 import boto3
 import environ
+import requests
 
 # Initialize environment variables
 env = environ.Env()
@@ -42,6 +43,6 @@ def add_ingress_rule():
         print(f"Successfully added ingress rule for {cidr_ip} on security group {SECURITY_GROUP_ID}.")
     except Exception as e:
         print(f"Failed to add ingress rule: {e}")
-
+    return response
 if __name__ == "__main__":
     add_ingress_rule()

@@ -223,6 +223,7 @@ parody_schema = resolve_refs(all_schemas.get('parody_news_article_schema'))
 content_detail_schema = resolve_refs(all_schemas.get('content_detail_schema'))
 
 def generate_content_detail(client, content):
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -251,12 +252,13 @@ def generate_content_detail(client, content):
         }
     )
     # Get the content of the last message in the response
-    content_detail = response.choices[0].message.content
+    data = response.choices[0].message.content
     
     # Log the response
-    logging.info("Response: %s", content_detail)
+    logging.info("Response: %s", data)
     
-    return content_detail
+    return data
+
 
 def openai_create_message(client, contentitem):
     thread = client.beta.threads.create(
@@ -418,43 +420,6 @@ def generate_markdown_file(data, filename):
         file.write(data)
     
     return file_path
-
-def generate_content_detail(client, content):
-
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "generate content detail",
-                    },
-                ],
-            },
-            {
-                "role": "user",
-                "content": content,
-            }
-        ],
-        response_format={
-            "type": "json_schema",
-            "json_schema": {
-                "name": "Metadata",
-                "description": "A JSON object representing details of a news article.",
-                "schema": content_detail_schema,
-                "strict": True,
-           }
-        }
-    )
-    # Get the content of the last message in the response
-    data = response.choices[0].message.content
-    
-    # Log the response
-    logging.info("Response: %s", data)
-    
-    return data
 
 def create_or_update_assistant(client, validated_data):
     name = validated_data.get('name')

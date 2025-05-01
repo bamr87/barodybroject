@@ -1,41 +1,37 @@
 # parodynews/admin.py
-from django.core.management import call_command
-from django.contrib import (
-    admin,
-    messages
-)
-
-from martor.widgets import AdminMartorWidget
-from django.db import models
+from cms.admin.placeholderadmin import FrontendEditableAdminMixin
 from django import forms
+from django.contrib import admin, messages
+from django.core.management import call_command
+from django.db import models
 from django_json_widget.widgets import JSONEditorWidget
 from import_export.admin import ImportExportModelAdmin
-from cms.admin.placeholderadmin import FrontendEditableAdminMixin
+from martor.widgets import AdminMartorWidget
 
+# myapp/admin.py
 from .models import (
     AppConfig,
-    PoweredBy,
     Assistant,
-    JSONSchema,
-    Post,
-    PostFrontMatter,
-    GeneralizedCodes,
-    PostPageConfigModel,
-    OpenAIModel,
-    Entry,
     AssistantGroup,
     AssistantGroupMembership,
-    PostVersion
+    Entry,
+    FieldDefaults,
+    GeneralizedCodes,
+    JSONSchema,
+    OpenAIModel,
+    Post,
+    PostFrontMatter,
+    PostPageConfigModel,
+    PostVersion,
+    PoweredBy,
 )
-
 from .resources import (
     AssistantResource,
     JSONSchemaResource,
-    PostResource,
     OpenAIModelResource,
+    PostResource,
 )
-
-from .utils import get_openai_client, delete_assistant
+from .utils import delete_assistant, get_openai_client
 
 print("Registering AppConfig model")
 
@@ -70,6 +66,7 @@ class JSONSchemaAdmin(ImportExportModelAdmin):
     
     def export_selected_schemas(self, request, queryset):
         import json
+
         from django.http import HttpResponse
 
         response = HttpResponse(content_type='application/json')
@@ -82,8 +79,6 @@ class JSONSchemaAdmin(ImportExportModelAdmin):
 
 admin.site.register(JSONSchema, JSONSchemaAdmin)
 
-# myapp/admin.py
-from .models import FieldDefaults
 
 class FieldDefaultsForm(forms.ModelForm):
     class Meta:
