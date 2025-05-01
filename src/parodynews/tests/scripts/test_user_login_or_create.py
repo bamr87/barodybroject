@@ -1,5 +1,6 @@
-import pytest
+import pytest  # noqa: F401
 from selenium.webdriver.common.by import By
+
 
 def test_login_or_create(ensure_logged_in):
     driver = ensure_logged_in

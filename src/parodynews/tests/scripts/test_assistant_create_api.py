@@ -1,5 +1,6 @@
-import pytest
+import pytest  # noqa: F401
 from rest_framework.test import APIClient
+
 
 @pytest.mark.django_db
 def test_assistant_create_api():

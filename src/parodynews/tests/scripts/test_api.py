@@ -1,5 +1,6 @@
-import pytest
+import pytest  # noqa: F401
 import requests
+
 
 @pytest.fixture(scope='module')
 def assistant_id():

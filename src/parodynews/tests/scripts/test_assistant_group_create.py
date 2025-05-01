@@ -1,4 +1,5 @@
-import pytest
+import pytest  # noqa: F401
+
 
 def test_assistant_group_create(ensure_logged_in):
     page = ensure_logged_in

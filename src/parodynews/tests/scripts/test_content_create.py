@@ -1,4 +1,5 @@
-import pytest
+import pytest  # noqa: F401
+
 
 def test_content_create(ensure_logged_in):
     page = ensure_logged_in
