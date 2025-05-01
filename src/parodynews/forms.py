@@ -1,27 +1,26 @@
 import re
-from django_json_widget.widgets import JSONEditorWidget
-from django.core.exceptions import ValidationError
-from django import forms
-from django.db.models import Count
-from .models import (
-    Assistant,
-    AssistantGroup,
-    ContentItem,
-    ContentDetail,
-    MyObject,
-    JSONSchema,
-    Thread,
-    Post,
-    PostFrontMatter,
-    )
 
-from .mixins import (
-    DefaultFormFieldsMixin,
-    )
+from django import forms
+from django.core.exceptions import ValidationError
+from django.db.models import Count
 
 # from martor.fields import MartorFormField
 from django.forms import inlineformset_factory
-from .models import AssistantGroupMembership
+from django_json_widget.widgets import JSONEditorWidget
+
+from .mixins import DefaultFormFieldsMixin
+from .models import (
+    Assistant,
+    AssistantGroup,
+    AssistantGroupMembership,
+    ContentDetail,
+    ContentItem,
+    JSONSchema,
+    MyObject,
+    Post,
+    PostFrontMatter,
+    Thread,
+)
 
 print("Loading forms...")
 
@@ -116,8 +115,6 @@ class AssistantForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
-            # Filter to assistant groups the assistant is a member of
-            memberships = AssistantGroupMembership.objects.filter(assistants=self.instance)
             # self.fields['assistant_group_memberships'].queryset = memberships
             self.fields['assistant_group_memberships'].queryset = AssistantGroup.objects.filter(assistantgroupmembership__assistants=self.instance)
 

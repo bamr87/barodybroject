@@ -410,7 +410,6 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         message_id = request.POST.get("message_id")
         message = Message.objects.get(id=message_id)
         message_content = message.contentitem.content_text
-        thread_id = request.POST.get("thread_id")
         assistant_id = message.assistant_id
 
         generated_content_detail = json.loads(
@@ -469,7 +468,6 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         thread = Thread.objects.get(pk=thread_id)
 
         # Retrieve the assistant group for the thread
-        assistant_group_id = request.POST.get("assistant_group_id")
         assistant_group = thread.assistant_group
 
         # Retrieve the assistant IDs in the assistant group
@@ -711,7 +709,7 @@ class ManageAssistantsView(
 
         # Initialize the form
         assistant_form = AssistantForm(instance=assistant)
-        assistant_group_form = AssistantGroupForm()
+        # assistant_group_form = AssistantGroupForm()
         # Get the fields and display fields for the model
         assistants_info = Assistant.objects.all()
         fields, display_fields = self.get_model_fields()

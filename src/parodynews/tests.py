@@ -1,15 +1,13 @@
-from django.test import TestCase
-
-print("Performing tests...")
 # Create your tests here.
-from .forms import ContentItemForm
-
-from django.test import Client
-from django.urls import reverse
-from .models import ContentDetail
 from django.contrib.auth.models import User
+from django.test import Client, TestCase
+from django.urls import reverse
 from rest_framework.test import APITestCase
 
+from .forms import ContentItemForm
+from .models import ContentDetail
+
+print("Performing tests...")
 class ManageContentViewTestCase(TestCase):
     def setUp(self):
         self.client = Client()

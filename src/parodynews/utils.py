@@ -1,16 +1,24 @@
 # Chat GPT-4o API
 # https://platform.openai.com/docs/api-reference/chat-gpt-4o
 
+import json
+import logging
+import os
+import re
+
+import jsonref
+import yaml
+from django.apps import apps
 from django.conf import settings
+
+# utils.py
+from django.core.cache import cache
+from django.db.models import Q
+from django.db.utils import ProgrammingError
 
 from .models import AppConfig, Assistant, ContentItem, Message
 
 print("Loading utils.py")
-
-# Start up and load the OpenAI API key
-from django.apps import apps
-from django.db.models import Q
-
 
 def table_exists_and_fields_populated(model_name):
     try:
@@ -102,7 +110,6 @@ def openai_delete_assistant(client, assistant_id):
 
 # Function to generate content
 
-import logging
 
 # Configure logging
 logging.basicConfig(
@@ -110,10 +117,7 @@ logging.basicConfig(
     level=logging.INFO, 
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
-import json
-import os
 
-import jsonref
 
 
 def load_schemas():
@@ -520,9 +524,7 @@ def generate_unique_id():
     return str(uuid.uuid4())
 
 
-# utils.py
-from django.core.cache import cache
-from django.db.utils import ProgrammingError
+
 
 
 def get_model_defaults(model_name, default_type="default_type"):
@@ -552,12 +554,6 @@ def get_model_defaults(model_name, default_type="default_type"):
             return item.get("fields", {})
 
     return {}
-
-
-import re
-
-import yaml
-
 
 def load_template_from_path(template_path: str):
     with open(template_path, 'r') as file:
