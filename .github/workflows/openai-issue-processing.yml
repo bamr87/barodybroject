@@ -45,7 +45,7 @@ jobs:
         working-directory: githubai
         run: |
           python src/githubai/create_issue.py \
-            --repo "bamr87/githubai" \
+            --repo "${{ github.repository }}" \
             --parent-issue-number "${{ github.event.issue.number }}"
 
       - name: Display Log File
