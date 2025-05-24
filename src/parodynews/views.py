@@ -1096,6 +1096,9 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
         if request.POST.get("_method") == "publish":
             return self.publish(request)
 
+        if request.POST.get("_method") == "publish_to_cms":
+            return self.publish_to_cms(request)
+
         return redirect("manage_post")
 
     def delete(self, request, post_id=None):
@@ -1202,6 +1205,63 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
 
         # Redirect to the GitHub PR URL
         return redirect(github_url)
+
+    def publish_to_cms(self, request, post_id=None):
+        """
+        Publishes the post as a page in the Django CMS.
+        """
+        from cms.api import add_plugin, create_page, publish_page
+        from cms.models import Placeholder
+        from django.contrib.sites.models import Site
+        from django.utils.text import slugify
+        from djangocms_text_ckeditor.cms_plugins import TextPlugin
+
+        post_id = request.POST.get("post_id")
+        post = Post.objects.get(id=post_id)
+        post_frontmatter = PostFrontMatter.objects.get(post_id=post.id)
+
+        # Map post fields to CMS page fields
+        title = post_frontmatter.title
+        slug = slugify(post_frontmatter.slug)
+        language = "en"
+        site = Site.objects.get_current()
+        content = post.post_content
+
+        try:
+            # Create the CMS page as draft
+            page = create_page(
+                title=title,
+                template="INHERIT",
+                language=language,
+                slug=slug,
+                site=site,
+                published=False,
+                created_by=request.user.username,
+            )
+
+            # Create a placeholder directly
+            placeholder = Placeholder.objects.create(slot="content")
+            placeholder.save()
+            
+            # Add the post content as a TextPlugin to the placeholder
+            add_plugin(placeholder, TextPlugin, language=language, body=content)
+            
+            # Get the content for the page
+            page_content = page.get_content_obj(language=language)
+            
+            # Add the placeholder to the page content
+            if hasattr(page_content, 'placeholders'):
+                page_content.placeholders.add(placeholder)
+                page_content.save()
+            
+            # Publish the page
+            publish_page(page, user=request.user, language=language)
+
+            messages.success(request, "Post published to CMS successfully!")
+            return redirect("post_detail", post_id=post.id)
+        except Exception as e:
+            messages.error(request, f"Failed to publish to CMS: {e}")
+            return redirect("post_detail", post_id=post.id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

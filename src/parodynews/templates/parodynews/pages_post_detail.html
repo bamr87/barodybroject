@@ -54,6 +54,14 @@ TODO: Update the assistant field with last assistant to produce output
                 <input type="hidden" name="action" value="publish">
                 <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to publish this content and create a pull request on GitHub?');">Publish</button>
             </form>
+            <!-- Publish to CMS Button Form -->
+            <form action="{% url 'publish_post_to_cms' post.id %}" method="POST" class="publish-cms-form mr-2 d-grid gap-2">
+                {% csrf_token %}
+                <input type="hidden" name="post_id" value="{{ post.id }}">
+                <input type="hidden" name="_method" value="publish_to_cms">
+                <input type="hidden" name="action" value="publish_to_cms">
+                <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to publish this post to the Django CMS?');">Publish to CMS</button>
+            </form>
         </div>
     </form>
 

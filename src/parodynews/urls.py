@@ -109,6 +109,7 @@ urlpatterns = [
     path('posts/delete/<int:post_id>', ManagePostView.as_view(), name='delete_post'),
     path('posts/delete/', ManagePostView.as_view(), name='delete_post'),
     path('posts/publish/<int:post_id>', ManagePostView.as_view(), name='publish_post'),
+    path('posts/publish-to-cms/<int:post_id>', ManagePostView.as_view(), name='publish_post_to_cms'),
     path('posts/<int:post_id>/', ManagePostView.as_view(), name='post_detail'),
 
     # Assistant management
