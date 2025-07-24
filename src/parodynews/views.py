@@ -1,3 +1,18 @@
+"""
+Django views for the Parodynews application.
+
+This module contains all the view classes and functions that handle HTTP requests
+and responses for the Barodybroject application. It includes views for content
+management, user authentication, AI assistant interaction, and API endpoints.
+
+The views support:
+- Content creation and management with AI assistance
+- User authentication and profile management
+- Thread-based conversations with AI assistants
+- RESTful API endpoints for external integrations
+- Admin interface enhancements
+"""
+
 import json
 from datetime import datetime
 
