@@ -160,7 +160,7 @@ INSTALLED_APPS = [
     'djangocms_alias',
     'djangocms_versioning',
     'djangocms_text_ckeditor',
-    # 'djangocms_link',
+    'djangocms_link',
 
     'cms',
     'menus',

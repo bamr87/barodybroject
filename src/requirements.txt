@@ -33,6 +33,7 @@ dkimpy
 # django-cms requirements
 django-cms
 djangocms_text_ckeditor
+djangocms_link
 djangocms-frontend
 djangocms-versioning
 djangocms-alias
