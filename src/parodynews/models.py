@@ -1,3 +1,17 @@
+"""
+Django models for the Parodynews application.
+
+This module contains all the data models used in the Barodybroject application,
+including models for content management, user profiles, AI assistants, and
+system configuration.
+
+The models are designed to support:
+- Content creation and management with AI assistance
+- User authentication and profile management
+- AI assistant configuration and thread management
+- System settings and API configurations
+"""
+
 from django.db import models
 from django.core.cache import cache
 from django.utils import timezone
@@ -14,6 +28,17 @@ print("Loading models.py")
 # TODO: Add user id to models for tracking and ownership
 
 class PoweredBy(models.Model):
+    """
+    Model representing external services and technologies that power the application.
+    
+    This model stores information about third-party services, frameworks, and tools
+    used in the application for display in credits or acknowledgments.
+    
+    Attributes:
+        name (str): The name of the service or technology.
+        icon (str): CSS class or identifier for the service icon.
+        url (str): Official website URL of the service.
+    """
     name = models.CharField(max_length=100)
     icon = models.CharField(max_length=100)
     url = models.URLField()
@@ -22,6 +47,21 @@ class PoweredBy(models.Model):
         return self.name
 
 class AppConfig(models.Model):
+    """
+    Application configuration model for storing API keys and settings.
+    
+    This model stores sensitive configuration data such as API keys,
+    project identifiers, and integration settings that are used throughout
+    the application.
+    
+    Attributes:
+        api_key (str): OpenAI or other service API key.
+        project_id (str): Project identifier for external services.
+        org_id (str): Organization identifier.
+        github_pages_repo (str): GitHub repository for Pages deployment.
+        github_pages_branch (str): Git branch for Pages deployment.
+        github_pages_token (str): GitHub access token for automation.
+    """
     api_key = models.CharField(max_length=255)
     project_id = models.CharField(max_length=255)
     org_id = models.CharField(max_length=255)

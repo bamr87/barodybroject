@@ -1,3 +1,19 @@
+"""
+Django admin configuration for the Parodynews application.
+
+This module contains all the admin interface customizations for the Barodybroject
+application. It provides enhanced admin interfaces with custom functionality for
+content management, user administration, and system configuration.
+
+Features include:
+- Custom admin interfaces with enhanced functionality
+- Import/export capabilities for data management
+- Inline editing for related models
+- Custom forms and widgets for improved user experience
+- Bulk operations and actions
+- JSON field editing with syntax highlighting
+"""
+
 # parodynews/admin.py
 from cms.admin.placeholderadmin import FrontendEditableAdminMixin
 from django import forms
