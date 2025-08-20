@@ -28,7 +28,9 @@ python manage.py reset_db
 python manage.py refreshmigrations
 ```
 
-**Note:** The `reset_db` command is intended for development use only and will delete your database and migration history.
+> **⚠️ WARNING:** The `reset_db` command is **highly destructive**. It will permanently delete your database and all migration history.
+> **Before running this command, always back up your data.**
+> **Never use this command in production environments.**
 
 ## Container Configuration
 These commands run within the Django application container:
