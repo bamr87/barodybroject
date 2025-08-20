@@ -261,6 +261,60 @@ This documentation follows our [contribution guidelines](../CONTRIBUTING.md). To
 - **Cultural Sensitivity**: Avoid culture-specific references or idioms
 - **Skill Level Awareness**: Clearly indicate difficulty and prerequisites
 
+## Directory Documentation Requirements
+
+Every directory in the project MUST contain a README.md file that explains:
+- The directory's purpose and role in the overall project structure
+- A list of contents (files and subdirectories) with brief descriptions
+- Usage instructions or examples where applicable
+- Any container-specific configurations if relevant
+- Connections to other parts of the project (path integrations)
+
+### README.md Template
+```markdown
+# [Directory Name] Directory
+
+## Purpose
+[Brief description of what this directory contains and its role in the project]
+
+## Contents
+- `file1.ext`: [Description]
+- `file2.ext`: [Description]
+- `subdir/`: [Description of subdirectory]
+
+## Usage
+[Examples of how to use or interact with the contents]
+
+## Container Configuration
+[If applicable: ports, volumes, environment variables]
+
+## Related Paths
+- Incoming: [List paths leading into this directory]
+- Outgoing: [List paths leading out]
+```
+
+Ensure README files are updated whenever directory contents change.
+
+## Automatic Documentation Generation with Sphinx
+
+Use Sphinx to automatically generate documentation from code comments and docstrings, particularly for the Django application.
+
+### Setup
+1. Install Sphinx: `pip install sphinx`
+2. Initialize Sphinx in src/parodynews/docs/: `sphinx-quickstart`
+3. Configure conf.py to include extensions like autodoc
+
+### Configuration Example (conf.py snippet)
+```python
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
+autodoc_member_order = 'bysource'
+```
+
+### Building Documentation
+Run: `sphinx-build -b html src/parodynews/docs/source/ src/parodynews/docs/build/`
+
+Integrate with paths: Add to build path in CI/CD workflows to generate docs automatically on code changes.
+
 ## Automated Documentation Generation
 
 ### AI-Assisted Documentation Workflows

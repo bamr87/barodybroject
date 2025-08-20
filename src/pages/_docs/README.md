@@ -1,0 +1,18 @@
+
+# _docs Directory
+
+## Purpose
+[Brief description - please edit]
+
+## Contents
+- `django-forms-update.md`: File
+
+## Usage
+[Usage instructions - please edit]
+
+## Container Configuration
+[Container info - please edit]
+
+## Related Paths
+- Incoming: [edit]
+- Outgoing: [edit]
