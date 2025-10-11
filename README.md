@@ -2,6 +2,8 @@
 
 A Django-based web application integrated with OpenAI to generate AI-powered parody news content. This project combines modern web development practices with artificial intelligence to create a platform for generating and managing satirical news articles.
 
+> 👨‍💻 **Developers**: Looking for a quick technical setup? See the [Developer Guide](.github/README.md) for concise commands and architecture overview.
+
 ## Table of Contents
 
 - [Features](#features)
