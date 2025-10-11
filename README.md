@@ -34,7 +34,7 @@ Django application integrated with OpenAI to generate content with the help of a
 <!-- - **Tailwind CSS**: Utility-first CSS framework packed with classes like flex, pt-4, text-center, and rotate-90 that can be composed to build any design, directly in your markup. -->
 - **PostgreSQL**: Powerful, open-source object-relational database system.
 - **SQLite**: Self-contained, serverless, zero-configuration, transactional SQL database engine.
-<!-- - **Sphinx**: Python documentation generator that converts reStructuredText files into HTML websites and PDFs. -->
+- **Sphinx**: Python documentation generator that converts reStructuredText files into HTML websites and PDFs.
 - **Docker**: Open platform for developing, shipping, and running applications.
 <!-- - **React**: JavaScript library for building user interfaces. -->
 - **Jekyll**: Simple, blog-aware static site generator for personal, project, or organization sites.
@@ -313,6 +313,40 @@ python3 -m playwright install chromium --with-deps
 ```sh
 python3 -m pytest
 ```
+
+## Documentation
+
+Barodybroject includes comprehensive documentation built with Sphinx.
+
+### Building Documentation
+
+To build the documentation locally:
+
+```bash
+# Install development dependencies (includes Sphinx)
+pip install -r requirements-dev.txt
+
+# Build HTML documentation
+cd docs
+make html
+
+# Or use the build script
+chmod +x scripts/build_docs.sh
+./scripts/build_docs.sh
+```
+
+The generated documentation will be available in `docs/build/html/index.html`.
+
+### Documentation Features
+
+- **API Documentation**: Automatically generated from docstrings
+- **User Guides**: Installation, configuration, and usage instructions
+- **Developer Guides**: Contributing guidelines and testing procedures
+- **Deployment Guides**: Multiple deployment scenarios and configurations
+
+### Online Documentation
+
+The documentation is automatically built and deployed to GitHub Pages on every push to the main branch.
 
 ## Deployment
 

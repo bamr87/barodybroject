@@ -92,3 +92,10 @@ addopts = "--strict-markers"
 testpaths = [
   "tests",
 ]
+
+# Sphinx documentation configuration
+[tool.sphinx]
+source-dir = "docs/source"
+build-dir = "docs/build"
+nitpicky = true
+warning-is-error = false
