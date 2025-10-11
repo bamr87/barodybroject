@@ -1,148 +1,311 @@
 # Parody News Generator
 
-## Description
+A Django-based web application integrated with OpenAI to generate AI-powered parody news content. This project combines modern web development practices with artificial intelligence to create a platform for generating and managing satirical news articles.
 
-Django application integrated with OpenAI to generate content with the help of assistants.
+## Table of Contents
 
-<!-- TODO: add Django CMS functionality -->
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Architecture & Design Patterns](#architecture--design-patterns)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Installation & Setup](#installation--setup)
+- [Running the Application](#running-the-application)
+- [Docker Setup](#docker-setup)
+- [Azure Deployment](#azure-deployment)
+- [Testing](#testing)
+- [Development Container Workflow](#development-container-workflow)
+- [Contributing](#contributing)
+- [License](#license)
+- [Screenshots](#screenshots)
 
-### Features
+## Features
 
-- **User Authentication**: Supports standard user registration, login, logout, and password management.
-- **Dynamic Content Management**: Admin interface for managing content, users, and site settings.
-- **RESTful API**: Provides a RESTful API for interacting with the application data programmatically.
-- **Responsive Design**: Utilizes Bootstrap for a responsive design that adapts to various screen sizes.
-- **Blog Module**: Includes a blog module with categories, tags, and a commenting system.
-- **Search Functionality**: Integrated search functionality for finding content within the site.
-- **Security Features**: Implements Django's built-in security features to protect against XSS, CSRF, SQL Injection, and more.
+### Core Features
 
-### New or Updated Features
+- **AI-Powered Content Generation**: Leverages OpenAI APIs to generate parody news articles with customizable assistants
+- **User Authentication**: Complete user management with registration, login, logout, password management, and multi-factor authentication (MFA)
+- **Dynamic Content Management**: Comprehensive admin interface for managing content, users, and site settings
+- **RESTful API**: Full-featured API for programmatic interaction with application data
+- **Responsive Design**: Bootstrap-based responsive UI that adapts to various screen sizes
+- **Blog Module**: Integrated blog with categories, tags, and commenting system
+- **Search Functionality**: Built-in search for finding content across the site
+- **Security Features**: Django's built-in security protections against XSS, CSRF, SQL Injection, and more
 
-- **Dynamic Form Support**: Added a reusable Django `DynamicFieldsMixin` and supporting JavaScript file for automatically updating form fields via AJAX.
-- **CMS Integration**: Extended `urls.py` to include Django CMS routes under the root URL.
-- **AWS App Runner Configuration**: Added an `apprunner.yaml` to streamline build and deployment steps for AWS.
-- **Jekyll Config**: Included development and production config overrides and YAML files for advanced static site generation needs.
-- **Enhanced Navigation**: Added or updated YAML data files under `_data/navigation` and `_data/ui-text` for easier menu and UI text management.
-- **GitHub Automation**: Prepared scripts inside `githubai` directory for AI-assisted GitHub issue handling and README updates.r
+### Advanced Features
 
-### Powered By
+- **Dynamic Form Support**: Reusable Django `DynamicFieldsMixin` with AJAX-powered form field updates
+- **CMS Integration**: Django CMS support for flexible content management
+- **Jekyll Static Site Generation**: Integrated Jekyll for static content and blog publishing
+- **Enhanced Navigation**: YAML-based navigation and UI text management
+- **GitHub Automation**: AI-assisted GitHub issue handling and repository management
+- **Email Integration**: Django SES integration with DKIM support for secure email delivery
 
-- **Django**: High-level Python Web framework that encourages rapid development and clean, pragmatic design.
-<!-- - Django CMS: Open-source content management system based on the Django web framework. -->
-- **OpenAI**: API for accessing new AI models developed by OpenAI.
-- **Bootstrap**: Front-end open source toolkit for developing with HTML, CSS, and JS.
-<!-- - **Tailwind CSS**: Utility-first CSS framework packed with classes like flex, pt-4, text-center, and rotate-90 that can be composed to build any design, directly in your markup. -->
-- **PostgreSQL**: Powerful, open-source object-relational database system.
-- **SQLite**: Self-contained, serverless, zero-configuration, transactional SQL database engine.
-<!-- - **Sphinx**: Python documentation generator that converts reStructuredText files into HTML websites and PDFs. -->
-- **Docker**: Open platform for developing, shipping, and running applications.
-<!-- - **React**: JavaScript library for building user interfaces. -->
-- **Jekyll**: Simple, blog-aware static site generator for personal, project, or organization sites.
+## Technology Stack
 
-### Tools
+### Backend Framework & Tools
 
-- **Git**: Distributed version control system for tracking changes in source code during software development.
-- **Github**: Leading platform for hosting and collaborating on Git repositories.
-- **VS Code**: Lightweight but powerful source code editor that runs on your desktop.
-- **Docker Compose**: Tool for defining and running multi-container Docker applications.
-- **Azure Container Apps**: Service for deploying and scaling containerized applications in the cloud.
-- **Azure Developer CLI**: Command-line interface for managing Azure resources.
+- **Django 4.2.20**: High-level Python web framework for rapid development
+- **Django CMS**: Open-source content management system built on Django
+- **Django REST Framework**: Powerful toolkit for building Web APIs
+- **Python 3.8+**: Primary programming language
+- **Gunicorn**: WSGI HTTP server for production deployment
 
-<!-- - **Selenium**: Portable framework for testing web applications. -->
+### Frontend & UI
 
-## Installation
+- **Bootstrap**: Responsive front-end toolkit for modern web design
+- **jQuery**: JavaScript library for DOM manipulation
+- **CKEditor**: Rich text editor for content creation
+- **Martor**: Markdown editor for Django
 
-Follow these steps to set up a development environment for this Django project:
+### Databases
 
-### Prerequisites
+- **PostgreSQL**: Production database (powerful object-relational database system)
+- **SQLite**: Development and testing database
 
-- Github CLI
-- Python 3.8 or higher
-- pip (Python package manager)
-- virtualenv (optional but recommended for creating isolated Python environments)
+### Infrastructure & Deployment
 
-### Setup
+- **Docker & Docker Compose**: Containerization for consistent development and deployment
+- **Azure Container Apps**: Cloud container hosting service
+- **Azure Developer CLI (azd)**: Tool for provisioning and deploying Azure resources
+- **Azure Bicep**: Infrastructure as Code (IaC) for Azure resources
+- **Azure Application Insights**: Monitoring and diagnostics
+- **Jekyll**: Static site generator for blog content
 
-[zer0](https://it-journey.dev/zer0/)
+### AI Integration
 
-0. Set naming parameters
+- **OpenAI API**: Access to GPT models for content generation
+- **Custom OpenAI Assistants**: Configurable AI assistants for specialized content creation
 
-```sh
-GH_USER=bamr87
-GH_REPO=barodybroject
-GH_TEST_REPO=barodybroject-test-4
-GH_HOME=~/github
-GH_REPO_DIR=${GH_HOME}/${GH_TEST_REPO}
-PY_VENV=.venv${GH_TEST_REPO}
+### Testing & Quality Assurance
+
+- **Pytest**: Python testing framework
+- **Pytest-Django**: Django plugin for pytest
+- **Playwright**: End-to-end browser testing
+- **Selenium**: Web automation and testing
+- **Coverage.py**: Code coverage measurement
+- **Ruff**: Fast Python linter
+
+### Development Tools
+
+- **Git & GitHub**: Version control and collaboration
+- **VS Code**: Recommended IDE with Dev Container support
+- **GitHub Codespaces**: Cloud-based development environments
+- **Sphinx**: Documentation generation
+
+## Architecture & Design Patterns
+
+### Core Patterns
+
+**MVC (Model-View-Controller)**
+- Clear separation of concerns with Django models, views, and templates
+- Models define data structure and business logic
+- Views handle request/response logic
+- Templates manage presentation layer
+
+**RESTful API Design**
+- Django REST Framework for structured API endpoints
+- Serializers for data validation and transformation
+- ViewSets for consistent CRUD operations
+- Token-based authentication support
+
+**Template Management**
+- Django templating system with inheritance and includes
+- Bootstrap integration for responsive layouts
+- Custom template tags and filters
+- Context processors for global template variables
+
+### Infrastructure Patterns
+
+**Infrastructure as Code (IaC)**
+- Azure Bicep files for cloud resource provisioning
+- Declarative infrastructure definitions
+- Version-controlled infrastructure changes
+- Automated deployment pipelines
+
+**Containerization**
+- Multi-stage Dockerfiles for optimized images
+- Docker Compose for local development orchestration
+- Separate containers for app, database, and Jekyll services
+- Volume mounts for hot-reload development
+
+### Security & Best Practices
+
+**Security Features**
+- Django built-in protections (XSS, CSRF, SQL Injection)
+- Secure password hashing with PBKDF2
+- HTTPS enforcement in production
+- Content Security Policy headers
+- DKIM email authentication
+
+**Middleware & Context Processors**
+- Custom middleware for authentication and request processing
+- Context processors for CMS integration
+- Localization support via Django's i18n framework
+
+**Logging & Monitoring**
+- Azure Application Insights integration
+- Structured logging throughout the application
+- Performance metrics collection
+- Error tracking and alerting
+
+## Project Structure
+
+```
+barodybroject/
+├── infra/                      # Azure infrastructure as code (Bicep)
+│   ├── main.bicep             # Main infrastructure definition
+│   ├── app/                   # Application-specific resources
+│   └── shared/                # Shared resources (Key Vault, monitoring, etc.)
+├── scripts/                    # Deployment and automation scripts
+│   ├── azure-setup.py         # Azure setup automation
+│   └── version-manager.sh     # Version management
+├── src/                       # Django application source code
+│   ├── barodybroject/         # Django project settings
+│   │   ├── settings.py        # Application configuration
+│   │   ├── urls.py            # URL routing
+│   │   └── wsgi.py            # WSGI application entry point
+│   ├── parodynews/            # Main Django app
+│   │   ├── models.py          # Data models
+│   │   ├── views.py           # View logic
+│   │   ├── urls.py            # App-specific URLs
+│   │   ├── forms.py           # Form definitions
+│   │   ├── admin.py           # Admin interface customization
+│   │   ├── templates/         # HTML templates
+│   │   ├── management/        # Custom Django management commands
+│   │   ├── tests/             # Unit and integration tests
+│   │   └── utils/             # Utility functions
+│   ├── pages/                 # Jekyll static site content
+│   │   ├── _posts/            # Blog posts (59 articles)
+│   │   └── _config.yml        # Jekyll configuration
+│   ├── static/                # Static files (CSS, JS, images)
+│   ├── requirements.txt       # Python dependencies
+│   ├── manage.py              # Django management script
+│   └── Dockerfile             # Application container definition
+├── docker-compose.yml         # Local development orchestration
+├── azure.yaml                 # Azure Developer CLI configuration
+├── pyproject.toml             # Python project metadata
+├── requirements-dev.txt       # Development dependencies
+├── README.md                  # This file
+├── CONTRIBUTING.md            # Contribution guidelines
+├── LICENSE                    # MIT License
+└── VERSION                    # Current version (0.1.0)
 ```
 
+### Key Directories Explained
 
-1. **Clone the Repository**
+- **infra/**: Contains all Azure infrastructure definitions using Bicep templates for repeatable deployments
+- **src/parodynews/**: The main Django application with all business logic, models, and views
+- **src/pages/**: Jekyll-based static site with blog posts and documentation
+- **src/static/**: Collected static files including admin, CMS, and custom assets
+- **scripts/**: Automation scripts for deployment, setup, and maintenance
 
-```sh
-cd $GH_HOME
-gh repo clone bamr87/barodybroject $GH_REPO_DIR
-cd $GH_REPO_DIR
-```
+## Prerequisites
+
+Before setting up the project, ensure you have the following installed:
+
+- **Python 3.8+**: Primary development language
+- **pip**: Python package manager (usually comes with Python)
+- **Git**: Version control system
+- **GitHub CLI** (optional): For streamlined GitHub operations
+- **virtualenv**: For creating isolated Python environments (recommended)
+- **Docker & Docker Compose**: For containerized development (optional but recommended)
+- **Azure CLI**: For Azure deployments (if deploying to Azure)
+- **Node.js**: For Jekyll static site generation (optional)
+
+## Installation & Setup
+
+### Quick Start
+
+1. **Set Naming Parameters**
 
 ```bash
-# Or clone the repository using the git command
-cd $GH_HOME
-git clone https://github.com/bamr87/barodybroject.git
-cd $GH_REPO_DIR
+GH_USER=bamr87
+GH_REPO=barodybroject
+GH_HOME=~/github
+GH_REPO_DIR=${GH_HOME}/${GH_REPO}
+PY_VENV=.venv
 ```
 
-2. **Create a Virtual Environment (Optional)**
+2. **Clone the Repository**
 
-- For Unix/Linux/Mac:
+```bash
+cd $GH_HOME
+gh repo clone ${GH_USER}/${GH_REPO} ${GH_REPO_DIR}
+cd ${GH_REPO_DIR}
+```
 
+Or using git directly:
+
+```bash
+cd $GH_HOME
+git clone https://github.com/${GH_USER}/${GH_REPO}.git
+cd ${GH_REPO_DIR}
+```
+
+3. **Create a Virtual Environment**
+
+For Unix/Linux/Mac:
 ```bash
 python3 -m venv $PY_VENV
 source $PY_VENV/bin/activate
 ```
 
-- For Windows:
-
+For Windows:
 ```bash
 python -m venv venv
 .\venv\Scripts\activate
 ```
 
-1. **Install Dependencies**
-
-With your virtual environment activated, install the project dependencies:
+4. **Install Dependencies**
 
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-2. **Set Up Environment Variables**
+5. **Set Up Environment Variables**
 
-Create a `.env` file in the project root directory and add your environment-specific variables. For example:
+Create a `.env` file in the project root:
 
-```sh
-cd $GH_REPO_DIR
+```bash
+cd ${GH_REPO_DIR}
 touch .env
-echo "CONTAINER_APP_NAME=${GH_TEST_REPO}" >> .env
-echo "CONTAINER_APP_ENV_DNS_SUFFIX=localhost" >> .env
-echo "DEBUG=True" >> .env
-echo "SECRET_KEY=your_secret_key" >> .env
-echo "DATABASE_URL=sqlite:///db.sqlite3" >> .env
 ```
 
-or manually create the `.env` file and add the following environment variables:
+Add the following environment variables:
 
 ```plaintext
-CONTAINER_APP_NAME=${GH_TEST_REPO}
-CONTAINER_APP_ENV_DNS_SUFFIX=localhost
+# Application Settings
 DEBUG=True
-SECRET_KEY=your_secret_key
+SECRET_KEY=your-secret-key-here-change-in-production
+
+# Database Configuration (local development)
 DATABASE_URL=sqlite:///db.sqlite3
+
+# For PostgreSQL (optional, used with Docker)
+DB_HOST=localhost
+DB_NAME=barodydb
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+POSTGRES_PORT=5432
+
+# Container App Settings (Azure)
+CONTAINER_APP_NAME=barodybroject
+CONTAINER_APP_ENV_DNS_SUFFIX=localhost
+
+# OpenAI Configuration
+OPENAI_API_KEY=your-openai-api-key-here
+
+# Email Settings (optional)
+EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+
+# Jekyll Settings
+JEKYLL_ENV=development
 ```
 
-3. **Database Migrations**
+6. **Database Migrations**
 
-Apply the database migrations to set up your database schema:
+Navigate to the source directory and run migrations:
 
 ```bash
 cd src
@@ -150,263 +313,350 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-4. **Create Superuser (Optional)**
+7. **Create a Superuser (Optional)**
 
-To access the Django admin, create a superuser account:
+To access the Django admin interface:
 
 ```bash
 python manage.py createsuperuser
 ```
 
-5. **Run the Development Server**
+Follow the prompts to create your admin account.
 
-Start the Django development server:
-
-```bash
-python manage.py runserver
-```
-
-Your project should now be running at [http://localhost:8000](http://localhost:8000).
-
-### Running the Project
-
-After installation, you can run the project locally using:
+8. **Run the Development Server**
 
 ```bash
 python manage.py runserver
 ```
 
-Visit [http://localhost:8000](http://localhost:8000) in youπr web browser to view the application.
+Visit [http://localhost:8000](http://localhost:8000) to view the application.
 
-### Run the Publication Site (Jekyll)
+## Running the Application
 
-```sh
-# build the docker image based on the Dockerfile
-docker compose build -t $GH_REPO .
+### Local Development
+
+After completing the installation steps, run the Django development server:
+
+```bash
+cd src
+python manage.py runserver
 ```
 
-```sh
-# run the docker image and mount the local directory to the container and open a bash shell
-# docker run -d -p 8000:8000 -p 4002:4002 --env-file .env --name container-barody barody
+The application will be available at:
+- **Django App**: [http://localhost:8000](http://localhost:8000)
+- **Admin Interface**: [http://localhost:8000/admin](http://localhost:8000/admin)
+- **API Root**: [http://localhost:8000/api](http://localhost:8000/api)
 
-docker compose up -d
+### With PostgreSQL (Local)
 
-```
-
-
-### Screenshots
-
-![alt text](/assets/images/home.png)
-
-![alt text](assets/images/roles.png)
-
-![alt text](assets/images/content.png)
-
-![alt text](assets/images/assistants.png)
-
-![alt text](assets/images/messages.png)
-
-![alt text](assets/images/threads.png)
-
-## Deploy Django Application with PostgreSQL via Azure Container Apps
-
-This project deploys a web application for a space travel agency using Django. The application can be deployed to Azure with Azure Container Apps using the [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/overview).
-
-
-
-```sh
-azd auth login
-azd init
-azd up
-```
-
-```sh
-# sample site
-gh repo clone Azure-Samples/azure-django-postgres-flexible-aca
-cd azure-django-postgres-flexible-aca
-```
-
-## Opening the project
-
-This project has [Dev Container support](https://code.visualstudio.com/docs/devcontainers/containers), so it will be setup automatically if you open it in Github Codespaces or in local VS Code with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
-
-If you're *not* using one of those options for opening the project, then you'll need to:
-
-1. Start up a local PostgreSQL server, create a database for the app, and set the following environment variables according to your database configuration.
-
-```shell
-export DB_HOST=localhost
-export POSTGRES_PORT=5432
-export DB_NAME=<YOUR DATABASE>
-export DB_USERNAME=<YOUR USERNAME>
-export DB_PASSWORD=<YOUR PASSWORD>
-```
-
-1. Create a [Python virtual environment](https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments) and activate it.
-
-```sh
-# Create a virtual environment source .venvazure/bin/activate  # Activate the virtual environment
-python3 -m venv .venvazure   
-source .venvazure/bin/activate
-```
-
-2. install postgresql & admin
-
-```sh
+1. Install PostgreSQL:
+```bash
+# macOS
 brew install postgresql
-brew install pgadmin4
-```
-
-1. Install production requirements:
-
-```sh
-python3 -m pip install -r src/requirements.txt
-```
-
-2. Start the PostgreSQL server:
-
-```sh
 brew services start postgresql@14
+
+# Linux (Debian/Ubuntu)
+sudo apt-get install postgresql postgresql-contrib
+sudo systemctl start postgresql
 ```
 
-
-1. Apply database migrations and seed initial data:
-
-```sh
-python3 src/manage.py migrate
-# python3 src/manage.py loaddata src/seed_data.json
+2. Create a database:
+```bash
+createdb barodydb
 ```
 
-## Running locally
-
-If you're running the app inside VS Code or GitHub Codespaces, you can use the "Run and Debug" button to start the app.
-
-```sh
-python3 src/manage.py runserver 8000
+3. Update your `.env` file with PostgreSQL settings:
+```plaintext
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/barodydb
+DB_HOST=localhost
+DB_NAME=barodydb
+DB_USERNAME=postgres
+DB_PASSWORD=your_password
 ```
 
-### Admin
+4. Run migrations and start the server as usual.
 
-This app comes with the built-in Django admin interface.
+## Docker Setup
 
-1. Create a superuser:
+### Using Docker Compose
 
-```
-python3 src/manage.py createsuperuser
-```
+The project includes a complete Docker Compose setup with three services:
+- **python**: Django application
+- **barodydb**: PostgreSQL database
+- **jekyll**: Static site generator
 
-2. Restart the server and navigate to "/admin"
+1. **Build the Docker Image**
 
-3. Login with the superuser credentials.
-
-## Running tests
-
-1. Install the development requirements:
-
-```sh
-python3 -m pip install -r requirements-dev.txt
-python3 -m playwright install chromium --with-deps
+```bash
+docker compose build
 ```
 
-2. Run the tests:
+2. **Start All Services**
 
-```sh
-python3 -m pytest
+```bash
+docker compose up -d
 ```
 
-## Deployment
+This will start:
+- Django app on [http://localhost:80](http://localhost:80)
+- PostgreSQL database on port 5432
+- Jekyll site on [http://localhost:4002](http://localhost:4002)
 
-This repo is set up for deployment on Azure via Azure Container Apps.
+3. **View Logs**
 
-Steps for deployment:
+```bash
+docker compose logs -f
+```
 
-1. Sign up for a [free Azure account](https://azure.microsoft.com/free/) and create an Azure Subscription.
-2. Install the [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd). (If you open this repository in Codespaces or with the VS Code Dev Containers extension, that part will be done for you.)
-3. Login to Azure:
+4. **Stop Services**
 
-```shell
+```bash
+docker compose down
+```
+
+5. **Run Django Commands in Container**
+
+```bash
+# Run migrations
+docker compose exec python python manage.py migrate
+
+# Create superuser
+docker compose exec python python manage.py createsuperuser
+
+# Collect static files
+docker compose exec python python manage.py collectstatic --noinput
+```
+
+### Development Container Features
+
+- **Hot Reload**: Code changes are immediately reflected (volume mounted)
+- **Isolated Environment**: Consistent across all development machines
+- **Database Persistence**: PostgreSQL data persists in Docker volumes
+- **Multi-Service**: Run Django, PostgreSQL, and Jekyll simultaneously
+
+## Azure Deployment
+
+This project is configured for deployment to Azure Container Apps using the Azure Developer CLI.
+
+### Prerequisites
+
+1. [Azure account](https://azure.microsoft.com/free/) with an active subscription
+2. [Azure Developer CLI installed](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
+
+### Deployment Steps
+
+1. **Login to Azure**
+
+```bash
 azd auth login
 ```
 
-4. Provision and deploy all the resources:
+2. **Initialize the Project** (first time only)
 
-```shell
+```bash
+azd init
+```
+
+This will prompt you to:
+- Provide an environment name (e.g., "prod", "dev")
+- Select your Azure subscription
+- Choose a deployment region (e.g., "eastus", "westus2")
+
+3. **Deploy the Application**
+
+```bash
 azd up
 ```
 
-    It will prompt you to provide an `azd` environment name (like "myapp"), select a subscription from your Azure account, and select a location (like "eastus"). Then it will provision the resources in your account and deploy the latest code. If you get an error with deployment, changing the location can help, as there may be availability constraints for some of the resources.
+This single command will:
+- Provision all Azure resources (Container Apps, PostgreSQL, Key Vault, etc.)
+- Build the Docker container
+- Push the container to Azure Container Registry
+- Deploy the application to Azure Container Apps
+- Configure environment variables and secrets
 
-5. When `azd` has finished deploying, you'll see an endpoint URI in the command output. Visit that URI, and you should see the front page of the app! 🎉
+4. **View the Deployed Application**
 
-6. When you've made any changes to the app code, you can just run:
+After deployment completes, `azd` will display the application URL. Visit it to see your live application.
 
-```shell
+### Incremental Deployments
+
+After the initial deployment, you can deploy code changes with:
+
+```bash
 azd deploy
 ```
 
-### CI/CD pipeline
+This is faster as it only rebuilds and redeploys the application without reprovisioning infrastructure.
 
-This project includes a Github workflow for deploying the resources to Azure
-on every push to main. That workflow requires several Azure-related authentication secrets
-to be stored as Github action secrets. To set that up, run:
+### Infrastructure Details
 
-```shell
+The project uses Azure Bicep for Infrastructure as Code:
+
+- **infra/main.bicep**: Main infrastructure definition
+- **infra/app/src.bicep**: Container App configuration
+- **infra/app/db-postgres.bicep**: PostgreSQL Flexible Server
+- **infra/shared/**: Shared resources (Key Vault, monitoring, container registry)
+
+### CI/CD Pipeline
+
+To set up automated deployments with GitHub Actions:
+
+```bash
 azd pipeline config
+```
+
+This will:
+- Create a GitHub Actions workflow
+- Configure Azure authentication secrets
+- Enable automatic deployments on push to main branch
+
+## Testing
+
+The project includes comprehensive testing using pytest and Playwright.
+
+### Install Test Dependencies
+
+```bash
+pip install -r requirements-dev.txt
+python -m playwright install chromium --with-deps
+```
+
+### Run Tests
+
+```bash
+# Run all tests
+python -m pytest
+
+# Run with coverage
+python -m pytest --cov=parodynews
+
+# Run specific test file
+python -m pytest src/parodynews/tests/test_models.py
+
+# Run with verbose output
+python -m pytest -v
+```
+
+### Test Structure
+
+- **Unit Tests**: Located in `src/parodynews/tests/`
+- **Integration Tests**: Test API endpoints and views
+- **End-to-End Tests**: Playwright tests for browser automation
+- **Coverage Reports**: Generated in `htmlcov/` directory
+
+### Running Tests in Docker
+
+```bash
+docker compose exec python python -m pytest
 ```
 
 ## Development Container Workflow
 
-We've implemented a "push-it-once, pull-it-forever" development container workflow to significantly speed up the development onboarding and environment setup process.
+We've implemented a "push-it-once, pull-it-forever" development container workflow for faster onboarding.
 
-## How It Works
+### How It Works
 
-1. **Pre-built Development Image**: Instead of each developer building the Docker image from scratch, we now maintain a pre-built image on Docker Hub that contains all dependencies.
+1. **Pre-built Image**: A pre-built development image is available on Docker Hub
+2. **Quick Start**: New developers pull the image instead of building from scratch
+3. **Automatic Updates**: GitHub Actions rebuilds the image when dependencies change
 
-2. **Automatic Image Updates**: When the Dockerfile or requirements change, GitHub Actions automatically builds and publishes a new image to Docker Hub.
+### Benefits
 
-3. **Developer Experience**:
-   - First-time setup: `docker compose pull && docker compose up`
-   - Daily development: Code changes are mounted into the container for instant reload
-   - Adding new dependencies: Update `requirements.txt`, push the change, and CI builds a new image
+- **Faster Setup**: Minutes instead of lengthy builds
+- **Consistent Environment**: Everyone uses the same container
+- **Hot Reload**: Local code changes reflected immediately
+- **Reduced Resources**: BuildKit caching reduces build times
 
-## Manual Image Build (if needed)
+### Manual Image Build
 
-You can manually build and push the development container with:
+If needed, you can manually build and push the development container:
 
 ```bash
-# From the repository root
+# Build the image
 docker build -f .devcontainer/Dockerfile_dev \
              -t amrabdel/barody-python:0.1 \
              -t amrabdel/barody-python:latest \
              .
 
-docker login   # enter your Docker Hub credentials
+# Login to Docker Hub
+docker login
+
+# Push the image
 docker push amrabdel/barody-python:0.1
 docker push amrabdel/barody-python:latest
 ```
 
-## Benefits
+### Troubleshooting
 
-- **Faster Setup**: New team members can be productive in minutes rather than waiting for lengthy builds
-- **Consistent Environment**: Everyone uses exactly the same container image
-- **Reduced Resource Usage**: BuildKit caching reduces CI build times and bandwidth usage
-- **Hot Reload**: Your local code changes are immediately available inside the container
+If you encounter issues:
 
-## Required GitHub Secrets
-
-For the CI workflow to function, add these secrets to your GitHub repository:
-
-- `DOCKERHUB_USERNAME`: Your Docker Hub username
-- `DOCKERHUB_TOKEN`: A Personal Access Token from Docker Hub (not your password)
-
-## Troubleshooting
-
-If you encounter issues with the development container:
-
-1. Try pulling the latest image: `docker pull amrabdel/barody-python:latest`
-2. Check for any pending changes in the GitHub Actions "Build & publish dev-container" workflow
-3. For local debugging, you can temporarily switch back to building locally by changing `image:` to `build:` in the docker-compose file
+1. Pull the latest image: `docker pull amrabdel/barody-python:latest`
+2. Check GitHub Actions for pending builds
+3. For debugging, switch `image:` to `build:` in docker-compose.yml
 
 ## Contributing
 
-We welcome contributions from the community! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get involved.
+We welcome contributions from the community! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for:
+
+- Setting up your development environment
+- Coding standards and best practices
+- How to submit pull requests
+- Types of contributions we're looking for
+- Code of conduct
+
+### Quick Contribution Guide
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Make your changes and commit: `git commit -m "Add your feature"`
+4. Push to your fork: `git push origin feature/your-feature-name`
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2024 Amr
+
+## Screenshots
+
+### Home Page
+![Home Page](assets/images/home.png)
+
+### User Roles Management
+![User Roles](assets/images/roles.png)
+
+### Content Management
+![Content Management](assets/images/content.png)
+
+### OpenAI Assistants
+![Assistants](assets/images/assistants.png)
+
+### Message Threads
+![Messages](assets/images/messages.png)
+
+### Thread Management
+![Threads](assets/images/threads.png)
+
+---
+
+## Additional Resources
+
+- **Project Repository**: [https://github.com/bamr87/barodybroject](https://github.com/bamr87/barodybroject)
+- **Issue Tracker**: [GitHub Issues](https://github.com/bamr87/barodybroject/issues)
+- **Django Documentation**: [https://docs.djangoproject.com/](https://docs.djangoproject.com/)
+- **Azure Container Apps**: [https://learn.microsoft.com/azure/container-apps/](https://learn.microsoft.com/azure/container-apps/)
+- **OpenAI API**: [https://platform.openai.com/docs/](https://platform.openai.com/docs/)
+
+## Support
+
+For questions, issues, or feature requests:
+
+- Open an issue on [GitHub Issues](https://github.com/bamr87/barodybroject/issues)
+- Contact: [bamr87@users.noreply.github.com](mailto:bamr87@users.noreply.github.com)
+
+---
+
+**Version**: 0.1.0  
+**Last Updated**: October 2025
