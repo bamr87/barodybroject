@@ -35,7 +35,7 @@ We welcome contributions from the community! Here are the steps to get started:
 1. **Clone the Repository**
 
    ```sh
-   git clone https://github.com/your-username/barodybroject.git
+   git clone https://github.com/bamr87/barodybroject.git
    cd barodybroject
    ```
 
