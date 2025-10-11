@@ -1,57 +1,110 @@
-
-# instructions Directory
+# Instructions Directory
 
 ## Purpose
-This directory contains comprehensive coding instructions and guidelines for AI-assisted development within the barodybroject ecosystem. These instruction files define standards, patterns, and best practices for various programming languages, frameworks, and development workflows, ensuring consistent code quality and development practices across the project.
+
+This directory contains comprehensive coding instructions and guidelines for AI-assisted development within the barodybroject ecosystem. These instruction files define standards, patterns, and best practices for Django/OpenAI development, ensuring consistent code quality across the project.
 
 ## Contents
-- `space.instructions.md`: Foundational path-based development principles and container-first architecture guidelines
-- `project.instructions.md`: Project-specific requirements, conventions, and standards for the barodybroject parody news generator
-- `python.instructions.md`: Python-specific development standards, Django patterns, and best practices for backend development
-- `javascript.instructions.md`: JavaScript/Node.js standards, frontend development patterns, and React/Vue integration guidelines
-- `bash.instructions.md`: Shell scripting standards, automation patterns, and container orchestration scripts
-- `markdown.instructions.md`: Documentation standards, Markdown formatting guidelines, and technical writing best practices
-- `workflow.instructions.md`: GitHub Actions workflow patterns, CI/CD pipeline standards, and automation guidelines
-- `ci-cd.instructions.md`: Comprehensive CI/CD pipeline instructions, deployment automation, and testing integration
-- `test.instructions.md`: Testing standards, framework integration, and automated testing best practices
-- `docs.instructions.md`: Documentation generation, maintenance standards, and automated documentation workflows
-- `mcp.instructions.md`: Model Context Protocol integration patterns and AI-assisted development guidelines
+
+### Core Instructions
+
+- **`languages.instructions.md`**: Language-specific standards for Python/Django, JavaScript, and Bash development including naming conventions, code structure, error handling, and practical examples
+
+- **`workflows.instructions.md`**: GitHub Actions workflow patterns, CI/CD pipeline standards, container builds, Azure deployments, and automation guidelines
+
+- **`documentation.instructions.md`**: Markdown formatting standards, README requirements, code documentation patterns (docstrings, JSDoc), and API documentation practices
+
+- **`test.instructions.md`**: Testing standards for Django applications including pytest patterns, API testing, UI testing with Playwright, and coverage requirements
 
 ## Usage
-Instruction files guide AI-assisted development and code generation:
+
+These instruction files guide AI-assisted development and code generation:
 
 ```yaml
-# Example usage in AI development context
+# AI development context
 coding_standards:
   apply_instructions:
-    - space.instructions.md      # Foundation principles
-    - project.instructions.md    # Project-specific standards
-    - python.instructions.md     # Language-specific patterns
-    - ci-cd.instructions.md      # Pipeline standards
+    - ../copilot-instructions.md     # Foundation principles
+    - languages.instructions.md      # Language-specific patterns
+    - workflows.instructions.md      # CI/CD standards
+    - documentation.instructions.md  # Documentation practices
+    - test.instructions.md           # Testing standards
 
 development_workflow:
   1. Review applicable instruction files
-  2. Apply container-first development principles
-  3. Follow language-specific coding standards
-  4. Implement path-based architecture patterns
-  5. Ensure comprehensive testing and documentation
+  2. Follow container-first development principles
+  3. Apply language-specific coding standards
+  4. Implement comprehensive testing
+  5. Maintain thorough documentation
 ```
 
-Instruction features:
-- **Comprehensive Standards**: Complete development guidelines covering all aspects of the project
+## Key Features
+
+- **Comprehensive Standards**: Complete development guidelines covering all aspects of the Django/OpenAI project
 - **AI Integration**: Designed for AI-assisted development workflows and code generation
 - **Container-First**: Emphasis on containerized development and deployment patterns
-- **Path-Based Architecture**: Organic, low-resistance development workflow patterns
+- **Practical Examples**: Real-world code examples demonstrating best practices
 - **Quality Assurance**: Testing, linting, and documentation standards for maintainable code
-- **Cross-Language Compatibility**: Standards that work across Python, JavaScript, and shell scripting
+
+## Technology Focus
+
+Instructions are optimized for:
+- **Django 4.x**: Web framework best practices and conventions
+- **OpenAI API**: AI integration patterns with error handling and retry logic
+- **PostgreSQL**: Database design and ORM usage
+- **Docker**: Containerized development and deployment
+- **Azure**: Cloud deployment with Container Apps and Bicep
+- **GitHub Actions**: CI/CD automation workflows
+
+## Instruction File Structure
+
+Each instruction file follows this structure:
+
+```yaml
+---
+file: filename.instructions.md
+description: Brief description of content
+author: Team name
+created: YYYY-MM-DD
+lastModified: YYYY-MM-DD
+version: X.Y.Z
+applyTo: "file patterns"  # Optional
+dependencies:
+  - other-file.md: Relationship description
+containerRequirements:  # If applicable
+  baseImage: image:tag
+  exposedPorts: ports
+  volumes: volume mounts
+  environment: required env vars
+---
+
+# Content sections with examples
+```
 
 ## Container Configuration
-Instructions applied within containerized development environments:
+
+Instructions are applied within containerized development environments:
 - Development container configurations follow instruction file guidelines
 - CI/CD pipelines implement standards defined in instruction files
-- Code generation and AI assistance follow documented patterns and practices
-- Container orchestration scripts adhere to bash scripting standards
+- Code generation and AI assistance follow documented patterns
+- Container orchestration scripts adhere to scripting standards
 
-## Related Paths
-- Incoming: Referenced by AI development tools, code generators, and development automation
-- Outgoing: Guides development practices, code quality standards, and project architecture decisions
+## Related Files
+
+- **`../.github/copilot-instructions.md`**: Main Copilot instructions with project overview, core principles, and general standards
+- **`../.github/README.md`**: Overview of the .github directory and its contents
+
+## Contributing
+
+When updating instructions:
+
+1. Ensure changes align with project goals and tech stack
+2. Test examples before including them
+3. Update version numbers and lastModified dates
+4. Keep content concise but comprehensive
+5. Focus on practical, actionable guidance
+6. Remove outdated or unused patterns
+
+## Version History
+
+- **v1.0.0** (2025-10-11): Consolidated from 11 separate files into 4 focused instruction files, removed AI evolution concepts, added Django/OpenAI specific patterns

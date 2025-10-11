@@ -45,6 +45,16 @@ GitHub Actions workflows build and deploy containers:
 - Azure Container Apps deployment automation
 - Environment-specific configuration management
 
-## Related Paths
-- Incoming: Triggered by Git operations (push, pull requests, releases)
-- Outgoing: Deploys containers to Azure and updates container registries
+## Workflow Integration
+
+GitHub Actions workflows are automatically triggered by:
+- Code pushes to main/develop branches
+- Pull request creation and updates
+- Manual workflow dispatch
+- Scheduled events (daily, weekly, monthly)
+
+Workflows handle:
+- Container image builds and publishing
+- Automated testing and code quality checks
+- Deployment to Azure Container Apps
+- Security scanning and dependency updates

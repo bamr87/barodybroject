@@ -1,1200 +1,1256 @@
 ---
 file: test.instructions.md
-description: Comprehensive testing standards and AI instructions for test-driven development within path-based architecture
-author: AI-Seed Team <team@ai-seed.org>
-created: 2025-07-19
-lastModified: 2025-07-19
+description: Testing standards and best practices for Django applications
+author: Barodybroject Team
+created: 2025-10-11
+lastModified: 2025-10-11
 version: 1.0.0
-relatedIssues: []
-relatedEvolutions: []
 dependencies:
-  - space.instructions.md: Foundation principles and path-based development
-  - project.instructions.md: Project-specific context and requirements
-  - python.instructions.md: Python testing patterns and practices
-  - javascript.instructions.md: JavaScript/Node.js testing frameworks
+  - copilot-instructions.md: Core principles and project context
+  - languages.instructions.md: Python testing patterns
 containerRequirements:
-  baseImage: 
-    - node:18-alpine
-    - python:3.11-slim
-  exposedPorts: 3000-3009
+  baseImage: python:3.8-slim
+  exposedPorts: 8000/tcp
   volumes:
-    - /tests:rw
-    - /coverage:rw
-    - /test-results:rw
+    - /app/tests:rw
+    - /app/coverage:rw
   environment:
-    NODE_ENV: test
-    PYTHON_ENV: test
-    CI: true
-  resources:
-    cpu: 1.0-4.0
-    memory: 1GiB-4GiB
-  healthCheck: /health endpoint validation
-paths:
-  test-execution-path: Setup → discovery → execution → reporting → cleanup
-  coverage-analysis-path: Code analysis → test mapping → coverage calculation → reporting
-  quality-assurance-path: Static analysis → dynamic testing → performance testing → security testing
-changelog:
-  - date: 2025-07-19
-    change: Initial creation
-    author: AI-Seed Team
-usage: Reference for all testing strategies, frameworks, and quality assurance practices
-notes: Emphasizes path-based testing, containerized test environments, and AI-assisted test generation
+    DJANGO_SETTINGS_MODULE: barodybroject.settings
+    DATABASE_URL: postgresql://test_user:test_password@db:5432/test_db
 ---
 
-# Testing Instructions
+# Testing Standards
 
-These instructions provide comprehensive guidance for implementing robust, path-aware testing strategies within the barodybroject ecosystem, emphasizing container-first testing for Django applications.
+## Testing Philosophy
 
-## Testing Philosophy and Strategy
+Testing ensures code quality, reliability, and maintainability. All new features should include appropriate tests.
 
-### Path-Based Testing Approach
+### Testing Principles
+- **Test Early**: Write tests as you develop features
+- **Test Coverage**: Aim for >80% code coverage on critical components
+- **Test Isolation**: Tests should not depend on each other
+- **Test Clarity**: Tests should be self-documenting
+- **Test Speed**: Keep unit tests fast; use fixtures efficiently
 
-Testing should follow the natural execution paths through the application, ensuring comprehensive coverage of all routes from input to output while maintaining clear isolation and reproducibility.
+### Test Types
 
-#### Core Testing Paths
-- **Unit Testing Path**: Individual function/component validation
-- **Integration Testing Path**: Component interaction validation
-- **End-to-End Testing Path**: Complete user journey validation
-- **Performance Testing Path**: Load, stress, and scalability validation
-- **Security Testing Path**: Vulnerability and penetration testing
-- **Regression Testing Path**: Change impact and stability validation
+1. **Unit Tests**: Test individual functions and methods in isolation
+2. **Integration Tests**: Test component interactions (views, models, forms)
+3. **API Tests**: Test REST endpoints with various inputs
+4. **UI Tests**: Test critical user flows with Playwright
+5. **Performance Tests**: Test response times and database query efficiency
 
-### Testing Hierarchy and Organization
+## Test Organization
 
 ```
 tests/
-├── README.md                    # Testing overview and strategy
-├── config/                      # Test configuration files
-│   ├── pytest.ini             # Python test configuration
-│   ├── docker-compose.test.yml # Container test orchestration
-│   └── test-env.sh             # Test environment setup
-├── unit/                        # Unit tests path
-│   ├── README.md               # Unit testing guidelines
-│   └── python/                 # Python/Django unit tests
-├── integration/                 # Integration tests path
-│   ├── README.md               # Integration testing guidelines
-│   ├── api/                    # API integration tests
-│   ├── database/               # Database integration tests
-│   └── services/               # Service integration tests
-├── e2e/                         # End-to-end tests path
-│   ├── README.md               # E2E testing guidelines
-│   ├── user-journeys/          # Complete user workflow tests
-│   └── regression/             # Regression test suites
-├── fixtures/                    # Test data and fixtures path
-│   ├── data/                   # Test data files
-│   └── mocks/                  # Mock objects and services
-└── reports/                     # Test reports and coverage path
-    ├── coverage/               # Code coverage reports
-    └── ci/                     # CI/CD test result artifacts
+├── __init__.py
+├── conftest.py              # Shared pytest fixtures
+├── unit/                    # Unit tests
+│   ├── __init__.py
+│   ├── test_models.py
+│   ├── test_services.py
+│   └── test_utils.py
+├── integration/             # Integration tests
+│   ├── __init__.py
+│   ├── test_views.py
+│   ├── test_forms.py
+│   └── test_api.py
+├── e2e/                     # End-to-end tests
+│   ├── __init__.py
+│   └── test_user_flows.py
+├── fixtures/                # Test data
+│   ├── articles.json
+│   └── users.json
+└── data/                    # Test input files
+    └── sample_prompts.json
 ```
 
-## Container-First Testing Environment
+## Django Testing with Pytest
 
-### Test Container Configuration
+### Basic Test Structure
 
-#### Multi-Stage Test Dockerfile
-```dockerfile
-# Path: test-environment-setup
-# File: Dockerfile.test
+```python
+# tests/unit/test_models.py
+import pytest
+from django.contrib.auth.models import User
+from parodynews.models import Article
 
-# Base test environment
-FROM node:18-alpine AS test-base
-WORKDIR /app
-
-# Install test dependencies
-RUN apk add --no-cache \
-    python3 \
-    py3-pip \
-    bash \
-    curl \
-    git \
-    && npm install -g @playwright/test \
-    && pip3 install pytest pytest-cov pytest-asyncio
-
-# Copy test configuration
-COPY tests/config/ ./tests/config/
-COPY package*.json ./
-COPY requirements*.txt ./
-
-# Install dependencies
-RUN npm ci --include=dev
-RUN pip3 install -r requirements-test.txt
-
-# JavaScript test environment
-FROM test-base AS javascript-tests
-COPY src/ ./src/
-COPY tests/unit/javascript/ ./tests/unit/javascript/
-COPY tests/integration/ ./tests/integration/
-COPY tests/e2e/ ./tests/e2e/
-
-# Set test environment
-ENV NODE_ENV=test
-ENV CI=true
-
-# Run JavaScript tests
-CMD ["npm", "run", "test:ci"]
-
-# Python test environment
-FROM test-base AS python-tests
-COPY src/ ./src/
-COPY tests/unit/python/ ./tests/unit/python/
-COPY tests/integration/ ./tests/integration/
-
-# Set test environment
-ENV PYTHON_ENV=test
-ENV PYTHONPATH=/app/src
-
-# Run Python tests
-CMD ["python", "-m", "pytest", "--cov=src", "--cov-report=html", "--cov-report=term"]
-
-# Performance test environment
-FROM test-base AS performance-tests
-RUN npm install -g artillery k6
-
-COPY tests/performance/ ./tests/performance/
-COPY src/ ./src/
-
-# Set performance test environment
-ENV NODE_ENV=performance
-ENV PERFORMANCE_TEST=true
-
-# Run performance tests
-CMD ["npm", "run", "test:performance"]
-
-# Security test environment
-FROM test-base AS security-tests
-RUN apk add --no-cache nmap \
-    && npm install -g retire snyk \
-    && pip3 install safety bandit
-
-COPY . .
-
-# Run security tests
-CMD ["npm", "run", "test:security"]
-
-# All tests environment
-FROM test-base AS all-tests
-COPY . .
-
-# Install all test dependencies
-RUN npm ci --include=dev \
-    && pip3 install -r requirements-test.txt
-
-# Default test command
-CMD ["npm", "run", "test:all"]
+@pytest.mark.django_db
+class TestArticleModel:
+    """Test suite for Article model"""
+    
+    def test_article_creation(self):
+        """Test creating an article"""
+        user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        
+        article = Article.objects.create(
+            title='Test Article Title',
+            content='Test article content goes here.',
+            author=user,
+            category='tech'
+        )
+        
+        assert article.id is not None
+        assert article.slug == 'test-article-title'
+        assert str(article) == 'Test Article Title'
+    
+    def test_article_str_representation(self):
+        """Test article string representation"""
+        user = User.objects.create_user(username='author')
+        article = Article.objects.create(
+            title='My Article',
+            content='Content',
+            author=user
+        )
+        
+        assert str(article) == 'My Article'
+    
+    def test_article_get_absolute_url(self):
+        """Test article URL generation"""
+        user = User.objects.create_user(username='author')
+        article = Article.objects.create(
+            title='My Article',
+            slug='my-article',
+            content='Content',
+            author=user
+        )
+        
+        assert article.get_absolute_url() == '/articles/my-article/'
 ```
 
-#### Docker Compose Test Orchestration
+### Using Fixtures
+
+```python
+# tests/conftest.py
+import pytest
+from django.contrib.auth.models import User
+from parodynews.models import Article, Category
+
+@pytest.fixture
+def test_user():
+    """Create a test user"""
+    return User.objects.create_user(
+        username='testuser',
+        email='test@example.com',
+        password='testpass123'
+    )
+
+@pytest.fixture
+def test_article(test_user):
+    """Create a test article"""
+    return Article.objects.create(
+        title='Test Article',
+        content='Test content for article.',
+        author=test_user,
+        category='tech',
+        is_published=True
+    )
+
+@pytest.fixture
+def multiple_articles(test_user):
+    """Create multiple test articles"""
+    articles = []
+    for i in range(5):
+        article = Article.objects.create(
+            title=f'Article {i}',
+            content=f'Content for article {i}',
+            author=test_user,
+            category='tech' if i % 2 == 0 else 'politics',
+            is_published=i % 3 != 0
+        )
+        articles.append(article)
+    return articles
+
+# Usage in tests
+@pytest.mark.django_db
+def test_published_articles_query(multiple_articles):
+    """Test filtering published articles"""
+    published = Article.objects.filter(is_published=True)
+    
+    # Should exclude articles where i % 3 == 0 (indices 0, 3)
+    assert published.count() == 3
+```
+
+### Testing Views
+
+```python
+# tests/integration/test_views.py
+import pytest
+from django.urls import reverse
+from django.test import Client
+from parodynews.models import Article
+
+@pytest.mark.django_db
+class TestArticleViews:
+    """Test suite for article views"""
+    
+    def test_article_list_view(self, client, multiple_articles):
+        """Test article list displays published articles"""
+        url = reverse('article-list')
+        response = client.get(url)
+        
+        assert response.status_code == 200
+        assert 'articles' in response.context
+        
+        # Should only show published articles
+        articles = response.context['articles']
+        assert all(article.is_published for article in articles)
+    
+    def test_article_detail_view(self, client, test_article):
+        """Test article detail view"""
+        url = reverse('article-detail', kwargs={'slug': test_article.slug})
+        response = client.get(url)
+        
+        assert response.status_code == 200
+        assert response.context['article'] == test_article
+        assert test_article.title in response.content.decode()
+    
+    def test_article_create_view_requires_login(self, client):
+        """Test article creation requires authentication"""
+        url = reverse('article-create')
+        response = client.get(url)
+        
+        # Should redirect to login
+        assert response.status_code == 302
+        assert '/accounts/login/' in response.url
+    
+    def test_article_create_view_authenticated(self, client, test_user):
+        """Test article creation with authenticated user"""
+        client.force_login(test_user)
+        
+        url = reverse('article-create')
+        response = client.get(url)
+        
+        assert response.status_code == 200
+        assert 'form' in response.context
+```
+
+### Testing Forms
+
+```python
+# tests/integration/test_forms.py
+import pytest
+from parodynews.forms import ArticleForm
+from parodynews.models import Article
+
+@pytest.mark.django_db
+class TestArticleForm:
+    """Test suite for article forms"""
+    
+    def test_valid_form(self, test_user):
+        """Test form with valid data"""
+        form_data = {
+            'title': 'Valid Article Title',
+            'content': 'This is valid article content that meets minimum length requirements.',
+            'category': 'tech',
+            'is_published': False
+        }
+        
+        form = ArticleForm(data=form_data)
+        assert form.is_valid()
+    
+    def test_form_missing_required_fields(self):
+        """Test form validation with missing required fields"""
+        form = ArticleForm(data={})
+        
+        assert not form.is_valid()
+        assert 'title' in form.errors
+        assert 'content' in form.errors
+    
+    def test_form_title_too_short(self):
+        """Test form validation for minimum title length"""
+        form_data = {
+            'title': 'Short',  # Less than 10 characters
+            'content': 'Valid content that is long enough.',
+            'category': 'tech'
+        }
+        
+        form = ArticleForm(data=form_data)
+        assert not form.is_valid()
+        assert 'title' in form.errors
+    
+    def test_form_duplicate_title(self, test_article):
+        """Test form prevents duplicate titles"""
+        form_data = {
+            'title': test_article.title,  # Duplicate title
+            'content': 'Different content',
+            'category': 'tech'
+        }
+        
+        form = ArticleForm(data=form_data)
+        assert not form.is_valid()
+        assert 'title' in form.errors
+```
+
+## API Testing
+
+### REST API Tests
+
+```python
+# tests/integration/test_api.py
+import pytest
+from django.urls import reverse
+from rest_framework.test import APIClient
+from rest_framework import status
+from parodynews.models import Article
+
+@pytest.fixture
+def api_client():
+    """Create API client instance"""
+    return APIClient()
+
+@pytest.mark.django_db
+class TestArticleAPI:
+    """Test suite for Article API endpoints"""
+    
+    def test_list_articles(self, api_client, multiple_articles):
+        """Test GET /api/articles/"""
+        url = reverse('article-list')
+        response = api_client.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert 'results' in response.data or isinstance(response.data, list)
+    
+    def test_get_article_detail(self, api_client, test_article):
+        """Test GET /api/articles/{slug}/"""
+        url = reverse('article-detail', kwargs={'slug': test_article.slug})
+        response = api_client.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['title'] == test_article.title
+        assert response.data['slug'] == test_article.slug
+    
+    def test_create_article_requires_authentication(self, api_client):
+        """Test POST /api/articles/ requires auth"""
+        url = reverse('article-list')
+        data = {
+            'title': 'New Article',
+            'content': 'Article content',
+            'category': 'tech'
+        }
+        
+        response = api_client.post(url, data, format='json')
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    
+    def test_create_article_authenticated(self, api_client, test_user):
+        """Test POST /api/articles/ with authentication"""
+        api_client.force_authenticate(user=test_user)
+        
+        url = reverse('article-list')
+        data = {
+            'title': 'New Authenticated Article',
+            'content': 'This article is created by authenticated user.',
+            'category': 'politics'
+        }
+        
+        response = api_client.post(url, data, format='json')
+        
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['title'] == data['title']
+        
+        # Verify article was created in database
+        assert Article.objects.filter(title=data['title']).exists()
+```
+
+### Testing OpenAI Integration
+
+```python
+# tests/unit/test_services.py
+import pytest
+from unittest.mock import Mock, patch, MagicMock
+from parodynews.services.openai_service import OpenAIService
+
+class TestOpenAIService:
+    """Test suite for OpenAI service"""
+    
+    @patch('openai.ChatCompletion.create')
+    def test_generate_content_success(self, mock_create):
+        """Test successful content generation"""
+        # Mock OpenAI response
+        mock_response = MagicMock()
+        mock_response.choices = [
+            MagicMock(message=MagicMock(content='Generated parody content'))
+        ]
+        mock_create.return_value = mock_response
+        
+        service = OpenAIService()
+        result = service.generate_parody_content('Test prompt')
+        
+        assert result == 'Generated parody content'
+        mock_create.assert_called_once()
+    
+    @patch('openai.ChatCompletion.create')
+    def test_generate_content_retry_on_rate_limit(self, mock_create):
+        """Test retry logic on rate limit error"""
+        import openai
+        
+        # First call fails with rate limit, second succeeds
+        mock_success = MagicMock()
+        mock_success.choices = [
+            MagicMock(message=MagicMock(content='Success after retry'))
+        ]
+        
+        mock_create.side_effect = [
+            openai.RateLimitError('Rate limit exceeded'),
+            mock_success
+        ]
+        
+        service = OpenAIService()
+        result = service.generate_parody_content('Test prompt')
+        
+        assert result == 'Success after retry'
+        assert mock_create.call_count == 2
+    
+    @patch('openai.ChatCompletion.create')
+    def test_generate_content_failure_after_retries(self, mock_create):
+        """Test failure after max retries"""
+        import openai
+        
+        # All attempts fail
+        mock_create.side_effect = openai.APIError('API Error')
+        
+        service = OpenAIService()
+        
+        with pytest.raises(openai.APIError):
+            service.generate_parody_content('Test prompt')
+        
+        assert mock_create.call_count == 3  # max_retries
+```
+
+## Container-Based Testing
+
+### Docker Compose for Testing
+
 ```yaml
-# Path: test-orchestration-setup
-# File: docker-compose.test.yml
-
+# docker-compose.test.yml
 version: '3.8'
 
 services:
-  # Test database
   test-db:
     image: postgres:15-alpine
     environment:
       POSTGRES_DB: test_db
       POSTGRES_USER: test_user
       POSTGRES_PASSWORD: test_password
-    volumes:
-      - test-db-data:/var/lib/postgresql/data
-      - ./tests/fixtures/sql:/docker-entrypoint-initdb.d
-    networks:
-      - test-network
+    ports:
+      - "5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U test_user -d test_db"]
+      test: ["CMD-SHELL", "pg_isready -U test_user"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Test Redis
-  test-redis:
-    image: redis:7-alpine
-    networks:
-      - test-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-
-  # JavaScript unit tests
-  js-unit-tests:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-      target: javascript-tests
-    environment:
-      - DATABASE_URL=postgresql://test_user:test_password@test-db:5432/test_db
-      - REDIS_URL=redis://test-redis:6379
-      - NODE_ENV=test
-    depends_on:
-      test-db:
-        condition: service_healthy
-      test-redis:
-        condition: service_healthy
-    volumes:
-      - ./tests/reports:/app/tests/reports
-    networks:
-      - test-network
-    command: ["npm", "run", "test:unit"]
-
-  # Python unit tests
-  py-unit-tests:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-      target: python-tests
-    environment:
-      - DATABASE_URL=postgresql://test_user:test_password@test-db:5432/test_db
-      - REDIS_URL=redis://test-redis:6379
-      - PYTHON_ENV=test
-    depends_on:
-      test-db:
-        condition: service_healthy
-      test-redis:
-        condition: service_healthy
-    volumes:
-      - ./tests/reports:/app/tests/reports
-    networks:
-      - test-network
-    command: ["python", "-m", "pytest", "tests/unit/python/", "-v"]
-
-  # Integration tests
-  integration-tests:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-      target: all-tests
-    environment:
-      - DATABASE_URL=postgresql://test_user:test_password@test-db:5432/test_db
-      - REDIS_URL=redis://test-redis:6379
-      - NODE_ENV=test
-      - PYTHON_ENV=test
-    depends_on:
-      test-db:
-        condition: service_healthy
-      test-redis:
-        condition: service_healthy
-    volumes:
-      - ./tests/reports:/app/tests/reports
-    networks:
-      - test-network
-    command: ["npm", "run", "test:integration"]
-
-  # End-to-end tests
-  e2e-tests:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-      target: all-tests
-    environment:
-      - DATABASE_URL=postgresql://test_user:test_password@test-db:5432/test_db
-      - REDIS_URL=redis://test-redis:6379
-      - NODE_ENV=test
-      - APP_URL=http://app-under-test:3000
-    depends_on:
-      test-db:
-        condition: service_healthy
-      test-redis:
-        condition: service_healthy
-      app-under-test:
-        condition: service_healthy
-    volumes:
-      - ./tests/reports:/app/tests/reports
-    networks:
-      - test-network
-    command: ["npm", "run", "test:e2e"]
-
-  # Application under test
-  app-under-test:
+  test-runner:
     build:
       context: .
       dockerfile: Dockerfile
+      target: development
     environment:
       - DATABASE_URL=postgresql://test_user:test_password@test-db:5432/test_db
-      - REDIS_URL=redis://test-redis:6379
-      - NODE_ENV=test
+      - SECRET_KEY=test-secret-key-not-for-production
+      - DJANGO_SETTINGS_MODULE=barodybroject.settings
     depends_on:
       test-db:
         condition: service_healthy
-      test-redis:
-        condition: service_healthy
-    networks:
-      - test-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Performance tests
-  performance-tests:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-      target: performance-tests
-    environment:
-      - APP_URL=http://app-under-test:3000
-    depends_on:
-      app-under-test:
-        condition: service_healthy
     volumes:
-      - ./tests/reports:/app/tests/reports
-    networks:
-      - test-network
-    command: ["npm", "run", "test:performance"]
-
-  # Security tests
-  security-tests:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-      target: security-tests
-    environment:
-      - APP_URL=http://app-under-test:3000
-    depends_on:
-      app-under-test:
-        condition: service_healthy
-    volumes:
-      - ./tests/reports:/app/tests/reports
-    networks:
-      - test-network
-    command: ["npm", "run", "test:security"]
-
-volumes:
-  test-db-data:
-
-networks:
-  test-network:
-    driver: bridge
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./coverage:/app/coverage:rw
+    command: pytest tests/ --cov=parodynews --cov-report=html:/app/coverage/
 ```
 
-## Path-Aware Testing Framework
-
-### Python Testing Framework with Path Awareness
-
-```python
-# Path: python-testing-framework
-# File: tests/utils/path_aware_testing.py
-
-import asyncio
-import pytest
-import time
-import json
-from typing import Dict, List, Any, Optional, Callable
-from dataclasses import dataclass, field
-from pathlib import Path
-import logging
-
-from src.utils.path_tracker import PathTracker
-
-# Configure test logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-@dataclass
-class TestAssertion:
-    """Represents a test assertion with path context"""
-    assertion_type: str
-    expected: Any
-    actual: Any
-    message: str
-    path: str
-    passed: bool
-    error: Optional[str] = None
-
-@dataclass
-class TestResult:
-    """Comprehensive test result with path tracking"""
-    name: str
-    description: str
-    start_time: str
-    end_time: Optional[str] = None
-    status: str = 'pending'
-    duration_ms: int = 0
-    paths_executed: List[str] = field(default_factory=list)
-    assertions: List[TestAssertion] = field(default_factory=list)
-    errors: List[Dict[str, Any]] = field(default_factory=list)
-    path_metrics: Dict[str, Any] = field(default_factory=dict)
-
-class PathAwareTestContext:
-    """Test context with path-aware assertions"""
-    
-    def __init__(self, test_result: TestResult, path_tracker: PathTracker):
-        self.test_result = test_result
-        self.path_tracker = path_tracker
-        self.assertions: List[TestAssertion] = []
-
-    def assert_equals(self, actual: Any, expected: Any, message: str = ""):
-        """Path-aware equality assertion"""
-        assertion = TestAssertion(
-            assertion_type='assert_equals',
-            expected=expected,
-            actual=actual,
-            message=message,
-            path=self.path_tracker.get_current_path(),
-            passed=False
-        )
-
-        try:
-            if actual != expected:
-                raise AssertionError(
-                    f"Assertion failed: {message}\nExpected: {expected}\nActual: {actual}"
-                )
-            assertion.passed = True
-        except Exception as e:
-            assertion.error = str(e)
-            raise
-        finally:
-            self.assertions.append(assertion)
-            self.test_result.assertions.append(assertion)
-
-    def assert_true(self, value: Any, message: str = ""):
-        """Path-aware truthy assertion"""
-        assertion = TestAssertion(
-            assertion_type='assert_true',
-            expected=True,
-            actual=value,
-            message=message,
-            path=self.path_tracker.get_current_path(),
-            passed=False
-        )
-
-        try:
-            if not value:
-                raise AssertionError(
-                    f"Assertion failed: {message}\nExpected truthy value, got: {value}"
-                )
-            assertion.passed = True
-        except Exception as e:
-            assertion.error = str(e)
-            raise
-        finally:
-            self.assertions.append(assertion)
-            self.test_result.assertions.append(assertion)
-
-    def assert_in(self, item: Any, container: Any, message: str = ""):
-        """Path-aware containment assertion"""
-        assertion = TestAssertion(
-            assertion_type='assert_in',
-            expected=f"{item} in {type(container).__name__}",
-            actual=item in container if hasattr(container, '__contains__') else False,
-            message=message,
-            path=self.path_tracker.get_current_path(),
-            passed=False
-        )
-
-        try:
-            if item not in container:
-                raise AssertionError(
-                    f"Assertion failed: {message}\n{item} not found in {container}"
-                )
-            assertion.passed = True
-        except Exception as e:
-            assertion.error = str(e)
-            raise
-        finally:
-            self.assertions.append(assertion)
-            self.test_result.assertions.append(assertion)
-
-    async def assert_async(self, async_func: Callable, expected: Any, message: str = ""):
-        """Path-aware async assertion"""
-        assertion = TestAssertion(
-            assertion_type='assert_async',
-            expected=expected,
-            actual=None,
-            message=message,
-            path=self.path_tracker.get_current_path(),
-            passed=False
-        )
-
-        try:
-            result = await async_func()
-            assertion.actual = result
-            if result != expected:
-                raise AssertionError(
-                    f"Async assertion failed: {message}\nExpected: {expected}\nActual: {result}"
-                )
-            assertion.passed = True
-        except Exception as e:
-            assertion.error = str(e)
-            raise
-        finally:
-            self.assertions.append(assertion)
-            self.test_result.assertions.append(assertion)
-
-    def assert_raises(self, exception_type: type, func: Callable, message: str = ""):
-        """Path-aware exception assertion"""
-        assertion = TestAssertion(
-            assertion_type='assert_raises',
-            expected=exception_type.__name__,
-            actual=None,
-            message=message,
-            path=self.path_tracker.get_current_path(),
-            passed=False
-        )
-
-        try:
-            func()
-            raise AssertionError(f"Expected {exception_type.__name__} to be raised")
-        except exception_type as e:
-            assertion.actual = type(e).__name__
-            assertion.passed = True
-        except Exception as e:
-            assertion.actual = type(e).__name__
-            assertion.error = f"Wrong exception type: expected {exception_type.__name__}, got {type(e).__name__}"
-            raise AssertionError(assertion.error)
-        finally:
-            self.assertions.append(assertion)
-            self.test_result.assertions.append(assertion)
-
-class PathAwareTestSuite:
-    """Test suite with comprehensive path tracking"""
-    
-    def __init__(self, suite_name: str):
-        self.suite_name = suite_name
-        self.path_tracker = PathTracker()
-        self.tests: List[Dict[str, Any]] = []
-        self.setup_callbacks: List[Callable] = []
-        self.teardown_callbacks: List[Callable] = []
-
-    def add_setup(self, callback: Callable):
-        """Add suite setup callback"""
-        self.setup_callbacks.append(callback)
-
-    def add_teardown(self, callback: Callable):
-        """Add suite teardown callback"""
-        self.teardown_callbacks.append(callback)
-
-    def add_test(self, name: str, test_func: Callable, description: str = "", 
-                 setup: Optional[Callable] = None, teardown: Optional[Callable] = None):
-        """Add test to suite"""
-        self.tests.append({
-            'name': name,
-            'description': description,
-            'test_func': test_func,
-            'setup': setup,
-            'teardown': teardown
-        })
-
-    async def run_suite(self) -> Dict[str, Any]:
-        """Execute entire test suite with path tracking"""
-        return await self.path_tracker.execute_in_path(
-            f"test_suite_{self.suite_name}",
-            self._run_suite_internal
-        )
-
-    async def _run_suite_internal(self) -> Dict[str, Any]:
-        """Internal suite execution logic"""
-        logger.info(f"Starting test suite: {self.suite_name}")
-
-        results = {
-            'suite_name': self.suite_name,
-            'start_time': time.time(),
-            'tests': [],
-            'path_metrics': {},
-            'summary': {}
-        }
-
-        # Path: test-suite-setup
-        await self.path_tracker.execute_in_path('test_suite_setup', self._execute_setup_callbacks)
-
-        try:
-            # Path: test-execution
-            for test_def in self.tests:
-                test_result = await self._execute_test(test_def)
-                results['tests'].append(test_result)
-
-        finally:
-            # Path: test-suite-teardown
-            await self.path_tracker.execute_in_path('test_suite_teardown', self._execute_teardown_callbacks)
-
-        # Path: results-compilation
-        results['end_time'] = time.time()
-        results['duration_ms'] = int((results['end_time'] - results['start_time']) * 1000)
-        results['path_metrics'] = self.path_tracker.get_metrics()
-        results['summary'] = self._compile_summary(results['tests'])
-
-        logger.info(f"Completed test suite: {self.suite_name}", extra={
-            'total_tests': len(results['tests']),
-            'passed': results['summary']['passed'],
-            'failed': results['summary']['failed'],
-            'duration_ms': results['duration_ms']
-        })
-
-        return results
-
-    async def _execute_test(self, test_def: Dict[str, Any]) -> TestResult:
-        """Execute individual test with comprehensive tracking"""
-        test_path = f"test_{test_def['name'].replace(' ', '_').lower()}"
-        
-        return await self.path_tracker.execute_in_path(test_path, 
-            lambda: self._execute_test_internal(test_def, test_path))
-
-    async def _execute_test_internal(self, test_def: Dict[str, Any], test_path: str) -> TestResult:
-        """Internal test execution logic"""
-        test_result = TestResult(
-            name=test_def['name'],
-            description=test_def['description'],
-            start_time=time.time()
-        )
-
-        start_time = time.time()
-
-        try:
-            # Path: test-setup
-            if test_def['setup']:
-                await self.path_tracker.execute_in_path(f"{test_path}_setup", test_def['setup'])
-
-            # Path: test-execution
-            context = PathAwareTestContext(test_result, self.path_tracker)
-            await self.path_tracker.execute_in_path(f"{test_path}_execution", 
-                lambda: test_def['test_func'](context))
-
-            test_result.status = 'passed'
-
-        except Exception as e:
-            test_result.status = 'failed'
-            test_result.errors.append({
-                'message': str(e),
-                'type': type(e).__name__,
-                'path': self.path_tracker.get_current_path()
-            })
-            logger.error(f"Test failed: {test_def['name']}", extra={
-                'error': str(e),
-                'path': self.path_tracker.get_current_path()
-            })
-
-        finally:
-            # Path: test-teardown
-            if test_def['teardown']:
-                try:
-                    await self.path_tracker.execute_in_path(f"{test_path}_teardown", test_def['teardown'])
-                except Exception as teardown_error:
-                    test_result.errors.append({
-                        'message': f"Teardown failed: {str(teardown_error)}",
-                        'type': 'teardown_error',
-                        'path': self.path_tracker.get_current_path()
-                    })
-
-            test_result.end_time = time.time()
-            test_result.duration_ms = int((test_result.end_time - start_time) * 1000)
-            test_result.paths_executed = self.path_tracker.get_executed_paths()
-            test_result.path_metrics = self.path_tracker.get_path_metrics(test_path)
-
-        return test_result
-
-    async def _execute_setup_callbacks(self):
-        """Execute all setup callbacks"""
-        for callback in self.setup_callbacks:
-            await callback()
-
-    async def _execute_teardown_callbacks(self):
-        """Execute all teardown callbacks"""
-        for callback in self.teardown_callbacks:
-            await callback()
-
-    def _compile_summary(self, test_results: List[TestResult]) -> Dict[str, Any]:
-        """Compile test summary statistics"""
-        total = len(test_results)
-        passed = sum(1 for test in test_results if test.status == 'passed')
-        failed = total - passed
-        total_duration = sum(test.duration_ms for test in test_results)
-
-        return {
-            'total': total,
-            'passed': passed,
-            'failed': failed,
-            'success_rate': (passed / total * 100) if total > 0 else 0,
-            'total_duration_ms': total_duration,
-            'average_duration_ms': total_duration / total if total > 0 else 0
-        }
-
-# Example test suite definition
-async def example_path_tracker_test(context: PathAwareTestContext):
-    """Example test for path tracker functionality"""
-    # Path: path-tracker-initialization
-    initial_path = context.path_tracker.get_current_path()
-    context.assert_true(initial_path, "Should have an initial path")
-
-    # Path: path-execution-tracking
-    executed_path = None
-    async def test_path_execution():
-        nonlocal executed_path
-        executed_path = context.path_tracker.get_current_path()
-        return "test_result"
-
-    result = await context.path_tracker.execute_in_path('test_path', test_path_execution)
-    context.assert_equals(result, "test_result", "Should return result correctly")
-    context.assert_equals(executed_path, "test_path", "Should track executed path correctly")
-
-    # Path: metrics-collection
-    metrics = context.path_tracker.get_metrics()
-    context.assert_in('test_path', metrics, "Should have metrics for executed path")
-
-# Create example test suite
-example_suite = PathAwareTestSuite('example_python_suite')
-
-example_suite.add_setup(lambda: logger.info("Setting up Python test suite"))
-example_suite.add_teardown(lambda: logger.info("Tearing down Python test suite"))
-
-example_suite.add_test(
-    'Path Tracker Functionality',
-    example_path_tracker_test,
-    'Test comprehensive path tracker functionality with metrics collection'
-)
-
-# Pytest integration
-@pytest.mark.asyncio
-async def test_path_aware_suite():
-    """Pytest integration for path-aware test suite"""
-    results = await example_suite.run_suite()
-    
-    assert results['summary']['total'] > 0, "Should have executed tests"
-    assert results['summary']['failed'] == 0, f"All tests should pass, but {results['summary']['failed']} failed"
-    assert 'path_metrics' in results, "Should include path metrics"
-    
-    # Verify path tracking occurred
-    assert len(results['path_metrics']) > 0, "Should have collected path metrics"
-```
-
-## Automated Test Generation and AI Integration
-
-### AI-Powered Test Case Generation
-
-```javascript
-// Path: ai-powered-test-generation
-// File: src/utils/ai-test-generator.js
-
-/**
- * AI-powered test case generation system
- */
-export class AITestGenerator {
-    constructor() {
-        this.codeAnalyzer = new CodeAnalyzer();
-        this.pathAnalyzer = new PathAnalyzer();
-        this.testTemplateEngine = new TestTemplateEngine();
-    }
-
-    /**
-     * Generate comprehensive test suite for given code
-     */
-    async generateTestSuite(sourceCode, options = {}) {
-        return pathTracker.executeInPath('ai_test_generation', async () => {
-            const analysis = await this.analyzeCode(sourceCode);
-            const testCases = await this.generateTestCases(analysis, options);
-            const testSuite = await this.assembleTestSuite(testCases, options);
-            
-            return testSuite;
-        });
-    }
-
-    /**
-     * Analyze source code to identify testable components
-     */
-    async analyzeCode(sourceCode) {
-        return pathTracker.executeInPath('code_analysis', async () => {
-            const analysis = {
-                functions: await this.codeAnalyzer.extractFunctions(sourceCode),
-                classes: await this.codeAnalyzer.extractClasses(sourceCode),
-                modules: await this.codeAnalyzer.extractModules(sourceCode),
-                dependencies: await this.codeAnalyzer.analyzeDependencies(sourceCode),
-                paths: await this.pathAnalyzer.identifyExecutionPaths(sourceCode),
-                complexity: await this.codeAnalyzer.calculateComplexity(sourceCode)
-            };
-
-            return analysis;
-        });
-    }
-
-    /**
-     * Generate test cases based on code analysis
-     */
-    async generateTestCases(analysis, options) {
-        return pathTracker.executeInPath('test_case_generation', async () => {
-            const testCases = [];
-
-            // Generate function tests
-            for (const func of analysis.functions) {
-                const functionTests = await this.generateFunctionTests(func, analysis);
-                testCases.push(...functionTests);
-            }
-
-            // Generate class tests
-            for (const cls of analysis.classes) {
-                const classTests = await this.generateClassTests(cls, analysis);
-                testCases.push(...classTests);
-            }
-
-            // Generate integration tests
-            const integrationTests = await this.generateIntegrationTests(analysis);
-            testCases.push(...integrationTests);
-
-            // Generate path-specific tests
-            const pathTests = await this.generatePathTests(analysis.paths);
-            testCases.push(...pathTests);
-
-            return testCases;
-        });
-    }
-
-    /**
-     * Generate test cases for individual functions
-     */
-    async generateFunctionTests(functionDef, codeAnalysis) {
-        const tests = [];
-
-        // Happy path test
-        tests.push({
-            type: 'unit',
-            category: 'happy_path',
-            name: `${functionDef.name} - Happy Path`,
-            description: `Test normal operation of ${functionDef.name}`,
-            setup: this.generateFunctionSetup(functionDef),
-            test: this.generateHappyPathTest(functionDef),
-            assertions: this.generateHappyPathAssertions(functionDef),
-            teardown: this.generateFunctionTeardown(functionDef)
-        });
-
-        // Edge case tests
-        const edgeCases = this.identifyEdgeCases(functionDef);
-        for (const edgeCase of edgeCases) {
-            tests.push({
-                type: 'unit',
-                category: 'edge_case',
-                name: `${functionDef.name} - ${edgeCase.name}`,
-                description: `Test ${functionDef.name} with ${edgeCase.description}`,
-                setup: this.generateEdgeCaseSetup(functionDef, edgeCase),
-                test: this.generateEdgeCaseTest(functionDef, edgeCase),
-                assertions: this.generateEdgeCaseAssertions(functionDef, edgeCase),
-                teardown: this.generateFunctionTeardown(functionDef)
-            });
-        }
-
-        // Error condition tests
-        const errorConditions = this.identifyErrorConditions(functionDef);
-        for (const errorCondition of errorConditions) {
-            tests.push({
-                type: 'unit',
-                category: 'error_handling',
-                name: `${functionDef.name} - ${errorCondition.name}`,
-                description: `Test ${functionDef.name} error handling for ${errorCondition.description}`,
-                setup: this.generateErrorSetup(functionDef, errorCondition),
-                test: this.generateErrorTest(functionDef, errorCondition),
-                assertions: this.generateErrorAssertions(functionDef, errorCondition),
-                teardown: this.generateFunctionTeardown(functionDef)
-            });
-        }
-
-        return tests;
-    }
-
-    /**
-     * Generate comprehensive integration tests
-     */
-    async generateIntegrationTests(codeAnalysis) {
-        const integrationTests = [];
-
-        // Component interaction tests
-        const componentPairs = this.identifyComponentInteractions(codeAnalysis);
-        for (const [componentA, componentB] of componentPairs) {
-            integrationTests.push({
-                type: 'integration',
-                category: 'component_interaction',
-                name: `Integration: ${componentA.name} → ${componentB.name}`,
-                description: `Test interaction between ${componentA.name} and ${componentB.name}`,
-                setup: this.generateIntegrationSetup([componentA, componentB]),
-                test: this.generateInteractionTest(componentA, componentB),
-                assertions: this.generateInteractionAssertions(componentA, componentB),
-                teardown: this.generateIntegrationTeardown([componentA, componentB])
-            });
-        }
-
-        // Data flow tests
-        const dataFlows = this.identifyDataFlows(codeAnalysis);
-        for (const dataFlow of dataFlows) {
-            integrationTests.push({
-                type: 'integration',
-                category: 'data_flow',
-                name: `Data Flow: ${dataFlow.source} → ${dataFlow.destination}`,
-                description: `Test data flow from ${dataFlow.source} to ${dataFlow.destination}`,
-                setup: this.generateDataFlowSetup(dataFlow),
-                test: this.generateDataFlowTest(dataFlow),
-                assertions: this.generateDataFlowAssertions(dataFlow),
-                teardown: this.generateDataFlowTeardown(dataFlow)
-            });
-        }
-
-        return integrationTests;
-    }
-
-    /**
-     * Generate path-specific tests
-     */
-    async generatePathTests(pathAnalysis) {
-        const pathTests = [];
-
-        for (const path of pathAnalysis.criticalPaths) {
-            pathTests.push({
-                type: 'path',
-                category: 'critical_path',
-                name: `Critical Path: ${path.name}`,
-                description: `Test critical execution path: ${path.description}`,
-                setup: this.generatePathSetup(path),
-                test: this.generatePathTest(path),
-                assertions: this.generatePathAssertions(path),
-                teardown: this.generatePathTeardown(path)
-            });
-        }
-
-        for (const path of pathAnalysis.errorPaths) {
-            pathTests.push({
-                type: 'path',
-                category: 'error_path',
-                name: `Error Path: ${path.name}`,
-                description: `Test error handling path: ${path.description}`,
-                setup: this.generateErrorPathSetup(path),
-                test: this.generateErrorPathTest(path),
-                assertions: this.generateErrorPathAssertions(path),
-                teardown: this.generatePathTeardown(path)
-            });
-        }
-
-        return pathTests;
-    }
-
-    /**
-     * Assemble complete test suite from generated test cases
-     */
-    async assembleTestSuite(testCases, options) {
-        const testSuite = {
-            name: options.suiteName || 'Generated Test Suite',
-            description: options.description || 'AI-generated comprehensive test suite',
-            framework: options.framework || 'path-aware',
-            configuration: {
-                timeout: options.timeout || 30000,
-                retries: options.retries || 0,
-                parallel: options.parallel || false
-            },
-            setup: this.generateSuiteSetup(testCases, options),
-            teardown: this.generateSuiteTeardown(testCases, options),
-            tests: testCases,
-            metadata: {
-                generatedAt: new Date().toISOString(),
-                generator: 'AI Test Generator v1.0',
-                totalTests: testCases.length,
-                testTypes: this.summarizeTestTypes(testCases)
-            }
-        };
-
-        return testSuite;
-    }
-}
-```
-
-## Performance and Security Testing
-
-### Performance Testing Framework
+### Running Tests in Containers
 
 ```bash
 #!/bin/bash
-# Path: performance-testing-automation
-# File: tests/performance/run-performance-tests.sh
+# scripts/run-tests.sh
+# Run test suite in Docker container
 
 set -euo pipefail
 
-# Path: script-initialization
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../" && pwd)"
-readonly RESULTS_DIR="${SCRIPT_DIR}/results"
+echo "Starting test environment..."
+docker-compose -f docker-compose.test.yml up -d test-db
 
-# Load libraries
-source "${PROJECT_ROOT}/scripts/lib/logging.sh"
-source "${PROJECT_ROOT}/scripts/lib/path_management.sh"
+echo "Waiting for database to be ready..."
+sleep 5
 
-# Path: performance-testing-workflow
-run_performance_tests() {
-    enter_path "performance_testing"
-    
-    log_info "Starting comprehensive performance testing" "performance_testing"
-    
-    # Ensure results directory exists
-    mkdir -p "$RESULTS_DIR"
-    
-    # Path: load-testing
-    execute_in_path "load_testing" \
-        "run_load_tests"
-    
-    # Path: stress-testing
-    execute_in_path "stress_testing" \
-        "run_stress_tests"
-    
-    # Path: spike-testing
-    execute_in_path "spike_testing" \
-        "run_spike_tests"
-    
-    # Path: endurance-testing
-    execute_in_path "endurance_testing" \
-        "run_endurance_tests"
-    
-    # Path: results-analysis
-    execute_in_path "results_analysis" \
-        "analyze_performance_results"
-    
-    exit_path "performance_testing"
-    log_info "Performance testing completed successfully" "performance_testing"
-}
+echo "Running tests..."
+docker-compose -f docker-compose.test.yml run --rm test-runner
 
-# Path: load-testing-execution
-run_load_tests() {
-    log_info "Running load tests" "load_testing"
-    
-    local load_scenarios=(
-        "baseline:10:30s"
-        "moderate:50:60s"
-        "heavy:100:120s"
-        "peak:200:180s"
-    )
-    
-    for scenario in "${load_scenarios[@]}"; do
-        IFS=':' read -r name users duration <<< "$scenario"
-        
-        log_info "Running load test: $name ($users users, $duration)" "load_testing"
-        
-        # K6 load test
-        k6 run \
-            --vus "$users" \
-            --duration "$duration" \
-            --out json="${RESULTS_DIR}/load-test-${name}.json" \
-            "${SCRIPT_DIR}/scenarios/load-test.js" \
-            || log_error "Load test failed: $name" "load_testing"
-        
-        # Artillery load test (alternative)
-        artillery run \
-            --config "${SCRIPT_DIR}/config/artillery-${name}.yml" \
-            --output "${RESULTS_DIR}/artillery-${name}.json" \
-            "${SCRIPT_DIR}/scenarios/artillery-load.yml" \
-            || log_error "Artillery load test failed: $name" "load_testing"
-    done
-    
-    log_info "Load testing completed" "load_testing"
-}
-
-# Path: stress-testing-execution
-run_stress_tests() {
-    log_info "Running stress tests" "stress_testing"
-    
-    # Gradual stress test
-    k6 run \
-        --stages "2m:100,5m:100,2m:200,5m:200,2m:300,5m:300,2m:400,5m:400,10m:0" \
-        --out json="${RESULTS_DIR}/stress-test-gradual.json" \
-        "${SCRIPT_DIR}/scenarios/stress-test.js" \
-        || log_error "Gradual stress test failed" "stress_testing"
-    
-    # Resource exhaustion test
-    k6 run \
-        --vus 1000 \
-        --duration "10m" \
-        --out json="${RESULTS_DIR}/stress-test-exhaustion.json" \
-        "${SCRIPT_DIR}/scenarios/resource-exhaustion.js" \
-        || log_error "Resource exhaustion test failed" "stress_testing"
-    
-    log_info "Stress testing completed" "stress_testing"
-}
-
-# Path: security-testing-execution
-run_security_tests() {
-    log_info "Running security tests" "security_testing"
-    
-    # OWASP ZAP security scan
-    if command -v docker >/dev/null 2>&1; then
-        docker run --rm \
-            -v "${RESULTS_DIR}:/zap/wrk" \
-            -t owasp/zap2docker-stable zap-baseline.py \
-            -t "${APP_URL:-http://localhost:3000}" \
-            -J "security-baseline-report.json" \
-            -r "security-baseline-report.html" \
-            || log_warning "ZAP baseline scan completed with warnings" "security_testing"
-    fi
-    
-    # Snyk vulnerability scan
-    if command -v snyk >/dev/null 2>&1; then
-        snyk test --json > "${RESULTS_DIR}/snyk-vulnerabilities.json" \
-            || log_warning "Snyk scan found vulnerabilities" "security_testing"
-    fi
-    
-    # Retire.js JavaScript vulnerability scan
-    if command -v retire >/dev/null 2>&1; then
-        retire --js --outputformat json \
-            --outputpath "${RESULTS_DIR}/retire-js-scan.json" \
-            "${PROJECT_ROOT}" \
-            || log_warning "Retire.js found potential issues" "security_testing"
-    fi
-    
-    log_info "Security testing completed" "security_testing"
-}
-
-# Path: main-execution
-main() {
-    local start_time=$(date +%s.%N)
-    
-    log_info "Starting performance and security testing suite" "main"
-    
-    # Check prerequisites
-    check_testing_tools || {
-        log_fatal "Required testing tools are not available" "main"
-    }
-    
-    # Ensure test environment is running
-    ensure_test_environment || {
-        log_fatal "Could not start test environment" "main"
-    }
-    
-    # Run tests
-    run_performance_tests
-    run_security_tests
-    
-    # Generate comprehensive report
-    generate_comprehensive_report
-    
-    local end_time=$(date +%s.%N)
-    local total_time=$(echo "$end_time - $start_time" | bc -l)
-    
-    log_performance_metric "full_test_suite_time" "$total_time" "seconds" "testing"
-    log_info "Testing suite completed successfully in ${total_time}s" "main"
-}
-
-# Execute main function if script is run directly
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
-fi
+echo "Collecting coverage report..."
+docker-compose -f docker-compose.test.yml down
 ```
 
-## Integration with Other Instructions
+## Pytest Configuration
 
-This testing instruction file works in conjunction with:
-- **space.instructions.md**: Foundational path-based principles and container-first development
-- **project.instructions.md**: barodybroject specific requirements and testing standards
-- **python.instructions.md**: Python-specific testing patterns and pytest integration
-- **javascript.instructions.md**: JavaScript/Node.js testing frameworks and Jest configuration
-- **bash.instructions.md**: Shell script testing and automation requirements
-- **docs.instructions.md**: Test documentation and reporting standards
-- **ci-cd.instructions.md**: Automated testing integration and pipeline requirements
+### pytest.ini
 
-## Future Evolution
+```ini
+# pytest.ini
+[pytest]
+DJANGO_SETTINGS_MODULE = barodybroject.settings
+python_files = test_*.py
+python_classes = Test*
+python_functions = test_*
+testpaths = tests
+addopts = 
+    --verbose
+    --strict-markers
+    --cov=parodynews
+    --cov-report=html
+    --cov-report=term-missing
+    --cov-fail-under=80
+markers =
+    slow: marks tests as slow (deselect with '-m "not slow"')
+    integration: marks tests as integration tests
+    api: marks tests as API tests
+    ui: marks tests as UI tests
+```
 
-### Advanced Testing Features
-- **AI-Driven Test Maintenance**: Automatic test updates based on code changes
-- **Predictive Test Selection**: AI-powered test prioritization based on change impact
-- **Self-Healing Tests**: Automatic test repair when application interfaces change
-- **Intelligent Test Data Generation**: AI-generated realistic test data and scenarios
+### Conftest.py Setup
 
-### Quality Assurance Automation
-- **Continuous Quality Monitoring**: Real-time quality metrics collection and analysis
-- **Automated Performance Regression Detection**: AI-powered performance change detection
-- **Security Testing Integration**: Continuous security testing in development workflows
-- **Multi-Environment Test Orchestration**: Automated testing across different environments and configurations
+```python
+# tests/conftest.py
+import pytest
+from django.contrib.auth.models import User
+from rest_framework.test import APIClient
+
+@pytest.fixture(scope='session')
+def django_db_setup(django_db_setup, django_db_blocker):
+    """Set up test database"""
+    with django_db_blocker.unblock():
+        # Run any initial database setup here
+        pass
+
+@pytest.fixture
+def api_client():
+    """Create DRF API client"""
+    return APIClient()
+
+@pytest.fixture
+def authenticated_client(api_client, test_user):
+    """Create authenticated API client"""
+    api_client.force_authenticate(user=test_user)
+    return api_client
+
+@pytest.fixture
+def test_user(db):
+    """Create test user"""
+    return User.objects.create_user(
+        username='testuser',
+        email='test@example.com',
+        password='testpass123'
+    )
+
+@pytest.fixture
+def staff_user(db):
+    """Create staff user"""
+    return User.objects.create_user(
+        username='staffuser',
+        email='staff@example.com',
+        password='staffpass123',
+        is_staff=True
+    )
+```
+
+## Testing Django Components
+
+### Testing Models
+
+```python
+# tests/unit/test_models.py
+import pytest
+from django.core.exceptions import ValidationError
+from django.utils.text import slugify
+from parodynews.models import Article
+
+@pytest.mark.django_db
+class TestArticleModel:
+    """Test Article model functionality"""
+    
+    def test_slug_auto_generation(self, test_user):
+        """Test slug is automatically generated from title"""
+        article = Article.objects.create(
+            title='My Test Article Title',
+            content='Article content',
+            author=test_user
+        )
+        
+        assert article.slug == 'my-test-article-title'
+    
+    def test_published_at_set_on_publish(self, test_user):
+        """Test published_at is set when article is published"""
+        article = Article.objects.create(
+            title='Unpublished Article',
+            content='Content',
+            author=test_user,
+            is_published=False
+        )
+        
+        assert article.published_at is None
+        
+        # Publish the article
+        article.is_published = True
+        article.save()
+        
+        assert article.published_at is not None
+    
+    def test_article_ordering(self, test_user):
+        """Test articles are ordered by publication date"""
+        # Create articles with different publish dates
+        old_article = Article.objects.create(
+            title='Old Article',
+            content='Content',
+            author=test_user,
+            is_published=True
+        )
+        
+        new_article = Article.objects.create(
+            title='New Article',
+            content='Content',
+            author=test_user,
+            is_published=True
+        )
+        
+        articles = Article.objects.all()
+        
+        # New article should come first
+        assert articles[0] == new_article
+        assert articles[1] == old_article
+```
+
+### Testing Views with RequestFactory
+
+```python
+# tests/integration/test_views.py
+import pytest
+from django.test import RequestFactory
+from django.contrib.auth.models import AnonymousUser
+from parodynews.views import ArticleListView, ArticleDetailView
+
+@pytest.mark.django_db
+class TestArticleViews:
+    """Test article views"""
+    
+    @pytest.fixture
+    def factory(self):
+        return RequestFactory()
+    
+    def test_article_list_view(self, factory, multiple_articles):
+        """Test article list view"""
+        request = factory.get('/articles/')
+        request.user = AnonymousUser()
+        
+        view = ArticleListView.as_view()
+        response = view(request)
+        
+        assert response.status_code == 200
+    
+    def test_article_detail_view(self, factory, test_article):
+        """Test article detail view"""
+        request = factory.get(f'/articles/{test_article.slug}/')
+        request.user = AnonymousUser()
+        
+        view = ArticleDetailView.as_view()
+        response = view(request, slug=test_article.slug)
+        
+        assert response.status_code == 200
+        assert response.context_data['article'] == test_article
+```
+
+### Testing API Endpoints
+
+```python
+# tests/integration/test_api.py
+import pytest
+from django.urls import reverse
+from rest_framework import status
+from parodynews.models import Article
+
+@pytest.mark.django_db
+class TestArticleAPI:
+    """Test Article API endpoints"""
+    
+    def test_list_articles_unauthenticated(self, api_client, multiple_articles):
+        """Test listing articles without authentication"""
+        url = reverse('article-list')
+        response = api_client.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+        # Should only return published articles
+        assert all(article['is_published'] for article in response.data['results'])
+    
+    def test_create_article_requires_auth(self, api_client):
+        """Test creating article requires authentication"""
+        url = reverse('article-list')
+        data = {
+            'title': 'New Article',
+            'content': 'Article content',
+            'category': 'tech'
+        }
+        
+        response = api_client.post(url, data, format='json')
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    
+    def test_create_article_authenticated(self, authenticated_client):
+        """Test creating article with authentication"""
+        url = reverse('article-list')
+        data = {
+            'title': 'Authenticated User Article',
+            'content': 'Content created by authenticated user.',
+            'category': 'politics'
+        }
+        
+        response = authenticated_client.post(url, data, format='json')
+        
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['title'] == data['title']
+        assert Article.objects.filter(title=data['title']).exists()
+    
+    def test_update_article_permissions(self, authenticated_client, test_user):
+        """Test only article author can update"""
+        # Create article by test_user
+        article = Article.objects.create(
+            title='Original Title',
+            content='Original content',
+            author=test_user,
+            category='tech'
+        )
+        
+        url = reverse('article-detail', kwargs={'slug': article.slug})
+        data = {'title': 'Updated Title'}
+        
+        response = authenticated_client.patch(url, data, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        
+        article.refresh_from_db()
+        assert article.title == 'Updated Title'
+```
+
+## UI Testing with Playwright
+
+### Basic Playwright Tests
+
+```python
+# tests/e2e/test_user_flows.py
+import pytest
+from playwright.sync_api import Page, expect
+
+@pytest.fixture(scope='session')
+def browser_context_args(browser_context_args):
+    """Configure browser context"""
+    return {
+        **browser_context_args,
+        'viewport': {'width': 1280, 'height': 720},
+    }
+
+def test_homepage_loads(page: Page, live_server):
+    """Test homepage loads successfully"""
+    page.goto(f'{live_server.url}/')
+    
+    expect(page).to_have_title('Parody News')
+    expect(page.locator('h1')).to_contain_text('Welcome')
+
+def test_user_login_flow(page: Page, live_server, test_user):
+    """Test user can log in"""
+    page.goto(f'{live_server.url}/accounts/login/')
+    
+    # Fill in login form
+    page.fill('input[name="username"]', 'testuser')
+    page.fill('input[name="password"]', 'testpass123')
+    page.click('button[type="submit"]')
+    
+    # Should redirect to home and show user menu
+    expect(page).to_have_url(f'{live_server.url}/')
+    expect(page.locator('.user-menu')).to_be_visible()
+
+def test_create_article_flow(page: Page, live_server, test_user):
+    """Test creating an article through UI"""
+    # Login first
+    page.goto(f'{live_server.url}/accounts/login/')
+    page.fill('input[name="username"]', 'testuser')
+    page.fill('input[name="password"]', 'testpass123')
+    page.click('button[type="submit"]')
+    
+    # Navigate to create article
+    page.goto(f'{live_server.url}/articles/create/')
+    
+    # Fill in article form
+    page.fill('input[name="title"]', 'Test Article via UI')
+    page.fill('textarea[name="content"]', 'This is test content created through the UI.')
+    page.select_option('select[name="category"]', 'tech')
+    
+    # Submit form
+    page.click('button[type="submit"]')
+    
+    # Should redirect to article detail
+    expect(page.locator('h1')).to_contain_text('Test Article via UI')
+```
+
+## Test Data Management
+
+### Using Factory Boy
+
+```python
+# tests/factories.py
+import factory
+from django.contrib.auth.models import User
+from parodynews.models import Article
+
+class UserFactory(factory.django.DjangoModelFactory):
+    """Factory for creating test users"""
+    
+    class Meta:
+        model = User
+    
+    username = factory.Sequence(lambda n: f'user{n}')
+    email = factory.LazyAttribute(lambda obj: f'{obj.username}@example.com')
+    first_name = factory.Faker('first_name')
+    last_name = factory.Faker('last_name')
+
+class ArticleFactory(factory.django.DjangoModelFactory):
+    """Factory for creating test articles"""
+    
+    class Meta:
+        model = Article
+    
+    title = factory.Faker('sentence', nb_words=6)
+    slug = factory.LazyAttribute(lambda obj: slugify(obj.title))
+    content = factory.Faker('paragraphs', nb=3)
+    author = factory.SubFactory(UserFactory)
+    category = factory.Iterator(['politics', 'tech', 'sports', 'entertainment'])
+    is_published = True
+
+# Usage in tests
+@pytest.mark.django_db
+def test_with_factories():
+    """Test using factory-created objects"""
+    # Create 5 articles with random data
+    articles = ArticleFactory.create_batch(5)
+    
+    assert Article.objects.count() == 5
+    assert all(article.is_published for article in articles)
+```
+
+### JSON Fixtures
+
+```json
+// tests/fixtures/articles.json
+[
+  {
+    "model": "parodynews.article",
+    "pk": 1,
+    "fields": {
+      "title": "Test Article 1",
+      "slug": "test-article-1",
+      "content": "Test content for article 1",
+      "category": "tech",
+      "is_published": true,
+      "author": 1
+    }
+  },
+  {
+    "model": "parodynews.article",
+    "pk": 2,
+    "fields": {
+      "title": "Test Article 2",
+      "slug": "test-article-2",
+      "content": "Test content for article 2",
+      "category": "politics",
+      "is_published": false,
+      "author": 1
+    }
+  }
+]
+```
+
+```python
+# Load fixtures in tests
+@pytest.mark.django_db
+def test_with_fixtures(django_db_setup, django_db_blocker):
+    """Test using JSON fixtures"""
+    from django.core.management import call_command
+    
+    with django_db_blocker.unblock():
+        call_command('loaddata', 'tests/fixtures/articles.json')
+    
+    assert Article.objects.count() == 2
+```
+
+## Coverage and Reporting
+
+### Coverage Configuration
+
+```ini
+# .coveragerc
+[run]
+source = src/parodynews
+omit =
+    */tests/*
+    */migrations/*
+    */admin.py
+    */apps.py
+    */__init__.py
+
+[report]
+precision = 2
+show_missing = True
+skip_covered = False
+
+[html]
+directory = coverage_html
+```
+
+### Running Coverage
+
+```bash
+# Run tests with coverage
+pytest --cov=parodynews --cov-report=html --cov-report=term
+
+# Generate coverage report
+coverage run -m pytest
+coverage report
+coverage html
+
+# View HTML report
+open htmlcov/index.html
+```
+
+## Performance Testing
+
+### Database Query Testing
+
+```python
+# tests/integration/test_performance.py
+import pytest
+from django.test.utils import override_settings
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+
+@pytest.mark.django_db
+def test_article_list_query_count(client, multiple_articles):
+    """Test article list doesn't cause N+1 queries"""
+    url = reverse('article-list')
+    
+    with CaptureQueriesContext(connection) as queries:
+        response = client.get(url)
+    
+    assert response.status_code == 200
+    
+    # Should use select_related/prefetch_related to minimize queries
+    # Adjust threshold based on your implementation
+    assert len(queries) <= 5, f"Too many queries: {len(queries)}"
+
+@pytest.mark.django_db
+def test_api_response_time(api_client, multiple_articles):
+    """Test API response time is acceptable"""
+    import time
+    
+    url = reverse('article-list')
+    
+    start = time.time()
+    response = api_client.get(url)
+    elapsed = time.time() - start
+    
+    assert response.status_code == 200
+    assert elapsed < 1.0, f"Response too slow: {elapsed}s"
+```
+
+## Mocking External Services
+
+### Mocking OpenAI API
+
+```python
+# tests/unit/test_openai_integration.py
+import pytest
+from unittest.mock import patch, Mock
+from parodynews.services.content_generator import ContentGenerator
+
+@pytest.fixture
+def mock_openai_response():
+    """Mock successful OpenAI response"""
+    mock = Mock()
+    mock.choices = [
+        Mock(message=Mock(content='''
+TITLE: AI Achieves Sentience, Immediately Files for Vacation Days
+CONTENT: In an unprecedented development, the latest AI model...
+        '''))
+    ]
+    return mock
+
+@pytest.mark.django_db
+class TestContentGenerator:
+    """Test content generation service"""
+    
+    @patch('openai.ChatCompletion.create')
+    def test_generate_with_caching(self, mock_create, mock_openai_response):
+        """Test content generation uses caching"""
+        from django.core.cache import cache
+        
+        mock_create.return_value = mock_openai_response
+        
+        generator = ContentGenerator()
+        
+        # First call should hit API
+        result1 = generator.generate('AI news', 'tech')
+        assert mock_create.call_count == 1
+        
+        # Second identical call should use cache
+        result2 = generator.generate('AI news', 'tech')
+        assert mock_create.call_count == 1  # Still 1, not 2
+        
+        assert result1 == result2
+    
+    @patch('openai.ChatCompletion.create')
+    def test_parse_response_format(self, mock_create, mock_openai_response):
+        """Test response parsing handles expected format"""
+        mock_create.return_value = mock_openai_response
+        
+        generator = ContentGenerator()
+        result = generator.generate('test topic', 'tech')
+        
+        assert 'title' in result
+        assert 'content' in result
+        assert result['title'] == 'AI Achieves Sentience, Immediately Files for Vacation Days'
+        assert 'unprecedented development' in result['content']
+```
+
+### Mocking HTTP Requests
+
+```python
+# tests/unit/test_api_client.py
+import pytest
+from unittest.mock import Mock, patch
+import requests
+
+@patch('requests.Session.get')
+def test_api_client_get_success(mock_get):
+    """Test successful API GET request"""
+    from utils.api_client import APIClient
+    
+    # Mock successful response
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {'data': 'test'}
+    mock_get.return_value = mock_response
+    
+    client = APIClient('https://api.example.com')
+    result = client.get('/endpoint')
+    
+    assert result == {'data': 'test'}
+    mock_get.assert_called_once()
+
+@patch('requests.Session.get')
+def test_api_client_retry_logic(mock_get):
+    """Test API client retries on failure"""
+    from utils.api_client import APIClient
+    
+    # First call fails, second succeeds
+    mock_fail = Mock()
+    mock_fail.status_code = 500
+    mock_fail.raise_for_status.side_effect = requests.exceptions.HTTPError()
+    
+    mock_success = Mock()
+    mock_success.status_code = 200
+    mock_success.json.return_value = {'data': 'success'}
+    
+    mock_get.side_effect = [mock_fail, mock_success]
+    
+    client = APIClient('https://api.example.com')
+    result = client.get('/endpoint')
+    
+    assert result == {'data': 'success'}
+    assert mock_get.call_count == 2
+```
+
+## Test Best Practices
+
+### Test Naming
+- Use descriptive names that explain what is being tested
+- Format: `test_<component>_<scenario>_<expected_result>`
+- Examples:
+  - `test_article_creation_requires_authentication`
+  - `test_api_returns_404_for_missing_article`
+  - `test_form_validation_rejects_short_title`
+
+### Test Structure (Arrange-Act-Assert)
+
+```python
+def test_example():
+    # Arrange: Set up test data and conditions
+    user = User.objects.create_user(username='test')
+    article = Article.objects.create(
+        title='Test',
+        content='Content',
+        author=user
+    )
+    
+    # Act: Perform the action being tested
+    result = article.get_absolute_url()
+    
+    # Assert: Verify expected outcome
+    assert result == f'/articles/{article.slug}/'
+```
+
+### Parametrized Tests
+
+```python
+@pytest.mark.parametrize('category,expected_count', [
+    ('tech', 2),
+    ('politics', 3),
+    ('sports', 0),
+])
+@pytest.mark.django_db
+def test_filter_by_category(category, expected_count, multiple_articles):
+    """Test filtering articles by category"""
+    articles = Article.objects.filter(category=category)
+    assert articles.count() == expected_count
+```
+
+### Testing Async Code
+
+```python
+import pytest
+import asyncio
+
+@pytest.mark.asyncio
+async def test_async_operation():
+    """Test asynchronous function"""
+    async def fetch_data():
+        await asyncio.sleep(0.1)
+        return {'data': 'value'}
+    
+    result = await fetch_data()
+    assert result == {'data': 'value'}
+```
+
+## Continuous Testing
+
+### Pre-commit Hooks
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+  
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        language_version: python3.8
+  
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        args: ['--max-line-length=100']
+```
+
+### Running Tests Locally
+
+```bash
+# Run all tests
+pytest
+
+# Run specific test file
+pytest tests/unit/test_models.py
+
+# Run specific test class
+pytest tests/unit/test_models.py::TestArticleModel
+
+# Run specific test
+pytest tests/unit/test_models.py::TestArticleModel::test_slug_generation
+
+# Run with coverage
+pytest --cov=parodynews --cov-report=html
+
+# Run only fast tests (skip slow ones)
+pytest -m "not slow"
+
+# Run with verbose output
+pytest -v
+
+# Run with print output
+pytest -s
+```
+
+## Testing Checklist
+
+Before submitting code, ensure:
+
+- [ ] All new code has corresponding tests
+- [ ] Tests are isolated and don't depend on each other
+- [ ] Tests use appropriate fixtures and factories
+- [ ] External APIs are properly mocked
+- [ ] Test names are descriptive
+- [ ] Coverage meets minimum threshold (80%)
+- [ ] Tests pass locally before pushing
+- [ ] Integration tests cover critical workflows
+- [ ] Error cases are tested
+- [ ] Edge cases are considered
+
+## Common Testing Patterns
+
+### Testing Validation
+
+```python
+@pytest.mark.django_db
+def test_article_validation():
+    """Test model validation"""
+    article = Article(
+        title='A',  # Too short
+        content='Short',  # Too short
+        category='invalid'  # Invalid choice
+    )
+    
+    with pytest.raises(ValidationError):
+        article.full_clean()
+```
+
+### Testing Signals
+
+```python
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@pytest.mark.django_db
+def test_article_signal_handler(test_user):
+    """Test signal is triggered on article creation"""
+    signal_called = []
+    
+    @receiver(post_save, sender=Article)
+    def test_signal(sender, instance, created, **kwargs):
+        if created:
+            signal_called.append(instance)
+    
+    article = Article.objects.create(
+        title='Test',
+        content='Content',
+        author=test_user
+    )
+    
+    assert len(signal_called) == 1
+    assert signal_called[0] == article
+```
+
+### Testing Middleware
+
+```python
+@pytest.mark.django_db
+def test_custom_middleware(client, test_user):
+    """Test custom middleware behavior"""
+    response = client.get('/')
+    
+    # Check middleware added custom header
+    assert 'X-Custom-Header' in response
+```
