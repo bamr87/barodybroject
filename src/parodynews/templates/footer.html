@@ -1,42 +1,37 @@
 <!-- footer.html -->
-<footer class="bd-footer container-xl d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-    <div class="col-sm d-flex align-items-center">
-        
-<!-- Frameworks/Engines and Affiliations -->
-<ul class="nav col-sm justify-content-end list-unstyled d-flex align-items-center">
-
-    <!-- Search for Site Frameworks in config file -->
-    <li class="align-self">
-        &copy; {{ now|date:"Y" }} Barody Broject. Powered by: 
-    </li>
-
-    <li>
-        <ul>
-            {% for power in powered_by %}
-            <li class="btn">
-                <a href="{{ power.url }}" rel="nofollow">
-                    <i class="bi bi-{{ power.icon }}" aria-hidden="true"></i>
-                    <!-- display name if there's enough space, else icon only -->
-                    <span class="d-none d-md-inline">
-                        {{ power.name }}
-                    </span>
-                </a>
-            </li>
-            {% endfor %}
-        </ul>
-    </li>
-
-    <!-- RSS Feed -->
-    {% comment %} <li class="btn">
-        <a href="/feed.xml">
-            <i class="bi bi-rss" aria-hidden="true"></i>
-            <!-- https://icons.getbootstrap.com/icons/rss/ -->
-            <span class="d-none d-md-inline">
-                Feed
+<div class="container-xl">
+    <div class="row py-4">
+        <!-- Copyright and Branding -->
+        <div class="col-md-6 d-flex align-items-center">
+            <span class="text-muted">
+                &copy; {{ now|date:"Y" }} Barody Broject
             </span>
-        </a>
-    </li> {% endcomment %}
-</ul>
+        </div>
 
+        <!-- Frameworks/Engines and Affiliations -->
+        <div class="col-md-6">
+            <ul class="nav justify-content-md-end list-unstyled d-flex align-items-center">
+                <li class="me-3">
+                    <span class="text-muted">Powered by:</span>
+                </li>
+                {% for power in powered_by %}
+                    <li class="nav-item">
+                        <a class="nav-link text-muted" href="{{ power.url }}" rel="nofollow noopener" target="_blank" title="{{ power.name }}">
+                            <i class="bi bi-{{ power.icon }}" aria-hidden="true"></i>
+                            <span class="d-none d-lg-inline ms-1">{{ power.name }}</span>
+                        </a>
+                    </li>
+                {% endfor %}
+                <!-- RSS Feed -->
+                {% comment %}
+                <li class="nav-item">
+                    <a class="nav-link text-muted" href="/feed.xml" title="RSS Feed">
+                        <i class="bi bi-rss" aria-hidden="true"></i>
+                        <span class="d-none d-lg-inline ms-1">Feed</span>
+                    </a>
+                </li>
+                {% endcomment %}
+            </ul>
+        </div>
     </div>
-</footer>
+</div>

@@ -1,19 +1,91 @@
 {% extends "base.html" %}
-
 {% load allauth %}
 
+{% block title %}Welcome | Barody Broject{% endblock %}
+
 {% block content %}
-    <div class="container">
-        <h1>Welcome to the AI Content Generator</h1>
-        <p>This is the root index page. Use the links below to navigate through the application.</p>
-        <div class="list-group">
-            <a href="/content/" class="list-group-item list-group-item-action">Create/View Content</a>
-            <a href="/threads/" class="list-group-item list-group-item-action">View Threads</a>
-            <a href="/messages/" class="list-group-item list-group-item-action">View Messages</a>
-            <a href="/assistants/" class="list-group-item list-group-item-action">Manage/View Assistants</a>
-            <a href="/assistant-groups/" class="list-group-item list-group-item-action">Manage/View Asst. Groups</a>
-            <a href="/admin/" class="list-group-item list-group-item-action">Admin</a>
-            <!-- Add more links as needed -->
+    <div class="container-xl py-5">
+        <!-- Hero Section -->
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 fw-bold">Welcome to Barody Broject</h1>
+                <p class="lead text-muted mt-3">
+                    AI-powered parody news generator using Django and OpenAI. Create, manage, and publish satirical content with ease.
+                </p>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-file-text text-primary me-2"></i>
+                            Content Management
+                        </h5>
+                        <p class="card-text text-muted">Create and manage parody content with AI assistance.</p>
+                        <a href="/content/" class="btn btn-primary">Manage Content</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-chat-dots text-success me-2"></i>
+                            Threads & Messages
+                        </h5>
+                        <p class="card-text text-muted">View and manage conversation threads and messages.</p>
+                        <a href="/threads/" class="btn btn-success">View Threads</a>
+                        <a href="/messages/" class="btn btn-outline-success ms-2">View Messages</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-robot text-info me-2"></i>
+                            AI Assistants
+                        </h5>
+                        <p class="card-text text-muted">Configure and manage AI assistants and groups.</p>
+                        <a href="/assistants/" class="btn btn-info">Manage Assistants</a>
+                        <a href="/assistant-groups/" class="btn btn-outline-info ms-2">Asst. Groups</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-newspaper text-warning me-2"></i>
+                            Publications
+                        </h5>
+                        <p class="card-text text-muted">View published posts and manage content.</p>
+                        <a href="/posts/" class="btn btn-warning">View Posts</a>
+                        <a href="https://bamr87.github.io/barodybroject/posts/" class="btn btn-outline-warning ms-2" target="_blank" rel="noopener noreferrer">Publications</a>
+                    </div>
+                </div>
+            </div>
+
+            {% if user.is_staff %}
+            <div class="col-md-12">
+                <div class="card shadow-sm border-danger">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-shield-lock text-danger me-2"></i>
+                            Administration
+                        </h5>
+                        <p class="card-text text-muted">Access the Django admin interface for advanced management.</p>
+                        <a href="/admin/" class="btn btn-danger">Django Admin</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}
