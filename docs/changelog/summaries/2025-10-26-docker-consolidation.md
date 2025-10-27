@@ -67,7 +67,6 @@ services:
 4. **`DOCKER_QUICK_REFERENCE.md`** - Essential commands reference
 5. **`DOCKER_CONSOLIDATION_SUMMARY.md`** - Migration documentation
 6. **`DOCKER_BEFORE_AFTER.md`** - Visual comparison guide
-7. **`migrate-docker-setup.sh`** - Automated migration script
 
 ### Files Archived
 - `docker-compose.prod.yml` → `archive/docker-old/`
@@ -122,18 +121,6 @@ docker-compose exec web-dev python manage.py migrate
 - Added production-specific tasks
 
 ## Migration Process
-
-### Automated Migration
-```bash
-./migrate-docker-setup.sh
-```
-
-**Features:**
-- ✅ Automatic backup creation
-- ✅ Container shutdown and cleanup
-- ✅ Configuration validation
-- ✅ Service startup verification
-- ✅ Documentation links and next steps
 
 ### Manual Migration
 1. Backup existing configuration
