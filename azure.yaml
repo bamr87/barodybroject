@@ -8,5 +8,5 @@ services:
     project: src
     host: containerapp
     language: python
-    docker:
-      path: Dockerfile
+    # Note: Using docker-compose configuration instead of standalone Dockerfile
+    # Refer to docker-compose.yml for container configuration

@@ -81,10 +81,9 @@ services:
 
   # Django Web Application - Production Mode
   web-prod:
-    build:
-      context: ./src
-      dockerfile: Dockerfile
+    image: python:3.11-slim
     container_name: barody-web-prod
+    working_dir: /app
     profiles: ["production"]
     volumes:
       - ./src:/app
@@ -98,13 +97,40 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       DJANGO_SETTINGS_MODULE: barodybroject.settings
       DEBUG: "False"
+      PYTHONPATH: /app
       PYTHONUNBUFFERED: 1
     ports:
-      - "${DJANGO_PROD_PORT:-80}:80"
+      - "${DJANGO_PROD_PORT:-80}:8000"
     networks:
       - barody-network
     restart: unless-stopped
-    command: ["bash", "-c", "./entrypoint.sh"]
+    command:
+      - /bin/bash
+      - -c
+      - |
+        echo "🚀 Starting Production Environment..."
+        apt-get update -qq
+        apt-get install -y --no-install-recommends \
+          build-essential \
+          python3-dev \
+          libxml2-dev \
+          libxmlsec1-dev \
+          pkg-config \
+          libffi-dev \
+          postgresql-client \
+          libcairo2-dev \
+          libgirepository1.0-dev \
+          libpango1.0-dev \
+          libglib2.0-dev \
+          > /dev/null 2>&1
+        pip install --upgrade pip -q
+        pip install -r requirements.txt -q
+        echo "📦 Dependencies installed"
+        python manage.py makemigrations
+        python manage.py migrate
+        python manage.py collectstatic --noinput
+        echo "✅ Django ready for production"
+        exec gunicorn barodybroject.wsgi:application --bind 0.0.0.0:8000 --workers 3
 
   # Jekyll Static Site Generator (optional service)
   jekyll:

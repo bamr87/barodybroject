@@ -56,6 +56,6 @@
         "ghcr.io/azure/azure-dev/azd:latest": {}
     },
     
-    "postCreateCommand": "bash -lc 'cd src && python3 manage.py migrate'"
+    "postCreateCommand": "echo 'Container created successfully. Django server will start automatically.'"
 }
 

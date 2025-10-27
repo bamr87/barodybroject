@@ -1,6 +1,6 @@
 services:
   barodydb:
-    image: postgres:latest
+    image: postgres:15-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-barodydb}
@@ -18,10 +18,13 @@ services:
       retries: 5
     ports:
       - "5432:5432"
+    networks:
+      - barody-network
 
   python:
-    image: amrabdel/barody-python:latest
+    image: python:3.11-slim
     platform: linux/amd64
+    working_dir: /workspace/src
     depends_on:
       barodydb:
         condition: service_healthy
@@ -31,11 +34,45 @@ services:
       DB_NAME: ${DB_NAME:-barodydb}
       DB_HOST: ${DB_HOST:-barodydb}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DJANGO_SETTINGS_MODULE: barodybroject.settings
+      DEBUG: "True"
+      PYTHONPATH: /workspace/src
+      PYTHONUNBUFFERED: 1
     ports:
-      - "80:80"
-    working_dir: /workspace/src
+      - "8000:8000"
+      - "5678:5678"  # VS Code debugger
     volumes:
       - ../:/workspace
+    networks:
+      - barody-network
+    command:
+      - /bin/bash
+      - -c
+      - |
+        echo "🚀 Starting Development Environment..."
+        apt-get update -qq
+        apt-get install -y --no-install-recommends \
+          build-essential \
+          python3-dev \
+          libxml2-dev \
+          libxmlsec1-dev \
+          pkg-config \
+          libffi-dev \
+          postgresql-client \
+          libcairo2-dev \
+          libgirepository1.0-dev \
+          libpango1.0-dev \
+          libglib2.0-dev \
+          git \
+          > /dev/null 2>&1
+        pip install --upgrade pip -q
+        pip install -r requirements.txt -q
+        echo "📦 Dependencies installed"
+        python manage.py makemigrations
+        python manage.py migrate
+        python manage.py collectstatic --noinput
+        echo "✅ Django ready on http://localhost:8000"
+        python manage.py runserver 0.0.0.0:8000
 
   jekyll:
     image: jekyll/jekyll:latest
@@ -47,6 +84,12 @@ services:
     working_dir: /workspace/pages
     environment:
       JEKYLL_ENV: ${JEKYLL_ENV:-development}
+    networks:
+      - barody-network
 
 volumes:
   postgres-data:
+
+networks:
+  barody-network:
+    driver: bridge
