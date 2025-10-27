@@ -1,12 +1,13 @@
 # TODO: Project Issues and Enhancements
 
-This document tracks issues, missing functionality, and enhancements needed for the Barody Project to comply with best practices and improve overall quality.
+This document tracks issues, missing functionality, and enhancements needed for the Barody Project to comply with best practices and improve overall quality. It also includes Azure deployment next steps and infrastructure guidance.
 
 **Version**: 0.1.0  
-**Last Updated**: October 2025
+**Last Updated**: October 26, 2025
 
 ## Table of Contents
 
+- [Azure Deployment Next Steps](#azure-deployment-next-steps)
 - [Configuration & Setup Issues](#configuration--setup-issues)
 - [CI/CD & Automation](#cicd--automation)
 - [Documentation Gaps](#documentation-gaps)
@@ -15,6 +16,88 @@ This document tracks issues, missing functionality, and enhancements needed for 
 - [Infrastructure & Deployment](#infrastructure--deployment)
 - [Project Organization](#project-organization)
 - [Feature Enhancements](#feature-enhancements)
+
+---
+
+## Azure Deployment Next Steps
+
+This section contains immediate next steps for Azure deployment using Azure Developer CLI (azd).
+
+### 🚀 Immediate Azure Deployment Actions
+
+- [ ] **Provision infrastructure and deploy application**
+  - **Action**: Run `azd up` to provision infrastructure and deploy to Azure
+  - **Alternative**: Run `azd provision` then `azd deploy` separately
+  - **Verify**: Visit service endpoints to confirm deployment
+  - **Troubleshooting**: See [Azure troubleshooting](#azure-troubleshooting) section below
+
+- [ ] **Configure environment variables for running services**
+  - **Action**: Update `settings` in [main.parameters.json](./infra/main.parameters.json)
+  - **Database**: Configure `POSTGRES_*` environment variables in [src.bicep](./infra/app/src.bicep)
+  - **Customize**: Modify variables to match application needs
+
+- [ ] **Setup CI/CD pipeline for Azure**
+  - **Step 1**: Create workflow pipeline file locally using starters:
+    - [GitHub Actions starter](https://github.com/Azure-Samples/azd-starter-bicep/blob/main/.github/workflows/azure-dev.yml)
+    - [Azure Pipelines starter](https://github.com/Azure-Samples/azd-starter-bicep/blob/main/.azdo/pipelines/azure-dev.yml)
+  - **Step 2**: Run `azd pipeline config` to configure secure Azure connection
+  - **Priority**: High - needed for automated deployments
+
+### 🏗️ Azure Infrastructure Overview
+
+The following infrastructure was added by `azd init`:
+
+**Core Files:**
+- `azure.yaml` - azd project configuration
+- `infra/` - Infrastructure as Code (Bicep) files
+  - `main.bicep` - main deployment module
+  - `app/` - Application resource modules
+  - `shared/` - Shared resource modules
+  - `modules/` - Library modules
+
+**Azure Resources:**
+- [app/src.bicep](./infra/app/src.bicep) - Azure Container Apps for 'src' service
+- [app/db-postgre.bicep](./infra/app/db-postgre.bicep) - PostgreSQL Flexible Server for 'barodydb'
+- [shared/keyvault.bicep](./infra/shared/keyvault.bicep) - Azure KeyVault for secrets
+- [shared/monitoring.bicep](./infra/shared/monitoring.bicep) - Log Analytics and Application Insights
+- [shared/registry.bicep](./infra/shared/registry.bicep) - Container Registry for Docker images
+
+### 🐳 Container Build Configuration
+
+**Build with Buildpacks using Oryx** (if no Dockerfile present):
+- Uses [Buildpacks](https://buildpacks.io/) with [Oryx](https://github.com/microsoft/Oryx/blob/main/doc/README.md)
+- Local testing:
+  1. Run `azd package` to build image
+  2. Copy the Image Tag shown
+  3. Run `docker run -it <Image Tag>` to test locally
+
+**Port Configuration:**
+- Oryx sets `PORT` to default `80` (`8080` for Java)
+- Auto-configures web servers (gunicorn, ASP.NET Core)
+- If app uses different port: Update `targetPort` in `.bicep` files under `infra/app/`
+
+### 💰 Cost Management
+
+- [ ] **Setup cost monitoring**
+  - **Action**: Visit *Cost Management + Billing* in Azure Portal
+  - **Monitor**: Track current spend and set up alerts
+  - **Reference**: [Azure billing overview](https://learn.microsoft.com/azure/developer/intro/azure-developer-billing)
+
+### 🔧 Azure Troubleshooting
+
+**Common Issue: Blank page, welcome page, or error page**
+
+**Diagnostic Steps:**
+1. Run `azd show` and click "View in Azure Portal"
+2. Navigate to failing Container App service
+3. Click failing revision under "Revisions with Issues"
+4. Review "Status details" for failure information
+5. Check Console log stream and System log stream for errors
+6. Use *Console* navigation to connect to shell in running container
+
+**Additional Resources:**
+- [Container Apps troubleshooting](https://learn.microsoft.com/azure/container-apps/troubleshooting)
+- [Azure Developer CLI docs](https://learn.microsoft.com/azure/developer/azure-developer-cli/make-azd-compatible?pivots=azd-convert)
 
 ---
 
@@ -62,11 +145,19 @@ This document tracks issues, missing functionality, and enhancements needed for 
 
 ### 🔴 Critical
 
+- [ ] **Setup Azure CI/CD Pipeline** - No automated deployment to Azure configured
+  - **Impact**: Manual deployments to Azure, higher error risk
+  - **Action**: Configure Azure deployment pipeline:
+    - Use GitHub Actions starter: [azure-dev.yml](https://github.com/Azure-Samples/azd-starter-bicep/blob/main/.github/workflows/azure-dev.yml)
+    - Run `azd pipeline config` for secure Azure connection
+    - Test deployment workflow
+  - **Priority**: Critical for production deployments
+
 - [ ] **Missing GitHub Actions Workflows** - No `.github/workflows/` directory found
   - **Impact**: No automated testing, linting, or deployment
   - **Action**: Create workflows for:
     - Pull request validation (linting, testing)
-    - Automated deployment to staging/production
+    - Azure deployment workflow (using azd)
     - Dependency vulnerability scanning
     - Docker image building and publishing
 
@@ -85,15 +176,30 @@ This document tracks issues, missing functionality, and enhancements needed for 
   - **Impact**: Breaking changes can be merged
   - **Action**: Add GitHub Actions workflow to run pytest on every PR
   - **Should include**: Coverage reports, test result annotations
+  - **Integration**: Should run before Azure deployment
 
-- [ ] **No Automated Deployment Pipeline** - Manual deployment only
-  - **Impact**: Slower deployments, higher error risk
-  - **Action**: Setup `azd pipeline config` and document in README
-  - **Related**: Already mentioned in README but not implemented
+- [ ] **Azure Environment Configuration** - No environment-specific deployments
+  - **Impact**: Cannot deploy to staging/production separately
+  - **Action**: Setup multiple Azure environments:
+    - Staging environment for testing
+    - Production environment
+    - Environment-specific parameters
+    - Approval workflows for production
 
 - [ ] **No Dependabot Configuration** - No automated dependency updates
   - **Impact**: Outdated dependencies, security vulnerabilities
-  - **Action**: Add `.github/dependabot.yml` for pip and Docker dependencies
+  - **Action**: Add `.github/dependabot.yml` for:
+    - pip dependencies
+    - Docker dependencies
+    - GitHub Actions
+    - Bicep modules (if applicable)
+
+- [ ] **Missing Azure Infrastructure Validation** - Bicep files not validated in CI
+  - **Impact**: Infrastructure deployment failures
+  - **Action**: Add Bicep validation to CI:
+    - Bicep linting with `az bicep build`
+    - Infrastructure testing with `azd provision --dry-run`
+    - Template security scanning
 
 ### 🟢 Low Priority
 
@@ -101,6 +207,14 @@ This document tracks issues, missing functionality, and enhancements needed for 
   - **Impact**: Inconsistent release process
   - **Action**: Add semantic-release or similar tool
   - **Related**: `VERSION` file exists but no automation around it
+  - **Integration**: Coordinate with Azure deployments
+
+- [ ] **No Container Image Scanning** - Docker images not scanned for vulnerabilities
+  - **Impact**: Security vulnerabilities in production
+  - **Action**: Add container scanning:
+    - Trivy or Snyk scanning in CI
+    - Azure Container Registry vulnerability scanning
+    - Block deployment of vulnerable images
 
 ---
 
@@ -277,6 +391,14 @@ This document tracks issues, missing functionality, and enhancements needed for 
 
 ### 🔴 Critical
 
+- [ ] **Complete Azure Deployment Setup** - Infrastructure provisioned but not fully configured
+  - **Impact**: Application not running in production environment
+  - **Action**: Complete Azure deployment next steps:
+    - Run `azd up` to provision and deploy
+    - Configure environment variables in `main.parameters.json`
+    - Setup CI/CD pipeline with `azd pipeline config`
+  - **Reference**: See [Azure Deployment Next Steps](#azure-deployment-next-steps) section
+
 - [ ] **No Production Configuration Documented** - README focuses on development
   - **Impact**: Unclear how to configure for production
   - **Action**: Document production settings:
@@ -284,6 +406,12 @@ This document tracks issues, missing functionality, and enhancements needed for 
     - Scaling considerations
     - Performance tuning
     - Database connection pooling
+
+- [ ] **Configure PostgreSQL Connection Variables** - Database variables need proper configuration
+  - **Impact**: Application cannot connect to Azure PostgreSQL
+  - **Action**: Update `POSTGRES_*` environment variables in [src.bicep](./infra/app/src.bicep)
+  - **Variables needed**: POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
+  - **Reference**: Azure Flexible Server connection strings
 
 ### 🟡 Medium Priority
 
@@ -294,6 +422,7 @@ This document tracks issues, missing functionality, and enhancements needed for 
     - Layer caching optimization
     - Remove unnecessary dependencies
   - **File**: `src/Dockerfile`
+  - **Note**: Consider using Oryx buildpacks for optimized builds
 
 - [ ] **No Health Check Endpoints** - No documented health/readiness endpoints
   - **Impact**: Container orchestration may not work properly
@@ -301,35 +430,61 @@ This document tracks issues, missing functionality, and enhancements needed for 
     - `/health` - basic health check
     - `/ready` - readiness check (DB connectivity, etc.)
   - **Document**: In deployment section
+  - **Azure**: Configure in Container Apps health probes
 
 - [ ] **Missing Monitoring Setup Documentation** - Azure Application Insights mentioned but not configured
   - **Impact**: No production monitoring
-  - **Action**: Document:
-    - Application Insights setup
-    - Log aggregation
+  - **Action**: Document and configure:
+    - Application Insights setup (already in infra/shared/monitoring.bicep)
+    - Log aggregation configuration
     - Alert configuration
     - Dashboard setup
+    - Custom metrics and traces
 
 - [ ] **No Backup and Recovery Procedures** - Database backups not documented
   - **Impact**: Data loss risk
   - **Action**: Document:
-    - PostgreSQL backup procedures
-    - Restore procedures
+    - Azure PostgreSQL Flexible Server backup procedures
+    - Point-in-time restore procedures
     - Backup retention policy
     - Disaster recovery plan
+
+- [ ] **Azure Port Configuration** - Application port may not match Azure expectations
+  - **Impact**: Application may not be accessible
+  - **Action**: Verify port configuration:
+    - Check if app listens to `PORT` environment variable
+    - Update `targetPort` in bicep files if needed
+    - Test with `azd package` and local Docker run
 
 ### 🟢 Low Priority
 
 - [ ] **No CDN Configuration** - Static files served from app
   - **Impact**: Slower static file delivery
   - **Action**: Document Azure CDN or Blob Storage setup for static files
+  - **Azure**: Use Azure CDN with Container Apps
 
 - [ ] **No Caching Strategy Documented** - No Redis or caching documented
   - **Impact**: Potential performance issues at scale
   - **Action**: Document caching strategy:
-    - Redis setup
+    - Azure Cache for Redis setup
     - Cache configuration
     - Cache invalidation
+    - Integration with Django caching framework
+
+- [ ] **No Load Balancing Configuration** - Single instance deployment
+  - **Impact**: No high availability or load distribution
+  - **Action**: Document Azure Container Apps scaling:
+    - Horizontal Pod Autoscaler configuration
+    - CPU and memory-based scaling
+    - Custom metrics scaling
+    - Traffic splitting for blue-green deployments
+
+- [ ] **No SSL/TLS Certificate Management** - HTTPS configuration unclear
+  - **Impact**: Security and SEO issues
+  - **Action**: Document SSL setup:
+    - Azure Container Apps custom domains
+    - Let's Encrypt certificate automation
+    - Certificate renewal procedures
 
 ---
 
@@ -447,36 +602,39 @@ This document tracks issues, missing functionality, and enhancements needed for 
 ## Priority Summary
 
 ### Immediate Actions (Do First)
-1. Fix license inconsistency
-2. Create .env.example file
-3. Remove/clean up test code from production (foobar directory)
-4. Add SECURITY.md
-5. Setup GitHub Actions for CI/CD
-6. Remove committed virtual environment (src/src_env)
+1. **Complete Azure deployment**: Run `azd up` and configure environment variables
+2. **Setup Azure CI/CD pipeline**: Use GitHub Actions starter and run `azd pipeline config`
+3. Fix license inconsistency
+4. Create .env.example file
+5. Remove/clean up test code from production (foobar directory)
+6. Configure PostgreSQL connection variables in Azure
 
 ### Short Term (Next Sprint)
-1. Add pre-commit hooks
-2. Setup automated testing pipeline
-3. Create CHANGELOG.md and CODE_OF_CONDUCT.md
-4. Add security scanning to CI
-5. Document production configuration
-6. Setup test coverage reporting
+1. Add SECURITY.md
+2. Setup GitHub Actions for CI/CD (non-Azure workflows)
+3. Add pre-commit hooks
+4. Setup automated testing pipeline
+5. Create CHANGELOG.md and CODE_OF_CONDUCT.md
+6. Add security scanning to CI
+7. Configure Azure monitoring and alerts
 
 ### Medium Term (Next Month)
-1. API documentation with Swagger
-2. Consolidate scattered documentation
-3. Add monitoring and logging documentation
-4. Implement rate limiting
-5. Optimize Docker images
-6. Split settings into multiple files
+1. Document production configuration and deployment procedures
+2. Setup test coverage reporting
+3. API documentation with Swagger
+4. Consolidate scattered documentation
+5. Add monitoring and logging documentation
+6. Implement rate limiting
+7. Optimize Docker images and Azure container configuration
 
 ### Long Term (Future Releases)
 1. Add performance testing
-2. Implement caching strategy
+2. Implement caching strategy with Azure Cache for Redis
 3. Add Celery for background tasks
 4. Create architecture diagrams
 5. Enhance email templates
 6. Add webhook support
+7. Setup Azure CDN and advanced scaling
 
 ---
 
@@ -489,6 +647,8 @@ This TODO is a living document. If you identify additional issues or complete it
 3. Add new issues as they're discovered
 4. Update priorities as project needs change
 
-**Last Review**: October 2025  
+**Note**: This document consolidates information from the previous `next-steps.md` file (generated by `azd init`) to provide a comprehensive project roadmap.
+
+**Last Review**: October 26, 2025  
 **Next Review**: November 2025
 
