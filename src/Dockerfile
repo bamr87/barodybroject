@@ -12,6 +12,10 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
         libffi-dev \
         postgresql-client \
         xdg-utils \
+        libcairo2-dev \
+        libgirepository1.0-dev \
+        libpango1.0-dev \
+        libglib2.0-dev \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

@@ -1,12 +1,423 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "markdownlint",
-			"problemMatcher": [
-				"$markdownlint"
-			],
-			"label": "markdownlint: Lint all Markdown files in the workspace with markdownlint"
-		}
-	]
+  // ==================================================
+  // UNIFIED DOCKER CONFIGURATION TASKS
+  // ==================================================
+  // Updated for consolidated docker-compose.yml with profiles
+  // Supports: Development (default), Production, Jekyll
+  
+  "version": "2.0.0",
+  "tasks": [
+    
+    // ==========================================
+    // DEVELOPMENT ENVIRONMENT (DEFAULT)
+    // ==========================================
+    {
+      "label": "🐍 Docker: Development Up",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["up", "-d"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Start development containers (web-dev + barodydb)"
+    },
+
+    {
+      "label": "🚀 Docker: Production Up",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["--profile", "production", "up", "-d"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Start production containers (web-prod + barodydb)"
+    },
+
+    {
+      "label": "📝 Docker: Development + Jekyll",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["--profile", "jekyll", "up", "-d"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Start dev + Jekyll containers (web-dev + barodydb + jekyll)"
+    },
+
+    {
+      "label": "⛔ Docker: Stop All",
+      "type": "shell", 
+      "command": "docker-compose",
+      "args": ["down"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Stop and remove all containers and networks"
+    },
+
+    {
+      "label": "🔧 Docker: Rebuild Development",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["up", "--build", "--force-recreate", "-d"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": [],
+      "detail": "Force rebuild development containers"
+    },
+
+    {
+      "label": "🏭 Docker: Rebuild Production",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["--profile", "production", "up", "--build", "--force-recreate", "-d"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": [],
+      "detail": "Force rebuild production containers"
+    },
+
+    // ==========================================
+    // DJANGO MANAGEMENT COMMANDS
+    // ==========================================
+    {
+      "label": "📊 Django: Run Migrations (Dev)",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["exec", "web-dev", "python", "manage.py", "migrate"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "dependsOn": "🐍 Docker: Development Up",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Run Django database migrations in development container"
+    },
+
+    {
+      "label": "👤 Django: Create Superuser (Dev)",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["exec", "web-dev", "python", "manage.py", "createsuperuser"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "dependsOn": "🐍 Docker: Development Up",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Create Django superuser in development container"
+    },
+
+    {
+      "label": "📁 Django: Collect Static (Dev)",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["exec", "web-dev", "python", "manage.py", "collectstatic", "--noinput"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "dependsOn": "🐍 Docker: Development Up",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Collect static files in development container"
+    },
+
+    {
+      "label": "🐚 Django: Shell (Dev)",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["exec", "web-dev", "python", "manage.py", "shell"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "dependsOn": "🐍 Docker: Development Up",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Open Django shell in development container"
+    },
+
+    // ==========================================
+    // PRODUCTION DJANGO COMMANDS
+    // ==========================================
+    {
+      "label": "📊 Django: Run Migrations (Prod)",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["--profile", "production", "exec", "web-prod", "python", "manage.py", "migrate"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "dependsOn": "🚀 Docker: Production Up",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Run Django migrations in production container"
+    },
+
+    {
+      "label": "👤 Django: Create Superuser (Prod)",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["--profile", "production", "exec", "web-prod", "python", "manage.py", "createsuperuser"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "dependsOn": "🚀 Docker: Production Up",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Create Django superuser in production container"
+    },
+
+    // ==========================================
+    // TESTING TASKS
+    // ==========================================
+    {
+      "label": "🧪 Test: Run Django Tests",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["exec", "web-dev", "python", "manage.py", "test"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "dependsOn": "🐍 Docker: Development Up",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": [],
+      "detail": "Run Django test suite in development container"
+    },
+
+    {
+      "label": "🔬 Test: Run Pytest",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["exec", "web-dev", "python", "-m", "pytest"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "test",
+      "dependsOn": "🐍 Docker: Development Up",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": [],
+      "detail": "Run pytest test suite in development container"
+    },
+
+    {
+      "label": "📈 Test: Run with Coverage",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["exec", "web-dev", "python", "-m", "pytest", "--cov=parodynews"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "test",
+      "dependsOn": "🐍 Docker: Development Up",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": [],
+      "detail": "Run pytest with coverage reporting"
+    },
+
+    // ==========================================
+    // LOGGING AND MONITORING
+    // ==========================================
+    {
+      "label": "📋 Docker: View Dev Logs",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["logs", "-f", "web-dev"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      },
+      "problemMatcher": [],
+      "detail": "Follow development container logs"
+    },
+
+    {
+      "label": "📋 Docker: View Production Logs",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["--profile", "production", "logs", "-f", "web-prod"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      },
+      "problemMatcher": [],
+      "detail": "Follow production container logs"
+    },
+
+    {
+      "label": "📋 Docker: View Database Logs",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["logs", "-f", "barodydb"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      },
+      "problemMatcher": [],
+      "detail": "Follow PostgreSQL database logs"
+    },
+
+    {
+      "label": "📋 Docker: View All Logs",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["logs", "-f"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      },
+      "problemMatcher": [],
+      "detail": "Follow logs from all running containers"
+    },
+
+    // ==========================================
+    // UTILITY TASKS
+    // ==========================================
+    {
+      "label": "🔍 Docker: Container Status",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["ps"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Show status of all containers"
+    },
+
+    {
+      "label": "🧹 Docker: Clean System",
+      "type": "shell",
+      "command": "docker",
+      "args": ["system", "prune", "-f"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Clean up unused Docker resources"
+    },
+
+    {
+      "label": "⚙️ Docker: Config Validation",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": ["config"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Validate docker-compose.yml configuration"
+    }
+  ]
 }

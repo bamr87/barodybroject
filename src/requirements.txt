@@ -1,7 +1,6 @@
 # global requirements
 gunicorn==23.0.0
 pygithub
-xmlsec
 
 # Cloud requirements
 azure-monitor-opentelemetry
@@ -33,12 +32,10 @@ dkimpy
 # django-cms requirements
 django-cms
 djangocms_text_ckeditor
-djangocms_link
 djangocms-frontend
 djangocms-versioning
 djangocms-alias
 djangocms_admin_style
 
 # BarodyBroject requirements
-
 openai

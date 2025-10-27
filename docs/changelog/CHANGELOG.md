@@ -8,18 +8,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Unified Docker Compose configuration with profile-based environment switching
+- Comprehensive Docker documentation suite (DOCKER_GUIDE.md, DOCKER_QUICK_REFERENCE.md, etc.)
+- Enhanced VS Code task configuration with emoji-labeled tasks for better UX
+- Environment variable management through centralized .env file
+- Named Docker networks and volumes for predictable resource management
+- Production and development Docker profiles with optimized configurations
+- Jekyll profile for static site development alongside Django
+- Automated Docker configuration migration script
+- Support for customizable service ports via environment variables
+- Enhanced debugging support with dedicated port mapping for VS Code
 - Comprehensive changelog documentation system with templates and guidelines
 - Standardized templates for features, bug fixes, improvements, security updates, and breaking changes
 - Migration guide documentation for organized change tracking
 
 ### Changed
+- Consolidated 3 separate docker-compose files into 1 unified configuration
+- Updated service names for clarity: `web` → `web-dev` (development), `web-prod` (production)
 - Reorganized project documentation into structured changelog system
 - Moved existing summary files to organized archive structure
+- Replaced hardcoded Docker configuration with environment-driven setup
+- Enhanced container naming with predictable, descriptive names
+- Improved Docker network architecture with explicit network definitions
+
+### Removed
+- `docker-compose.prod.yml` (functionality moved to production profile)
+- `src/docker-compose.yml` (duplicate configuration eliminated)
+- `supervisord.conf` (archived as no longer needed)
+
+### Fixed
+- Docker configuration duplication and maintenance complexity
+- Inconsistent development environment setup across team members
+- Port conflict issues through configurable environment variables
+- VS Code task dependencies and service name references
 
 ### Documentation
 - Created comprehensive changelog documentation directory (`docs/changelog/`)
 - Added standardized templates for all change types
 - Established changelog workflow and contribution guidelines
+- Added complete Docker usage guide with troubleshooting section
+- Created migration documentation for Docker configuration changes
+- Added visual before/after comparison documentation
 
 ## [0.3.0] - 2025-01-27 - Template Modernization Release
 

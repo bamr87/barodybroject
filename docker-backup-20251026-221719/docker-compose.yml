@@ -22,24 +22,26 @@ services:
     ports:
       - "5432:5432"
 
-  python:
+  web:
     build:
       context: .
       dockerfile: Dockerfile
     volumes:
       - ./:/app
-
     depends_on:
       barodydb:
         condition: service_healthy
-
     environment:
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_NAME: ${DB_NAME:-barodydb}
       DB_HOST: ${DB_HOST:-barodydb}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DJANGO_SETTINGS_MODULE: barodybroject.settings
+      DEBUG: "True"
     ports:
-      - "80:80"
+      - "8000:8000"   # Django development server
+      - "5678:5678"   # Debugpy port for VS Code debugging
+    command: ["bash", "-c", "./entrypoint-dev.sh"]
   jekyll:
     image: jekyll/jekyll:latest
     command: jekyll serve --watch --force_polling --config "_config.yml,_config_dev.yml"

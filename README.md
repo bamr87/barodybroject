@@ -390,61 +390,203 @@ DB_PASSWORD=your_password
 
 ## Docker Setup
 
-### Using Docker Compose
+### Unified Docker Configuration
 
-The project includes a complete Docker Compose setup with three services:
-- **python**: Django application
-- **barodydb**: PostgreSQL database
-- **jekyll**: Static site generator
+The project uses a **unified Docker Compose configuration** that supports multiple environments through profiles:
 
-1. **Build the Docker Image**
+**Available Environments:**
+- **Development** (default): Django development server with hot reload
+- **Production**: Gunicorn-based production server
+- **Jekyll**: Static site generation alongside Django
 
-```bash
-docker compose build
-```
+### Quick Start
 
-2. **Start All Services**
+#### Development Environment (Default)
 
 ```bash
-docker compose up -d
+# Start development environment
+docker-compose up -d
+
+# View the application
+open http://localhost:8000
 ```
 
-This will start:
-- Django app on [http://localhost:80](http://localhost:80)
-- PostgreSQL database on port 5432
-- Jekyll site on [http://localhost:4002](http://localhost:4002)
-
-3. **View Logs**
+#### Production Environment
 
 ```bash
-docker compose logs -f
+# Start production environment
+docker-compose --profile production up -d
+
+# View the application
+open http://localhost:80
 ```
 
-4. **Stop Services**
+#### Development + Jekyll
 
 ```bash
-docker compose down
+# Start development with Jekyll static site
+docker-compose --profile jekyll up -d
+
+# Access points:
+# - Django: http://localhost:8000
+# - Jekyll: http://localhost:4002
 ```
 
-5. **Run Django Commands in Container**
+### Service Overview
+
+| Service | Profile | Purpose | Ports |
+|---------|---------|---------|-------|
+| `barodydb` | (always) | PostgreSQL database | 5432 |
+| `web-dev` | default | Django development server | 8000, 5678 |
+| `web-prod` | production | Django production (Gunicorn) | 80 |
+| `jekyll` | jekyll | Static site generator | 4002 |
+
+### Common Commands
+
+#### Managing Services
 
 ```bash
-# Run migrations
-docker compose exec python python manage.py migrate
+# Stop all services
+docker-compose down
 
-# Create superuser
-docker compose exec python python manage.py createsuperuser
+# View logs
+docker-compose logs -f web-dev           # Development logs
+docker-compose logs -f barodydb          # Database logs
+docker-compose logs -f                   # All logs
 
-# Collect static files
-docker compose exec python python manage.py collectstatic --noinput
+# Check service status
+docker-compose ps
+
+# Rebuild and restart
+docker-compose up --build --force-recreate
 ```
 
-### Development Container Features
+#### Django Management
 
-- **Hot Reload**: Code changes are immediately reflected (volume mounted)
-- **Isolated Environment**: Consistent across all development machines
-- **Database Persistence**: PostgreSQL data persists in Docker volumes
-- **Multi-Service**: Run Django, PostgreSQL, and Jekyll simultaneously
+```bash
+# Run migrations (development)
+docker-compose exec web-dev python manage.py migrate
+
+# Create superuser (development)
+docker-compose exec web-dev python manage.py createsuperuser
+
+# Collect static files (development)
+docker-compose exec web-dev python manage.py collectstatic --noinput
+
+# Django shell (development)
+docker-compose exec web-dev python manage.py shell
+
+# Run tests
+docker-compose exec web-dev python -m pytest
+```
+
+#### Production Commands
+
+```bash
+# Run migrations (production)
+docker-compose --profile production exec web-prod python manage.py migrate
+
+# Create superuser (production)
+docker-compose --profile production exec web-prod python manage.py createsuperuser
+```
+
+### Environment Configuration
+
+Customize your setup using the `.env` file:
+
+```bash
+# Copy example configuration
+cp .env.example .env
+
+# Edit with your settings
+nano .env
+```
+
+**Key variables:**
+```bash
+# Service ports (customizable to avoid conflicts)
+DJANGO_DEV_PORT=8000
+DJANGO_PROD_PORT=80
+POSTGRES_PORT=5432
+
+# Database credentials
+DB_PASSWORD=postgres
+POSTGRES_PASSWORD=postgres
+
+# Application settings
+DEBUG=True
+SECRET_KEY=your-secret-key-here
+OPENAI_API_KEY=your-openai-api-key
+```
+
+### VS Code Integration
+
+The project includes pre-configured VS Code tasks:
+
+- **🐍 Docker: Development Up** - Start development environment
+- **🚀 Docker: Production Up** - Start production environment
+- **📝 Docker: Development + Jekyll** - Start with static site
+- **🧪 Test: Run Django Tests** - Run test suite
+- **📊 Django: Run Migrations (Dev)** - Apply database changes
+- **👤 Django: Create Superuser (Dev)** - Create admin user
+
+Access via: `Cmd+Shift+P` → "Tasks: Run Task"
+
+### Container Features
+
+- **Hot Reload**: Development container auto-reloads on code changes
+- **Volume Mounts**: Local code is mounted for instant updates
+- **Named Networks**: Predictable service communication
+- **Health Checks**: Database health monitoring
+- **Persistent Storage**: Database data survives container restarts
+
+### Troubleshooting
+
+#### Port Conflicts
+
+```bash
+# Update .env with different ports
+DJANGO_DEV_PORT=8001
+POSTGRES_PORT=5433
+
+# Restart services
+docker-compose down
+docker-compose up -d
+```
+
+#### Database Issues
+
+```bash
+# Check database health
+docker-compose exec barodydb pg_isready -U postgres
+
+# Restart database
+docker-compose restart barodydb
+
+# View database logs
+docker-compose logs barodydb
+```
+
+#### Fresh Start
+
+```bash
+# Stop and remove everything (⚠️ deletes database data)
+docker-compose down -v
+
+# Start fresh
+docker-compose up -d
+docker-compose exec web-dev python manage.py migrate
+docker-compose exec web-dev python manage.py createsuperuser
+```
+
+### Documentation
+
+For comprehensive Docker usage information, see:
+
+- 📖 **[DOCKER_GUIDE.md](DOCKER_GUIDE.md)** - Complete usage guide (600+ lines)
+- 📋 **[DOCKER_QUICK_REFERENCE.md](DOCKER_QUICK_REFERENCE.md)** - Essential commands
+- 📊 **[DOCKER_BEFORE_AFTER.md](DOCKER_BEFORE_AFTER.md)** - Migration details
+- ⚙️ **[.env.example](.env.example)** - Configuration options
 
 ## Azure Deployment
 

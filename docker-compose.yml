@@ -1,0 +1,132 @@
+# Docker Compose Configuration for Barodybroject
+# Supports both development and production environments
+# Usage:
+#   Development: docker-compose up
+#   Production:  docker-compose --profile production up
+
+services:
+  # PostgreSQL Database (shared by both dev and prod)
+  barodydb:
+    image: postgres:15-alpine
+    container_name: barodydb
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-barodydb}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d barodydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - barody-network
+
+  # Django Web Application - Development Mode
+  web-dev:
+    image: python:3.11-slim
+    container_name: barody-web-dev
+    working_dir: /app
+    profiles: ["dev", ""]  # Default profile (no --profile flag needed)
+    volumes:
+      - ./src:/app
+    depends_on:
+      barodydb:
+        condition: service_healthy
+    environment:
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_NAME: ${DB_NAME:-barodydb}
+      DB_HOST: ${DB_HOST:-barodydb}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DJANGO_SETTINGS_MODULE: barodybroject.settings
+      DEBUG: "True"
+      PYTHONPATH: /app
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "${DJANGO_DEV_PORT:-8000}:8000"
+      - "${DEBUGPY_PORT:-5678}:5678"  # VS Code debugger
+    networks:
+      - barody-network
+    command:
+      - /bin/bash
+      - -c
+      - |
+        echo "🚀 Starting Development Environment..."
+        apt-get update -qq
+        apt-get install -y --no-install-recommends \
+          build-essential \
+          python3-dev \
+          libxml2-dev \
+          libxmlsec1-dev \
+          pkg-config \
+          libffi-dev \
+          postgresql-client \
+          libcairo2-dev \
+          libgirepository1.0-dev \
+          libpango1.0-dev \
+          libglib2.0-dev \
+          > /dev/null 2>&1
+        pip install --upgrade pip -q
+        pip install -r requirements.txt -q
+        echo "📦 Dependencies installed"
+        python manage.py makemigrations
+        python manage.py migrate
+        python manage.py collectstatic --noinput
+        echo "✅ Django ready on http://localhost:8000"
+        python manage.py runserver 0.0.0.0:8000
+
+  # Django Web Application - Production Mode
+  web-prod:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    container_name: barody-web-prod
+    profiles: ["production"]
+    volumes:
+      - ./src:/app
+    depends_on:
+      barodydb:
+        condition: service_healthy
+    environment:
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_NAME: ${DB_NAME:-barodydb}
+      DB_HOST: ${DB_HOST:-barodydb}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DJANGO_SETTINGS_MODULE: barodybroject.settings
+      DEBUG: "False"
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "${DJANGO_PROD_PORT:-80}:80"
+    networks:
+      - barody-network
+    restart: unless-stopped
+    command: ["bash", "-c", "./entrypoint.sh"]
+
+  # Jekyll Static Site Generator (optional service)
+  jekyll:
+    image: jekyll/jekyll:latest
+    container_name: barody-jekyll
+    profiles: ["jekyll", "dev"]
+    command: jekyll serve --watch --force_polling --config "_config.yml,_config_dev.yml"
+    volumes:
+      - ./src/pages:/app/pages
+    ports:
+      - "${JEKYLL_PORT:-4002}:4002"
+    working_dir: /app/pages
+    environment:
+      JEKYLL_ENV: ${JEKYLL_ENV:-development}
+    networks:
+      - barody-network
+
+volumes:
+  postgres-data:
+    name: barodybroject-postgres-data
+
+networks:
+  barody-network:
+    name: barody-network
+    driver: bridge

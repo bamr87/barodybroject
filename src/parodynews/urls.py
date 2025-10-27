@@ -4,35 +4,16 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import include, path
 from rest_framework import routers
 
-from .views import (
-                    AssistantGroupViewSet,
-                    AssistantViewSet,
-                    ContentDetailViewSet,
-                    ContentItemViewSet,
-                    FooterView,
-                    GeneralizedCodesViewSet,
-                    JSONSchemaViewSet,
-                    ManageAssistantGroupsView,
-                    ManageAssistantsView,
-                    ManageContentView,
-                    ManageMessageView,
-                    ManagePostView,
-                    MessageViewSet,
-                    MyObjectView,
-                    MyObjectViewSet,
-                    PostFrontMatterViewSet,
-                    PostPageView,
-                    PostViewSet,
-                    PoweredByViewSet,
-                    ProcessContentView,
-                    ThreadViewSet,
-                    create_schema,
-                    delete_schema,
-                    edit_schema,
-                    export_schema,
-                    get_assistant_details,
-                    list_schemas,
-)
+from .views import (AssistantGroupViewSet, AssistantViewSet,
+                    ContentDetailViewSet, ContentItemViewSet, FooterView,
+                    GeneralizedCodesViewSet, JSONSchemaViewSet,
+                    ManageAssistantGroupsView, ManageAssistantsView,
+                    ManageContentView, ManageMessageView, ManagePostView,
+                    MessageViewSet, MyObjectView, MyObjectViewSet,
+                    PostFrontMatterViewSet, PostPageView, PostViewSet,
+                    PoweredByViewSet, ProcessContentView, ThreadViewSet,
+                    create_schema, delete_schema, edit_schema, export_schema,
+                    get_assistant_details, list_schemas)
 
 print("Registering parodynews urls")
 
