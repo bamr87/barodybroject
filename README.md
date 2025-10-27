@@ -449,6 +449,9 @@ docker-compose --profile jekyll up -d
 # Stop all services
 docker-compose down
 
+# Stop and remove volumes (⚠️ deletes database data)
+docker-compose down -v
+
 # View logs
 docker-compose logs -f web-dev           # Development logs
 docker-compose logs -f barodydb          # Database logs
@@ -457,27 +460,35 @@ docker-compose logs -f                   # All logs
 # Check service status
 docker-compose ps
 
-# Rebuild and restart
-docker-compose up --build --force-recreate
+# View resource usage
+docker stats
+
+# Rebuild services
+docker-compose up --build --force-recreate  # Force rebuild all
+docker-compose build --no-cache web-dev     # Rebuild specific service
+
+# Clean up resources
+docker-compose rm                        # Remove stopped containers
+docker system prune -f                   # Clean unused Docker resources
 ```
 
 #### Django Management
 
 ```bash
-# Run migrations (development)
-docker-compose exec web-dev python manage.py migrate
+# Database operations (development)
+docker-compose exec web-dev python manage.py makemigrations  # Create new migrations
+docker-compose exec web-dev python manage.py migrate        # Apply migrations
+docker-compose exec web-dev python manage.py shell          # Open Django shell
 
-# Create superuser (development)
+# User management (development)
 docker-compose exec web-dev python manage.py createsuperuser
 
-# Collect static files (development)
+# Static files (development)
 docker-compose exec web-dev python manage.py collectstatic --noinput
 
-# Django shell (development)
-docker-compose exec web-dev python manage.py shell
-
-# Run tests
-docker-compose exec web-dev python -m pytest
+# Testing (development)
+docker-compose exec web-dev python -m pytest               # Run all tests
+docker-compose exec web-dev python -m pytest --cov=parodynews  # With coverage
 ```
 
 #### Production Commands
@@ -579,14 +590,118 @@ docker-compose exec web-dev python manage.py migrate
 docker-compose exec web-dev python manage.py createsuperuser
 ```
 
-### Documentation
+### Database Operations
 
-For comprehensive Docker usage information, see:
+#### PostgreSQL Access
+```bash
+# Connect to database directly
+docker-compose exec barodydb psql -U postgres -d barodydb
 
-- 📖 **[DOCKER_GUIDE.md](DOCKER_GUIDE.md)** - Complete usage guide (600+ lines)
-- 📋 **[DOCKER_QUICK_REFERENCE.md](DOCKER_QUICK_REFERENCE.md)** - Essential commands
-- 📊 **[DOCKER_BEFORE_AFTER.md](DOCKER_BEFORE_AFTER.md)** - Migration details
-- ⚙️ **[.env.example](.env.example)** - Configuration options
+# Check database health
+docker-compose exec barodydb pg_isready -U postgres
+```
+
+#### Backup & Restore
+```bash
+# Create timestamped backup
+docker-compose exec barodydb pg_dump -U postgres barodydb > "backup-$(date +%Y%m%d-%H%M%S).sql"
+
+# Restore from backup
+cat backup-20250101-120000.sql | docker-compose exec -T barodydb psql -U postgres -d barodydb
+```
+
+### Development Workflows
+
+#### Daily Development
+```bash
+# 1. Start development environment
+docker-compose up -d
+
+# 2. Apply any new migrations
+docker-compose exec web-dev python manage.py migrate
+
+# 3. View logs if needed
+docker-compose logs -f web-dev
+
+# 4. Make code changes (auto-reloads)
+
+# 5. Run tests
+docker-compose exec web-dev python -m pytest
+
+# 6. Stop when done
+docker-compose down
+```
+
+#### Production Testing
+```bash
+# Build and test production setup locally
+docker-compose --profile production up --build
+
+# Test your application at http://localhost:80
+
+# Stop production testing
+docker-compose --profile production down
+```
+
+#### Fresh Development Setup
+```bash
+# Complete reset (⚠️ deletes database data)
+docker-compose down -v
+docker-compose up --build -d
+docker-compose exec web-dev python manage.py migrate
+docker-compose exec web-dev python manage.py createsuperuser
+```
+
+### Quick Reference Commands
+
+#### Service Management
+```bash
+# View all service status
+docker-compose ps
+
+# View resource usage
+docker stats
+
+# Validate configuration
+docker-compose config -q
+
+# Clean up unused resources
+docker system prune -f
+```
+
+#### Testing & Coverage
+```bash
+# Run all tests
+docker-compose exec web-dev python -m pytest
+
+# Run with coverage
+docker-compose exec web-dev python -m pytest --cov=parodynews
+
+# Run specific test file
+docker-compose exec web-dev python -m pytest tests/test_models.py
+```
+
+### Access Points
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Django Development | http://localhost:8000 | Main application |
+| Django Admin | http://localhost:8000/admin | Admin interface |
+| Django API | http://localhost:8000/api | REST API endpoints |
+| Jekyll Site | http://localhost:4002 | Static site (when using jekyll profile) |
+| PostgreSQL | localhost:5432 | Database connection |
+
+### Migration Information
+
+This project has been consolidated from multiple Docker configurations into a single unified setup. The migration provides:
+
+- **Single Configuration File**: All environments managed from one `docker-compose.yml`
+- **Profile-Based Environments**: Easy switching between dev/prod/jekyll setups
+- **Environment Variables**: Centralized configuration through `.env` file
+- **Predictable Networking**: Named networks for reliable service communication
+- **Improved Maintainability**: One source of truth for Docker configuration
+
+For configuration options, see the comprehensive **[.env.example](.env.example)** file.
 
 ## Azure Deployment
 

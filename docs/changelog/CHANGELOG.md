@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive changelog documentation system with templates and guidelines
 - Standardized templates for features, bug fixes, improvements, security updates, and breaking changes
 - Migration guide documentation for organized change tracking
+- Enhanced Docker Setup section in README.md with comprehensive command reference
+- Database operations guidance including backup and restore procedures
+- Development workflow documentation with common use cases
+- Docker troubleshooting and quick fixes documentation
 
 ### Changed
 - Consolidated 3 separate docker-compose files into 1 unified configuration
@@ -30,11 +34,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced hardcoded Docker configuration with environment-driven setup
 - Enhanced container naming with predictable, descriptive names
 - Improved Docker network architecture with explicit network definitions
+- Consolidated Docker documentation from separate files into main README.md
+- Enhanced README.md Docker section with additional commands and workflows
 
 ### Removed
 - `docker-compose.prod.yml` (functionality moved to production profile)
 - `src/docker-compose.yml` (duplicate configuration eliminated)
 - `supervisord.conf` (archived as no longer needed)
+- `DOCKER_GUIDE.md` (content integrated into README.md)
+- `DOCKER_QUICK_REFERENCE.md` (content integrated into README.md)
+- `DOCKER_BEFORE_AFTER.md` (content archived, key info integrated into README.md)
+- `DOCKER_CONSOLIDATION_SUMMARY.md` (content archived, key info integrated into README.md)
 
 ### Fixed
 - Docker configuration duplication and maintenance complexity

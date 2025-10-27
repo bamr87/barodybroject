@@ -221,14 +221,14 @@ print_summary() {
     echo "  Stop all:     docker-compose down"
     echo ""
     log_info "Documentation:"
-    echo "  📖 See DOCKER_GUIDE.md for complete usage guide"
+    echo "  📖 See README.md Docker Setup section for complete usage guide"
     echo "  📖 See .env.example for configuration options"
     echo ""
     log_warning "Next steps:"
     echo "  1. Review and update .env with your configuration"
     echo "  2. Update VS Code tasks to use new docker-compose.yml"
     echo "  3. Update any CI/CD pipelines"
-    echo "  4. Review DOCKER_GUIDE.md for new commands"
+    echo "  4. Review README.md Docker Setup section for new commands"
     echo ""
 }
 
