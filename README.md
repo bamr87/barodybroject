@@ -155,6 +155,15 @@ A Django-based web application integrated with OpenAI to generate AI-powered par
 
 ```
 barodybroject/
+├── docs/                       # Comprehensive project documentation
+│   └── changelog/              # Change documentation and templates
+│       ├── README.md           # Documentation system overview
+│       ├── CHANGELOG.md        # Main project changelog
+│       ├── CONTRIBUTING_CHANGES.md # Change contribution guidelines
+│       ├── templates/          # Standardized change templates
+│       ├── releases/           # Release-specific documentation
+│       ├── summaries/          # Date-organized change summaries
+│       └── archive/            # Historical documentation files
 ├── infra/                      # Azure infrastructure as code (Bicep)
 │   ├── main.bicep             # Main infrastructure definition
 │   ├── app/                   # Application-specific resources
@@ -196,6 +205,7 @@ barodybroject/
 
 ### Key Directories Explained
 
+- **docs/changelog/**: Comprehensive change documentation system with templates, guidelines, and historical records
 - **infra/**: Contains all Azure infrastructure definitions using Bicep templates for repeatable deployments
 - **src/parodynews/**: The main Django application with all business logic, models, and views
 - **src/pages/**: Jekyll-based static site with blog posts and documentation
@@ -607,13 +617,22 @@ We welcome contributions from the community! Please read our [CONTRIBUTING.md](C
 - Types of contributions we're looking for
 - Code of conduct
 
+### Documentation & Change Management
+
+This project maintains comprehensive documentation and change tracking:
+
+- **Main Changelog**: [docs/changelog/CHANGELOG.md](docs/changelog/CHANGELOG.md) - Project-wide changelog following Keep a Changelog format
+- **Change Documentation System**: [docs/changelog/](docs/changelog/) - Structured documentation for all changes
+- **Contribution Guidelines**: [docs/changelog/CONTRIBUTING_CHANGES.md](docs/changelog/CONTRIBUTING_CHANGES.md) - Detailed workflow for documenting changes
+
 ### Quick Contribution Guide
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature-name`
 3. Make your changes and commit: `git commit -m "Add your feature"`
-4. Push to your fork: `git push origin feature/your-feature-name`
-5. Create a Pull Request
+4. Document your changes using our [changelog templates](docs/changelog/templates/)
+5. Push to your fork: `git push origin feature/your-feature-name`
+6. Create a Pull Request with reference to your change documentation
 
 ## License
 

@@ -25,6 +25,22 @@ The project utilizes the following technologies:
 
 We welcome contributions from the community! Here are the steps to get started:
 
+### Documentation & Change Management
+
+This project maintains a comprehensive changelog documentation system to track all changes consistently. Before contributing, please familiarize yourself with our change documentation process:
+
+- **Main Project Changelog**: [docs/changelog/CHANGELOG.md](docs/changelog/CHANGELOG.md)
+- **Change Documentation Guidelines**: [docs/changelog/CONTRIBUTING_CHANGES.md](docs/changelog/CONTRIBUTING_CHANGES.md)
+- **Change Templates**: [docs/changelog/templates/](docs/changelog/templates/) - Use these for documenting your contributions
+
+### Types of Changes We Track
+
+- **Features**: New functionality, enhancements, or capabilities ([template](docs/changelog/templates/feature-template.md))
+- **Bug Fixes**: Corrections to existing functionality ([template](docs/changelog/templates/bugfix-template.md))
+- **Improvements**: Optimizations, refactoring, or code quality enhancements ([template](docs/changelog/templates/improvement-template.md))
+- **Security**: Security-related fixes or enhancements ([template](docs/changelog/templates/security-template.md))
+- **Breaking Changes**: Changes that break backward compatibility ([template](docs/changelog/templates/breaking-template.md))
+
 ### Fork the Repository
 
 1. Navigate to the [Parody News Generator repository](https://github.com/bamr87/barodybroject).
@@ -107,14 +123,21 @@ We welcome contributions from the community! Here are the steps to get started:
    git checkout -b my-feature-branch
    ```
 
-2. Make your changes and commit them with a descriptive commit message:
+2. Make your changes and test them thoroughly
+
+3. Document your changes using our changelog system:
+   - Choose the appropriate template from [docs/changelog/templates/](docs/changelog/templates/)
+   - Create documentation in the appropriate directory under [docs/changelog/](docs/changelog/)
+   - Follow the guidelines in [CONTRIBUTING_CHANGES.md](docs/changelog/CONTRIBUTING_CHANGES.md)
+
+4. Commit your changes with a descriptive commit message:
 
    ```sh
    git add .
-   git commit -m "Add new feature"
+   git commit -m "Add new feature: [brief description]"
    ```
 
-3. Push your changes to your forked repository:
+5. Push your changes to your forked repository:
 
    ```sh
    git push origin my-feature-branch
@@ -125,7 +148,19 @@ We welcome contributions from the community! Here are the steps to get started:
 1. Navigate to the original repository and click the "New pull request" button.
 2. Select your branch from the "compare" dropdown.
 3. Provide a descriptive title and detailed description of your changes.
-4. Click "Create pull request" to submit your changes for review.
+4. **Include references to your change documentation** in the pull request description.
+5. Link to any relevant change documents you created in the `docs/changelog/` directory.
+6. Click "Create pull request" to submit your changes for review.
+
+### Pull Request Review Process
+
+All pull requests will be reviewed for:
+- Code quality and functionality
+- Adherence to project standards
+- Completeness of change documentation
+- Test coverage and validation
+
+Please refer to our [change contribution guidelines](docs/changelog/CONTRIBUTING_CHANGES.md) for detailed review criteria.
 
 ## Types of Contributions
 
