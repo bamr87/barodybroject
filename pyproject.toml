@@ -1,49 +1,76 @@
 # pyproject.toml
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "barodybroject"
 version = "0.1.0"
-description = "Barodybroject is a sample project."
+description = "A Django-based parody news generator with AI integration"
 readme = "README.md"
-requires-python = ">=3.8"
-license = "GPL-3.0-or-later"
+requires-python = ">=3.9"
+license = { text = "GPL-3.0-or-later" }
 authors = [
   { name = "bamr87", email = "bamr87@users.noreply.github.com" }
 ]
-# Production dependencies should be defined in src/requirements.txt.
+keywords = ["django", "ai", "parody", "news"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Web Environment",
+  "Framework :: Django",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+]
+# Dependencies - let pip resolve versions automatically
 dependencies = [
-  "gunicorn==23.0.0",
-  "pygithub",
-  "azure-monitor-opentelemetry",
-  "boto3",
-  "Django==4.2.20",
-  "django-import-export",
-  "django-json-widget",
-  "django-markdownify",
-  "django-filer",
+  # Web server
+  "gunicorn",
+  
+  # Django framework
+  "Django",
   "djangorestframework",
-  "django-allauth[mfa,saml,socialaccount,steam]",
-  "django-ses",
   "django-environ",
-  "jsonref",
-  "jsonschema",
-  "jsonschema-specifications",
-  "Markdown",
-  "PyYAML",
-  "martor",
-  "psycopg2-binary",
-  "setuptools",
-  "aiosmtpd",
-  "dkimpy",
+  
+  # Django CMS
   "django-cms",
   "djangocms_text_ckeditor",
   "djangocms-frontend",
   "djangocms-versioning",
   "djangocms-alias",
   "djangocms_admin_style",
+  
+  # Django utilities
+  "django-import-export",
+  "django-json-widget",
+  "django-markdownify",
+  "django-filer",
+  "django-allauth[mfa,saml,socialaccount,steam]",
+  "django-ses",
+  
+  # Database
+  "psycopg2-binary",
+  
+  # Data processing
+  "jsonref",
+  "jsonschema",
+  "jsonschema-specifications",
+  "Markdown",
+  "PyYAML",
+  "martor",
+  
+  # Email
+  "aiosmtpd",
+  "dkimpy",
+  
+  # Cloud services
+  "azure-monitor-opentelemetry",
+  "boto3",
+  "pygithub",
+  
+  # AI
   "openai",
 ]
 
@@ -53,22 +80,47 @@ Repository = "https://github.com/bamr87/barodybroject"
 
 [project.optional-dependencies]
 dev = [
-  "django-environ",
+  # Development tools
   "cruft",
   "pip-tools",
+  
+  # Testing
   "pytest",
   "pytest-django",
   "pytest-playwright",
-  "coverage",
   "pytest-cov",
-  "axe-playwright-python",
+  "coverage[toml]",
+  
+  # Web testing
   "selenium",
   "beautifulsoup4",
   "requests",
+  "axe-playwright-python",
+  
+  # Code quality
+  "black",
   "ruff",
+  "pre-commit",
+  "mypy",
+  "django-stubs",
+  
+  # Documentation
   "sphinx",
   "sphinx-autodoc-typehints",
-  "sphinx-rtd-theme"
+  "sphinx-rtd-theme",
+  "myst-parser",
+]
+
+security = [
+  "django-security",
+  "django-csp",
+  "django-ratelimit",
+]
+
+monitoring = [
+  "django-debug-toolbar",
+  "django-extensions",
+  "sentry-sdk[django]",
 ]
 
 [tool.setuptools]
@@ -77,18 +129,31 @@ package-dir = { "" = "src" }
 [tool.setuptools.packages.find]
 where = ["src"]
 
+# Black formatter
 [tool.black]
 line-length = 88
-target-version = ["py38"]
+target-version = ["py39"]
 
+# Ruff linter
 [tool.ruff]
 line-length = 88
-target-version = "py38"
+target-version = "py39"
+select = ["E", "W", "F", "I", "B", "C4", "UP", "SIM", "DJ"]
 ignore = ["E501"]
 
+# Pytest
 [tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "--strict-markers"
-testpaths = [
-  "tests",
-]
+addopts = ["--cov=parodynews", "--cov=barodybroject"]
+testpaths = ["tests"]
+DJANGO_SETTINGS_MODULE = "barodybroject.settings.test"
+
+# Coverage
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/migrations/*", "*/tests/*", "manage.py", "*/settings/*"]
+
+# MyPy
+[tool.mypy]
+python_version = "3.9"
+ignore_missing_imports = true
+plugins = ["mypy_django_plugin.main"]
