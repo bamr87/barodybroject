@@ -1,8 +1,8 @@
 {
   // ==================================================
-  // SIMPLIFIED VS CODE LAUNCH CONFIGURATION
+  // UPDATED VS CODE LAUNCH CONFIGURATION
   // ==================================================
-  // Basic Django development configuration
+  // Updated for simplified Docker Compose structure
   
   "version": "0.2.0",
   "configurations": [
@@ -11,43 +11,90 @@
     // DOCKER DEVELOPMENT CONFIGURATIONS
     // ==========================================
     {
-      "name": "🐳 Debug Django App (Docker)",
+      "name": "🐳 Debug Django App (Development)",
       "type": "msedge",
       "request": "launch",
       "url": "http://localhost:8000",
       "webRoot": "${workspaceFolder}",
-      "preLaunchTask": "Docker: Compose Up (Detached)",
-      "postDebugTask": "Docker: Compose Stop"
+      "preLaunchTask": "🐍 Docker: Development Up",
+      "postDebugTask": "⛔ Docker: Stop Development"
+    },
+
+    {
+      "name": "🚀 Debug Django App (Production)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:80",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "🚀 Docker: Production Up",
+      "postDebugTask": "⛔ Docker: Stop Production"
     },
 
     // ==========================================
     // PYTHON/DJANGO CONFIGURATIONS
     // ==========================================
     {
-      "name": "🐍 Python/Django in Docker (Launch)",
+      "name": "🐍 Python/Django in Docker (Development)",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5678
+      },
+      "django": true,
+      "justMyCode": false,
+      "preLaunchTask": "🐍 Docker: Development Up"
+    },
+
+    {
+      "name": "🧪 Python Tests in Docker (Development)",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5678
+      },
+      "django": true,
+      "justMyCode": false,
+      "preLaunchTask": "🐍 Docker: Development Up"
+    },
+
+    // ==========================================
+    // LOCAL DEVELOPMENT (WITHOUT DOCKER)
+    // ==========================================
+    {
+      "name": "🐍 Python/Django (Local)",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/src/manage.py",
-      "args": ["runserver", "0.0.0.0:8000"],
+      "args": ["runserver", "0.0.0.0:8001"],
       "django": true,
       "autoStartBrowser": false,
       "console": "integratedTerminal",
       "justMyCode": false,
       "env": {
         "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
-        "DEBUG": "True"
+        "DEBUG": "True",
+        "RUNNING_IN_PRODUCTION": "False",
+        "DB_CHOICE": "sqlite"
       }
     },
 
     {
-      "name": "🧪 Python Tests in Docker",
+      "name": "🧪 Python Tests (Local)",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/src/manage.py",
       "args": ["test"],
       "django": true,
       "console": "integratedTerminal",
-      "justMyCode": false
+      "justMyCode": false,
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
+        "DEBUG": "True",
+        "RUNNING_IN_PRODUCTION": "False",
+        "DB_CHOICE": "sqlite"
+      }
     }
   ]
 }

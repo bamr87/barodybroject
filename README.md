@@ -9,6 +9,7 @@ A Django-based web application integrated with OpenAI to generate AI-powered par
 - [Features](#features)
 - [Technology Stack](#technology-stack)
 - [Architecture & Design Patterns](#architecture--design-patterns)
+- [Configuration & Environment](#configuration--environment)
 - [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
 - [Installation & Setup](#installation--setup)
@@ -151,11 +152,94 @@ A Django-based web application integrated with OpenAI to generate AI-powered par
 - Performance metrics collection
 - Error tracking and alerting
 
+## Configuration & Environment
+
+### Enterprise-Grade Configuration Management
+
+Barodybroject features a completely optimized Django configuration system designed for enterprise production deployment while maintaining excellent developer experience.
+
+**Key Configuration Features:**
+- **12-Factor App Compliance**: All configuration through environment variables
+- **Multi-Environment Support**: Development, staging, and production configurations
+- **AWS Secrets Manager Integration**: Secure production secrets management
+- **Environment Auto-Detection**: Intelligent environment detection and configuration
+- **Security-First Design**: Secure defaults with development overrides
+- **Performance Optimization**: Production-tuned caching, database, and static file settings
+
+### Environment Profiles
+
+#### Development Environment
+- **Database**: PostgreSQL (Docker) or SQLite fallback
+- **Caching**: Local memory cache for fast development
+- **Security**: Relaxed settings for easy debugging
+- **Email**: Console backend for testing
+- **Debug Tools**: Optional Django Debug Toolbar support
+
+#### Production Environment  
+- **Database**: PostgreSQL with connection pooling and SSL
+- **Caching**: Redis with intelligent database fallback
+- **Security**: Enterprise-grade security headers and HTTPS enforcement
+- **Email**: AWS SES with DKIM authentication
+- **Monitoring**: Comprehensive structured logging with JSON formatting
+- **Static Files**: Optimized static file serving with manifest storage
+
+### Configuration Documentation
+
+For comprehensive configuration guidance, see our detailed documentation:
+
+- **[Django Settings Optimization Guide](./docs/configuration/settings-optimization.md)** - Complete 100+ page configuration guide
+- **[Environment Configuration Reference](./docs/configuration/environment-config.md)** - Environment variable reference and validation
+- **[Security Configuration Guide](./docs/configuration/security-config.md)** - Security best practices and implementation
+- **[Performance Configuration Guide](./docs/configuration/performance-config.md)** - Performance optimization strategies
+
+### Quick Configuration Setup
+
+#### Development Setup
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit environment variables for development
+RUNNING_IN_PRODUCTION=False
+DEBUG=True
+DB_CHOICE=postgres  # or sqlite for simple setup
+```
+
+#### Production Deployment
+```bash
+# Set production environment variables
+RUNNING_IN_PRODUCTION=True
+DEBUG=False
+SECRET_KEY=your-ultra-secure-secret-key
+DB_PASSWORD=your-secure-database-password
+AWS_ACCESS_KEY_ID=your-aws-access-key
+REDIS_URL=redis://your-redis-host:6379/1
+```
+
+### Configuration Validation
+
+```bash
+# Validate development configuration
+python manage.py check
+
+# Validate production deployment configuration  
+python manage.py check --deploy
+
+# Test environment variable loading
+python scripts/validate_env.py production
+```
+
 ## Project Structure
 
 ```
 barodybroject/
 ├── docs/                       # Comprehensive project documentation
+│   ├── configuration/          # Django configuration documentation
+│   │   ├── README.md           # Configuration documentation overview
+│   │   ├── settings-optimization.md # Complete Django settings guide (100+ pages)
+│   │   ├── environment-config.md    # Environment variable reference
+│   │   ├── security-config.md       # Security configuration guide
+│   │   └── performance-config.md    # Performance optimization guide
 │   └── changelog/              # Change documentation and templates
 │       ├── README.md           # Documentation system overview
 │       ├── CHANGELOG.md        # Main project changelog
@@ -173,7 +257,7 @@ barodybroject/
 │   └── version-manager.sh     # Version management
 ├── src/                       # Django application source code
 │   ├── barodybroject/         # Django project settings
-│   │   ├── settings.py        # Application configuration
+│   │   ├── settings.py        # Enterprise-grade application configuration (950+ lines)
 │   │   ├── urls.py            # URL routing
 │   │   └── wsgi.py            # WSGI application entry point
 │   ├── parodynews/            # Main Django app

@@ -1,8 +1,8 @@
 # Docker Compose Configuration for Barodybroject
-# Supports both development and production environments
+# Production environment configuration
 # Usage:
-#   Development: docker-compose up
-#   Production:  docker-compose --profile production up
+#   Production: docker-compose up
+#   Development: Use .devcontainer/docker-compose_dev.yml
 
 services:
   # PostgreSQL Database (shared by both dev and prod)
@@ -26,70 +26,13 @@ services:
     networks:
       - barody-network
 
-  # Django Web Application - Development Mode
-  web-dev:
-    image: python:3.11-slim
-    container_name: barody-web-dev
-    working_dir: /app
-    profiles: ["dev", ""]  # Default profile (no --profile flag needed)
-    volumes:
-      - ./src:/app
-    depends_on:
-      barodydb:
-        condition: service_healthy
-    environment:
-      DB_USERNAME: ${DB_USERNAME:-postgres}
-      DB_NAME: ${DB_NAME:-barodydb}
-      DB_HOST: ${DB_HOST:-barodydb}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      DJANGO_SETTINGS_MODULE: barodybroject.settings
-      DEBUG: "True"
-      PYTHONPATH: /app
-      PYTHONUNBUFFERED: 1
-    ports:
-      - "${DJANGO_DEV_PORT:-8000}:8000"
-      - "${DEBUGPY_PORT:-5678}:5678"  # VS Code debugger
-    networks:
-      - barody-network
-    command:
-      - /bin/bash
-      - -c
-      - |
-        echo "🚀 Starting Development Environment..."
-        apt-get update -qq
-        apt-get install -y --no-install-recommends \
-          build-essential \
-          python3-dev \
-          libxml2-dev \
-          libxmlsec1-dev \
-          pkg-config \
-          libffi-dev \
-          postgresql-client \
-          libcairo2-dev \
-          libgirepository1.0-dev \
-          libpango1.0-dev \
-          libglib2.0-dev \
-          > /dev/null 2>&1
-        pip install --upgrade pip -q
-        pip install -r requirements.txt -q
-        echo "📦 Dependencies installed"
-        python manage.py makemigrations
-        python manage.py migrate
-        python manage.py collectstatic --noinput
-        echo "✅ Django ready on http://localhost:8000"
-        python manage.py runserver 0.0.0.0:8000
-
   # Django Web Application - Production Mode
   web-prod:
     image: python:3.11-slim
     container_name: barody-web-prod
     working_dir: /app
-    profiles: ["production"]
     volumes:
       - ./src:/app
-    depends_on:
-      barodydb:
-        condition: service_healthy
     environment:
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_NAME: ${DB_NAME:-barodydb}
@@ -108,28 +51,10 @@ services:
       - /bin/bash
       - -c
       - |
-        echo "🚀 Starting Production Environment..."
-        apt-get update -qq
-        apt-get install -y --no-install-recommends \
-          build-essential \
-          python3-dev \
-          libxml2-dev \
-          libxmlsec1-dev \
-          pkg-config \
-          libffi-dev \
-          postgresql-client \
-          libcairo2-dev \
-          libgirepository1.0-dev \
-          libpango1.0-dev \
-          libglib2.0-dev \
-          > /dev/null 2>&1
-        pip install --upgrade pip -q
-        pip install -r requirements.txt -q
-        echo "📦 Dependencies installed"
-        python manage.py makemigrations
+        apt-get update && apt-get install -y postgresql-client
+        pip install -r requirements.txt gunicorn
         python manage.py migrate
         python manage.py collectstatic --noinput
-        echo "✅ Django ready for production"
         exec gunicorn barodybroject.wsgi:application --bind 0.0.0.0:8000 --workers 3
 
   # Jekyll Static Site Generator (optional service)

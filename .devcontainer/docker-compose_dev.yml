@@ -49,29 +49,10 @@ services:
       - /bin/bash
       - -c
       - |
-        echo "🚀 Starting Development Environment..."
-        apt-get update -qq
-        apt-get install -y --no-install-recommends \
-          build-essential \
-          python3-dev \
-          libxml2-dev \
-          libxmlsec1-dev \
-          pkg-config \
-          libffi-dev \
-          postgresql-client \
-          libcairo2-dev \
-          libgirepository1.0-dev \
-          libpango1.0-dev \
-          libglib2.0-dev \
-          git \
-          > /dev/null 2>&1
-        pip install --upgrade pip -q
-        pip install -r requirements.txt -q
-        echo "📦 Dependencies installed"
-        python manage.py makemigrations
+        apt-get update && apt-get install -y postgresql-client git build-essential pkg-config libcairo2-dev python3-dev
+        pip install --upgrade pip
+        pip install -r requirements.txt
         python manage.py migrate
-        python manage.py collectstatic --noinput
-        echo "✅ Django ready on http://localhost:8000"
         python manage.py runserver 0.0.0.0:8000
 
   jekyll:
