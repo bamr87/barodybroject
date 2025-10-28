@@ -1,13 +1,46 @@
 ---
 file: documentation.instructions.md
-description: Documentation standards and Markdown formatting guidelines
+description: VS Code Copilot-optimized documentation standards and Markdown formatting guidelines for Django/OpenAI projects
 author: Barodybroject Team
 created: 2025-10-11
-lastModified: 2025-10-11
-version: 1.0.0
+lastModified: 2025-10-28
+version: 1.1.0
 applyTo: "**/*.md,**/*.rst"
 dependencies:
-  - copilot-instructions.md: Core principles and project context
+  - copilot-instructions.md: Core principles and VS Code Copilot integration
+  - frontmatter.standards.md: Unified frontmatter structure and metadata standards
+  - space.instructions.md: Project organization and workspace standards
+relatedEvolutions:
+  - "Enhanced Django-specific documentation patterns"
+  - "OpenAI integration documentation standards"
+  - "VS Code Copilot optimization for technical writing"
+containerRequirements:
+  baseImage: jekyll/jekyll:latest
+  description: "Documentation development environment with Jekyll and Markdown processing"
+  exposedPorts:
+    - 4000
+  portDescription: "Jekyll development server for documentation preview"
+  volumes:
+    - "/docs:rw"
+    - "/src:ro"
+  environment:
+    JEKYLL_ENV: development
+paths:
+  documentation_workflow_path:
+    - planning_and_research
+    - content_creation
+    - technical_validation
+    - review_and_editing
+    - publication_and_maintenance
+changelog:
+  - date: "2025-10-28"
+    description: "Enhanced with VS Code Copilot optimization and Django/OpenAI specific documentation patterns"
+    author: "Barodybroject Team"
+  - date: "2025-10-11"
+    description: "Initial creation with core documentation standards"
+    author: "Barodybroject Team"
+usage: "Reference for all documentation creation, README maintenance, and technical writing in Django/OpenAI projects"
+notes: "Emphasizes Django best practices, OpenAI integration documentation, and container-first development documentation"
 ---
 
 # Documentation Standards

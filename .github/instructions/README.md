@@ -16,6 +16,20 @@ This directory contains comprehensive coding instructions and guidelines for AI-
 
 - **`test.instructions.md`**: Testing standards for Django applications including pytest patterns, API testing, UI testing with Playwright, and coverage requirements
 
+- **`features.instructions.md`**: Feature development pipeline for Django/OpenAI applications with comprehensive CI/CD integration and VS Code Copilot optimization
+
+- **`space.instructions.md`**: Workspace organization and project structure guidelines optimized for Django development and VS Code Copilot assistance
+
+- **`posts.instructions.md`**: Technical content creation standards for documenting Django/OpenAI development experiences and sharing knowledge
+
+### Harmonization and Standards
+
+- **`frontmatter.standards.md`**: Unified frontmatter structure and metadata standards for cross-repository consistency and AI optimization
+
+- **`HARMONIZATION_SUMMARY.md`**: Comprehensive summary of instruction file harmonization across IT-Journey ecosystem repositories
+
+- **`ECOSYSTEM_INTEGRATION.md`**: Cross-repository integration guide and shared development patterns for the IT-Journey ecosystem
+
 ## Usage
 
 These instruction files guide AI-assisted development and code generation:
@@ -24,18 +38,25 @@ These instruction files guide AI-assisted development and code generation:
 # AI development context
 coding_standards:
   apply_instructions:
-    - ../copilot-instructions.md     # Foundation principles
+    - ../copilot-instructions.md     # Foundation principles and VS Code Copilot optimization
     - languages.instructions.md      # Language-specific patterns
     - workflows.instructions.md      # CI/CD standards
     - documentation.instructions.md  # Documentation practices
     - test.instructions.md           # Testing standards
+    - features.instructions.md       # Feature development pipeline
+    - space.instructions.md          # Workspace organization
+    - posts.instructions.md          # Technical content creation
+    - frontmatter.standards.md       # Unified metadata standards
+    - ECOSYSTEM_INTEGRATION.md       # Cross-repository integration patterns
 
 development_workflow:
-  1. Review applicable instruction files
-  2. Follow container-first development principles
-  3. Apply language-specific coding standards
-  4. Implement comprehensive testing
-  5. Maintain thorough documentation
+  1. README-FIRST: Review relevant README files for context
+  2. Review applicable instruction files for standards
+  3. Follow container-first development principles
+  4. Apply language-specific coding standards
+  5. Implement comprehensive testing strategies
+  6. Maintain thorough documentation
+  7. README-LAST: Update documentation after changes
 ```
 
 ## Key Features
