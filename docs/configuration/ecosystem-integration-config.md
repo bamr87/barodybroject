@@ -149,9 +149,14 @@ version: '3.8'
 
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: python:3.11-slim
+    working_dir: /app
+    command: >
+      bash -c "
+        pip install -r requirements.txt &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8000
+      "
     environment:
       # Ecosystem Integration
       - ECOSYSTEM_INTEGRATION_ENABLED=true
@@ -185,33 +190,39 @@ volumes:
       - "ecosystem.purpose=cross_repo_integration"
 ```
 
-### Dockerfile Optimization
+### Docker-Compose Optimization
 
-Optimize Dockerfile for ecosystem integration:
+Optimize docker-compose configuration for ecosystem integration:
 
-```dockerfile
-# Dockerfile - Ecosystem Integration Features
-FROM python:3.8-slim AS base
+```yaml
+# docker-compose.yml - Ecosystem Integration Features
+version: '3.8'
 
-# Ecosystem integration labels
-LABEL ecosystem.integration="enabled"
-LABEL ecosystem.repository="barodybroject"
-LABEL ecosystem.type="django_openai_app"
-LABEL ecosystem.copilot_optimized="true"
-
-# Install ecosystem integration tools
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy ecosystem configuration
-COPY ecosystem/ /app/ecosystem/
-COPY scripts/ecosystem/ /app/scripts/ecosystem/
-
-# Install ecosystem integration dependencies
-COPY requirements-ecosystem.txt .
-RUN pip install --no-cache-dir -r requirements-ecosystem.txt
+services:
+  web:
+    image: python:3.11-slim
+    working_dir: /app
+    labels:
+      - "ecosystem.integration=enabled"
+      - "ecosystem.repository=barodybroject"
+      - "ecosystem.type=django_openai_app"
+      - "ecosystem.copilot_optimized=true"
+    command: >
+      bash -c "
+        apt-get update && apt-get install -y git curl &&
+        pip install --no-cache-dir -r requirements.txt &&
+        pip install --no-cache-dir -r requirements-ecosystem.txt &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+    environment:
+      - ECOSYSTEM_INTEGRATION_ENABLED=true
+      - CROSS_REPO_SYNC_ENABLED=true
+      - INSTRUCTION_VALIDATION_STRICT=true
+    volumes:
+      - ./src:/app/src:rw
+      - ./ecosystem:/app/ecosystem:rw
+      - ./scripts/ecosystem:/app/scripts/ecosystem:ro
 
 # Configure ecosystem integration
 ENV ECOSYSTEM_INTEGRATION_ENABLED=true

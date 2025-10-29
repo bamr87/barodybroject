@@ -569,7 +569,9 @@ if RUNNING_IN_PRODUCTION:
 
 ### 1. Container Optimization
 
-#### Multi-Stage Dockerfile
+> **📝 Update Note (2025-01-27)**: This project has since transitioned to a docker-compose-only approach, eliminating custom Dockerfiles in favor of standard Python images with inline configuration. See [DOCKER_SIMPLIFICATION_SUMMARY.md](../../archive/DOCKER_SIMPLIFICATION_SUMMARY.md) for details.
+
+#### Multi-Stage Dockerfile (Historical - v1.0.0)
 ```dockerfile
 # Development stage
 FROM python:3.11-slim as development

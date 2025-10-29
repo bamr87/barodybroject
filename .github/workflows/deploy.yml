@@ -1,0 +1,309 @@
+name: Deploy to Azure
+
+on:
+  workflow_run:
+    workflows: ["CI - Build and Test", "Container Build and Registry"]
+    branches: [main]
+    types: [completed]
+  
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+        - development
+        - staging
+        - production
+      skip_tests:
+        description: 'Skip pre-deployment tests'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: deploy-${{ github.ref }}-${{ inputs.environment || 'auto' }}
+  cancel-in-progress: false
+
+env:
+  AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME || 'barodybroject-dev' }}
+  AZURE_LOCATION: ${{ vars.AZURE_LOCATION || 'eastus' }}
+
+jobs:
+  # Pre-deployment validation
+  pre-deployment:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+
+    outputs:
+      deploy-environment: ${{ steps.env-config.outputs.environment }}
+      should-deploy: ${{ steps.env-config.outputs.should-deploy }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure deployment environment
+        id: env-config
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            ENV="${{ inputs.environment }}"
+            SHOULD_DEPLOY="true"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            ENV="development"
+            SHOULD_DEPLOY="true"
+          else
+            ENV="none"
+            SHOULD_DEPLOY="false"
+          fi
+          
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          echo "should-deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
+          echo "Deployment environment: $ENV"
+          echo "Should deploy: $SHOULD_DEPLOY"
+
+      - name: Validate Azure configuration
+        if: steps.env-config.outputs.should-deploy == 'true'
+        working-directory: src
+        run: |
+          if [ ! -f azure.yaml ]; then
+            echo "❌ azure.yaml not found"
+            exit 1
+          fi
+          
+          echo "✅ Azure configuration found"
+          cat azure.yaml
+
+  # Azure deployment
+  deploy:
+    name: Deploy to Azure (${{ needs.pre-deployment.outputs.deploy-environment }})
+    runs-on: ubuntu-latest
+    needs: pre-deployment
+    if: needs.pre-deployment.outputs.should-deploy == 'true'
+    
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.uri }}
+    
+    environment: 
+      name: ${{ needs.pre-deployment.outputs.deploy-environment }}
+      url: ${{ steps.deploy.outputs.uri }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Azure Developer CLI
+        uses: Azure/setup-azd@v1.0.0
+
+      - name: Log in to Azure (Federated Credentials)
+        if: vars.AZURE_CLIENT_ID != ''
+        run: |
+          azd auth login \
+            --client-id "${{ vars.AZURE_CLIENT_ID }}" \
+            --federated-credential-provider "github" \
+            --tenant-id "${{ vars.AZURE_TENANT_ID }}"
+
+      - name: Log in to Azure (Service Principal)
+        if: vars.AZURE_CLIENT_ID == ''
+        run: |
+          if [[ -n "${{ secrets.AZURE_CREDENTIALS }}" ]]; then
+            creds='${{ secrets.AZURE_CREDENTIALS }}'
+            client_id=$(echo $creds | jq -r .clientId)
+            client_secret=$(echo $creds | jq -r .clientSecret)
+            tenant_id=$(echo $creds | jq -r .tenantId)
+            
+            azd auth login \
+              --client-id "$client_id" \
+              --client-secret "$client_secret" \
+              --tenant-id "$tenant_id"
+          else
+            echo "❌ No Azure credentials configured"
+            exit 1
+          fi
+
+      - name: Set up Azure environment
+        run: |
+          azd env set AZURE_ENV_NAME "${{ env.AZURE_ENV_NAME }}"
+          azd env set AZURE_LOCATION "${{ env.AZURE_LOCATION }}"
+          azd env set AZURE_SUBSCRIPTION_ID "${{ vars.AZURE_SUBSCRIPTION_ID }}"
+
+      - name: Provision Azure infrastructure
+        id: provision
+        run: |
+          azd provision --no-prompt
+        env:
+          AZURE_ENV_NAME: ${{ env.AZURE_ENV_NAME }}
+          AZURE_LOCATION: ${{ env.AZURE_LOCATION }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy application
+        id: deploy
+        run: |
+          azd deploy --no-prompt
+          
+          # Get the deployment URI
+          azd env get-values > .env
+          source .env
+          echo "uri=${BACKEND_URI:-$WEBSITE_URI}" >> $GITHUB_OUTPUT
+        env:
+          AZURE_ENV_NAME: ${{ env.AZURE_ENV_NAME }}
+          AZURE_LOCATION: ${{ env.AZURE_LOCATION }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Upload deployment logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-logs-${{ needs.pre-deployment.outputs.deploy-environment }}
+          path: |
+            .azure/
+            *.log
+          retention-days: 30
+
+  # Post-deployment validation
+  post-deployment:
+    name: Post-deployment Validation
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, deploy]
+    if: needs.deploy.result == 'success'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Wait for deployment to stabilize
+        run: |
+          echo "Waiting for deployment to stabilize..."
+          sleep 60
+
+      - name: Run smoke tests
+        env:
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
+        run: |
+          echo "Testing deployment at: $DEPLOYMENT_URL"
+          
+          # Basic connectivity test
+          max_attempts=30
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+            echo "Smoke test attempt $attempt/$max_attempts"
+            if curl -f -s "$DEPLOYMENT_URL" > /dev/null; then
+              echo "✅ Basic connectivity test passed"
+              break
+            fi
+            if [ $attempt -eq $max_attempts ]; then
+              echo "❌ Basic connectivity test failed after $max_attempts attempts"
+              exit 1
+            fi
+            sleep 10
+            attempt=$((attempt + 1))
+          done
+
+          # Test critical endpoints
+          echo "Testing critical endpoints..."
+          
+          # Test admin login page
+          if curl -f -s "$DEPLOYMENT_URL/admin/" > /dev/null; then
+            echo "✅ Admin endpoint accessible"
+          else
+            echo "⚠️ Admin endpoint test failed"
+          fi
+          
+          # Test API root
+          if curl -f -s "$DEPLOYMENT_URL/api/" > /dev/null; then
+            echo "✅ API endpoint accessible"
+          else
+            echo "⚠️ API endpoint test failed"
+          fi
+
+      - name: Run comprehensive tests (if not skipped)
+        if: inputs.skip_tests != true
+        env:
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment-url }}
+        run: |
+          echo "Running comprehensive post-deployment tests..."
+          
+          # Install test dependencies
+          pip install requests pytest
+          
+          # Run basic API tests
+          python -c "
+          import requests
+          import sys
+          
+          base_url = '${{ needs.deploy.outputs.deployment-url }}'
+          
+          try:
+              # Test homepage
+              response = requests.get(base_url, timeout=30)
+              print(f'Homepage status: {response.status_code}')
+              
+              # Test API root
+              response = requests.get(f'{base_url}/api/', timeout=30)
+              print(f'API status: {response.status_code}')
+              
+              print('✅ All tests passed')
+          except Exception as e:
+              print(f'❌ Test failed: {e}')
+              sys.exit(1)
+          "
+
+  # Deployment notification
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, deploy, post-deployment]
+    if: always() && needs.pre-deployment.outputs.should-deploy == 'true'
+
+    steps:
+      - name: Create deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ needs.pre-deployment.outputs.deploy-environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ needs.deploy.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Post-deployment Tests**: ${{ needs.post-deployment.result }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.deploy.result }}" == "success" ]]; then
+            echo "- **URL**: ${{ needs.deploy.outputs.deployment-url }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Deployment successful!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Deployment failed!**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Create GitHub issue on failure
+        if: needs.deploy.result == 'failure' || needs.post-deployment.result == 'failure'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Deployment failure: ${context.sha.substring(0, 7)}`,
+              body: `
+              ## Deployment Failure Report
+              
+              **Environment**: ${{ needs.pre-deployment.outputs.deploy-environment }}
+              **Commit**: ${context.sha}
+              **Workflow**: ${context.workflow}
+              **Run ID**: ${context.runId}
+              
+              **Status**:
+              - Deploy: ${{ needs.deploy.result }}
+              - Post-deployment: ${{ needs.post-deployment.result }}
+              
+              **Action Required**: Please review the workflow logs and fix the deployment issues.
+              
+              [View Workflow Run](${context.payload.repository.html_url}/actions/runs/${context.runId})
+              `,
+              labels: ['deployment', 'bug', 'high-priority']
+            })

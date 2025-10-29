@@ -1,0 +1,226 @@
+name: CI - Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  DJANGO_SETTINGS_MODULE: "barodybroject.settings"
+
+jobs:
+  # Fast pre-checks to fail quickly on obvious issues
+  pre-checks:
+    name: Pre-flight Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          cd src
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Check Django configuration
+        working-directory: src
+        run: |
+          python manage.py check --deploy
+        env:
+          SECRET_KEY: "ci-test-key-not-for-production"
+          DEBUG: "False"
+          DATABASE_URL: "sqlite:///ci_test.db"
+
+      - name: Check for migration issues
+        working-directory: src
+        run: |
+          python manage.py makemigrations --check --dry-run
+        env:
+          SECRET_KEY: "ci-test-key-not-for-production"
+          DEBUG: "True"
+          DATABASE_URL: "sqlite:///ci_test.db"
+
+  # Docker Compose services verification  
+  container-compose-test:
+    name: Docker Compose Test
+    runs-on: ubuntu-latest
+    needs: pre-checks
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Create environment file
+        run: |
+          cat > .env << EOL
+          POSTGRES_USER=test_user
+          POSTGRES_DB=test_db
+          POSTGRES_PASSWORD=test_password
+          DB_HOST=barodydb
+          DB_USERNAME=test_user
+          DB_NAME=test_db
+          DB_PASSWORD=test_password
+          DJANGO_SETTINGS_MODULE=barodybroject.settings
+          DEBUG=True
+          RUNNING_IN_PRODUCTION=False
+          PYTHONPATH=/workspace/src
+          PYTHONUNBUFFERED=1
+          EOL
+      
+      - name: Test docker-compose services
+        run: |
+          # Start services in background
+          docker-compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
+          
+          # Wait for database to be ready
+          timeout 60 bash -c 'until docker-compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb pg_isready -U test_user -d test_db; do sleep 2; done'
+          
+          # Test Django application startup
+          docker-compose -f .devcontainer/docker-compose_dev.yml run --rm python python manage.py check
+          
+          echo "✓ Docker Compose services working correctly"
+      
+      - name: Cleanup containers
+        if: always()
+        run: |
+          docker-compose -f .devcontainer/docker-compose_dev.yml down -v
+
+  # Comprehensive testing with multiple Python versions
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: pre-checks
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_barodydb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev
+
+      - name: Install Python dependencies
+        run: |
+          cd src
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install coverage pytest-cov
+
+      - name: Run database migrations
+        working-directory: src
+        run: |
+          python manage.py migrate --noinput
+        env:
+          SECRET_KEY: "ci-test-key-not-for-production"
+          DEBUG: "True"
+          DB_HOST: localhost
+          DB_NAME: test_barodydb
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+
+      - name: Collect static files
+        working-directory: src
+        run: |
+          python manage.py collectstatic --noinput
+        env:
+          SECRET_KEY: "ci-test-key-not-for-production"
+          DEBUG: "False"
+          DB_HOST: localhost
+          DB_NAME: test_barodydb
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+
+      - name: Run Django tests
+        working-directory: src
+        run: |
+          python manage.py test --verbosity=2
+        env:
+          SECRET_KEY: "ci-test-key-not-for-production"
+          DEBUG: "True"
+          DB_HOST: localhost
+          DB_NAME: test_barodydb
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+
+      - name: Run pytest with coverage
+        working-directory: src
+        run: |
+          python -m pytest --cov=parodynews --cov-report=xml --cov-report=term-missing --cov-fail-under=70
+        env:
+          SECRET_KEY: "ci-test-key-not-for-production"
+          DEBUG: "True"
+          DB_HOST: localhost
+          DB_NAME: test_barodydb
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./src/coverage.xml
+          flags: django-tests
+          name: codecov-barodybroject
+
+  # Results summary
+  ci-summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [pre-checks, test, container-compose-test]
+    if: always()
+
+    steps:
+      - name: Check all jobs status
+        run: |
+          echo "Pre-checks: ${{ needs.pre-checks.result }}"
+          echo "Tests: ${{ needs.test.result }}"
+          echo "Container Compose: ${{ needs.container-compose-test.result }}"
+          
+          if [[ "${{ needs.pre-checks.result }}" == "failure" || 
+                "${{ needs.test.result }}" == "failure" || 
+                "${{ needs.container-compose-test.result }}" == "failure" ]]; then
+            echo "❌ CI Pipeline Failed"
+            exit 1
+          else
+            echo "✅ CI Pipeline Passed"
+          fi

@@ -1,0 +1,273 @@
+name: Code Quality and Security
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'infra/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'infra/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Code formatting and linting
+  format-and-lint:
+    name: Format and Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Install formatting tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort flake8 ruff bandit
+
+      - name: Check code formatting with Black
+        run: |
+          black --check --diff src/
+
+      - name: Check import ordering with isort
+        run: |
+          isort --check-only --diff src/
+
+      - name: Lint with Ruff (fast linter)
+        run: |
+          ruff check src/
+
+      - name: Lint with Flake8 (comprehensive)
+        run: |
+          flake8 src/ --max-line-length=88 --extend-ignore=E203,W503
+
+      - name: Security lint with Bandit
+        run: |
+          bandit -r src/ -f json -o bandit-report.json || true
+          bandit -r src/ -f txt
+
+      - name: Upload Bandit report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: bandit-security-report
+          path: bandit-report.json
+
+  # Dependency security scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety pip-audit
+
+      - name: Scan dependencies with Safety
+        run: |
+          cd src
+          safety check --json --output safety-report.json || true
+          safety check
+
+      - name: Scan dependencies with pip-audit
+        run: |
+          cd src
+          pip-audit --desc --format=json --output=pip-audit-report.json || true
+          pip-audit --desc
+
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: |
+            src/safety-report.json
+            src/pip-audit-report.json
+
+  # Docker security scanning
+  container-security:
+    name: Container Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build test container
+        working-directory: src
+        run: |
+          docker build --tag barodybroject:security-scan .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'barodybroject:security-scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Code quality analysis
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Install quality tools
+        run: |
+          cd src
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pylint mypy xenon radon
+
+      - name: Run Pylint
+        run: |
+          cd src
+          pylint parodynews/ --output-format=json:pylint-report.json,text:pylint-report.txt || true
+          echo "Pylint report:"
+          cat pylint-report.txt
+
+      - name: Run MyPy type checking
+        run: |
+          cd src
+          mypy parodynews/ --ignore-missing-imports --json-report mypy-report || true
+
+      - name: Check code complexity with Xenon
+        run: |
+          cd src
+          xenon parodynews/ --max-absolute B --max-modules A --max-average A || true
+
+      - name: Calculate code metrics with Radon
+        run: |
+          cd src
+          radon cc parodynews/ -j > radon-cc.json
+          radon mi parodynews/ -j > radon-mi.json
+          radon raw parodynews/ -j > radon-raw.json
+          echo "Code complexity (cc):"
+          radon cc parodynews/
+          echo "Maintainability index:"
+          radon mi parodynews/
+
+      - name: Upload quality reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-quality-reports
+          path: |
+            src/pylint-report.*
+            src/mypy-report/
+            src/radon-*.json
+
+  # Environment validation
+  env-validation:
+    name: Environment Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose configurations
+        run: |
+          # Validate production docker-compose
+          docker-compose config -q
+          
+          # Validate development docker-compose
+          docker-compose -f .devcontainer/docker-compose_dev.yml config -q
+
+      - name: Validate Azure configuration
+        working-directory: src
+        run: |
+          if [ -f azure.yaml ]; then
+            echo "Azure configuration found"
+            cat azure.yaml
+          fi
+          
+          if [ -f apprunner.yaml ]; then
+            echo "App Runner configuration found"
+            cat apprunner.yaml
+          fi
+
+      - name: Check for secrets in code
+        run: |
+          # Install truffleHog for secret detection
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+          
+          # Scan for secrets
+          trufflehog filesystem . --json > secrets-scan.json || true
+          
+          # Check if any secrets were found
+          if [ -s secrets-scan.json ]; then
+            echo "⚠️ Potential secrets detected:"
+            cat secrets-scan.json
+            exit 1
+          else
+            echo "✅ No secrets detected"
+          fi
+
+  # Summary
+  quality-summary:
+    name: Quality Summary
+    runs-on: ubuntu-latest
+    needs: [format-and-lint, security-scan, container-security, code-quality, env-validation]
+    if: always()
+
+    steps:
+      - name: Check all quality jobs
+        run: |
+          echo "Format and Lint: ${{ needs.format-and-lint.result }}"
+          echo "Security Scan: ${{ needs.security-scan.result }}"
+          echo "Container Security: ${{ needs.container-security.result }}"
+          echo "Code Quality: ${{ needs.code-quality.result }}"
+          echo "Environment Validation: ${{ needs.env-validation.result }}"
+          
+          if [[ "${{ needs.format-and-lint.result }}" == "failure" ]]; then
+            echo "❌ Code formatting/linting failed"
+            exit 1
+          elif [[ "${{ needs.env-validation.result }}" == "failure" ]]; then
+            echo "❌ Environment validation failed"
+            exit 1
+          else
+            echo "✅ Code quality checks completed"
+            echo "⚠️ Review security and quality reports in artifacts"
+          fi

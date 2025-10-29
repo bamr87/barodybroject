@@ -1,7 +1,7 @@
 import os
 import time
 
-import pytest  # noqa: F401import os
+import pytest  # noqa: F401
 from playwright.sync_api import sync_playwright
 
 from parodynews.tests.scripts.functions.user_create import create_new_account

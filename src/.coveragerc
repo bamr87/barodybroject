@@ -1,0 +1,28 @@
+[run]
+source = parodynews
+omit = 
+    */migrations/*
+    */venv/*
+    */env/*
+    manage.py
+    */settings/*
+    */tests/*
+    */test_*.py
+    */__pycache__/*
+    */node_modules/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    class .*\(Protocol\):
+    @(abc\.)?abstractmethod
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml

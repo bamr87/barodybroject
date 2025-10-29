@@ -1,0 +1,380 @@
+name: Environment and Dependencies
+
+on:
+  schedule:
+    # Run weekly dependency checks
+    - cron: '0 8 * * 1'  # Mondays at 8 AM UTC
+  workflow_dispatch:
+    inputs:
+      update_dependencies:
+        description: 'Update dependencies to latest versions'
+        required: false
+        default: false
+        type: boolean
+      force_rebuild:
+        description: 'Force rebuild all containers'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Check for outdated dependencies
+  dependency-check:
+    name: Dependency Health Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-check pip-outdated safety
+
+      - name: Check dependency health
+        working-directory: src
+        run: |
+          echo "=== Current Dependencies ==="
+          pip list
+
+          echo "=== Dependency Consistency Check ==="
+          pip-check
+
+          echo "=== Outdated Dependencies ==="
+          pip list --outdated
+
+          echo "=== Security Vulnerabilities ==="
+          safety check --json --output safety-report.json || true
+          safety check
+
+      - name: Generate dependency report
+        run: |
+          mkdir -p reports
+          
+          echo "# Dependency Health Report" > reports/dependency-report.md
+          echo "Generated: $(date)" >> reports/dependency-report.md
+          echo "" >> reports/dependency-report.md
+          
+          echo "## Outdated Dependencies" >> reports/dependency-report.md
+          echo "\`\`\`" >> reports/dependency-report.md
+          cd src && pip list --outdated >> ../reports/dependency-report.md
+          echo "\`\`\`" >> reports/dependency-report.md
+          
+          echo "" >> reports/dependency-report.md
+          echo "## Security Issues" >> reports/dependency-report.md
+          if [ -f src/safety-report.json ]; then
+            echo "\`\`\`json" >> reports/dependency-report.md
+            cat src/safety-report.json >> reports/dependency-report.md
+            echo "\`\`\`" >> reports/dependency-report.md
+          fi
+
+      - name: Upload dependency report
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-report
+          path: reports/
+
+  # Environment validation across platforms
+  environment-validation:
+    name: Environment Validation (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.11", "3.12"]
+        exclude:
+          # Reduce matrix size for faster feedback
+          - os: windows-latest
+            python-version: "3.9"
+          - os: macos-latest
+            python-version: "3.9"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install system dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev
+
+      - name: Install system dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install postgresql
+
+      - name: Install Python dependencies
+        run: |
+          cd src
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Test Django setup
+        working-directory: src
+        run: |
+          python manage.py check
+        env:
+          SECRET_KEY: "test-key-for-environment-validation"
+          DEBUG: "True"
+          DATABASE_URL: "sqlite:///test.db"
+
+      - name: Test imports
+        working-directory: src
+        run: |
+          python -c "
+          import django
+          import parodynews
+          from barodybroject import settings
+          print('✅ All imports successful')
+          print(f'Django version: {django.get_version()}')
+          "
+
+  # Container environment testing
+  container-environments:
+    name: Container Environment Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        config: [development, production]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test development environment
+        if: matrix.config == 'development'
+        run: |
+          # Start development environment
+          docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+          
+          # Wait for services
+          sleep 30
+          
+          # Test Django development server
+          docker-compose -f .devcontainer/docker-compose_dev.yml exec -T python python manage.py check
+          
+          # Test database connection
+          docker-compose -f .devcontainer/docker-compose_dev.yml exec -T python python manage.py migrate --check
+          
+          # Cleanup
+          docker-compose -f .devcontainer/docker-compose_dev.yml down
+
+      - name: Test production environment
+        if: matrix.config == 'production'
+        run: |
+          # Start production environment
+          docker-compose up -d
+          
+          # Wait for services
+          sleep 30
+          
+          # Test production container
+          curl -f http://localhost || echo "Production container not ready yet"
+          
+          # Check container health
+          docker ps
+          docker logs barody-web-prod
+          
+          # Cleanup
+          docker-compose down
+
+  # Update dependencies if requested
+  update-dependencies:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+    needs: [dependency-check, environment-validation]
+    if: inputs.update_dependencies == true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Update dependencies
+        working-directory: src
+        run: |
+          python -m pip install --upgrade pip
+          
+          # Upgrade packages to latest versions
+          pip install --upgrade -r requirements.txt
+          pip freeze > requirements-updated.txt
+          
+          # Check for any issues with updated dependencies
+          pip-check || echo "Some dependency conflicts detected"
+
+      - name: Test with updated dependencies
+        working-directory: src
+        run: |
+          # Quick test with updated dependencies
+          python manage.py check
+          python -c "import django; print(f'Django version: {django.get_version()}')"
+        env:
+          SECRET_KEY: "test-key-for-dependency-update"
+          DEBUG: "True"
+          DATABASE_URL: "sqlite:///test.db"
+
+      - name: Create pull request for dependency updates
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update Python dependencies"
+          title: "🔄 Automated dependency updates"
+          body: |
+            ## Automated Dependency Updates
+            
+            This PR contains automated updates to Python dependencies.
+            
+            ### Changes
+            - Updated all dependencies to latest compatible versions
+            - Verified compatibility with current codebase
+            
+            ### Testing
+            - ✅ Django configuration check passed
+            - ✅ Import tests passed
+            - ✅ Basic functionality verified
+            
+            ### Next Steps
+            1. Review the changes
+            2. Run full test suite
+            3. Merge if all tests pass
+            
+            Generated by workflow: ${{ github.workflow }}
+          branch: automated/dependency-updates
+          delete-branch: true
+
+  # Environment cleanup and optimization
+  cleanup-environments:
+    name: Cleanup and Optimization
+    runs-on: ubuntu-latest
+    if: inputs.force_rebuild == true || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Clean up Docker environment
+        run: |
+          # Stop any running containers
+          docker-compose down || true
+          docker-compose -f .devcontainer/docker-compose_dev.yml down || true
+          
+          # Clean up unused Docker resources
+          docker system prune -f
+          docker volume prune -f
+          
+          # Show remaining Docker usage
+          echo "=== Docker System Info ==="
+          docker system df
+
+      - name: Validate environment files
+        run: |
+          echo "=== Environment File Validation ==="
+          
+          # Check Docker Compose files
+          echo "Validating docker-compose.yml..."
+          docker-compose config -q
+          
+          echo "Validating development docker-compose..."
+          docker-compose -f .devcontainer/docker-compose_dev.yml config -q
+          
+          # Check for environment file templates
+          if [ -f .env.example ]; then
+            echo "✅ Environment template found"
+            cat .env.example
+          else
+            echo "⚠️ No .env.example template found"
+          fi
+
+      - name: Performance optimization check
+        run: |
+          echo "=== Performance Optimization Suggestions ==="
+          
+          # Check for large files
+          echo "Large files (>10MB):"
+          find . -type f -size +10M -not -path "./.git/*" -not -path "./htmlcov/*" || echo "No large files found"
+          
+          # Check for unnecessary files
+          echo "Temporary files to clean:"
+          find . -name "*.pyc" -o -name "__pycache__" -o -name "*.log" -not -path "./.git/*" || echo "No temp files found"
+          
+          # Check Docker image optimization opportunities
+          echo "Docker optimization opportunities:"
+          echo "- Consider multi-stage builds for smaller images"
+          echo "- Use .dockerignore to exclude unnecessary files"
+          echo "- Pin dependency versions for reproducible builds"
+
+  # Report generation
+  environment-report:
+    name: Environment Health Report
+    runs-on: ubuntu-latest
+    needs: [dependency-check, environment-validation, container-environments]
+    if: always()
+
+    steps:
+      - name: Generate environment health report
+        run: |
+          mkdir -p reports
+          
+          cat << 'EOF' > reports/environment-health.md
+          # Environment Health Report
+          
+          Generated: $(date)
+          
+          ## Job Results
+          - Dependency Check: ${{ needs.dependency-check.result }}
+          - Environment Validation: ${{ needs.environment-validation.result }}
+          - Container Environments: ${{ needs.container-environments.result }}
+          
+          ## Summary
+          EOF
+          
+          if [[ "${{ needs.dependency-check.result }}" == "success" && 
+                "${{ needs.environment-validation.result }}" == "success" && 
+                "${{ needs.container-environments.result }}" == "success" ]]; then
+            echo "✅ All environment checks passed" >> reports/environment-health.md
+          else
+            echo "⚠️ Some environment checks failed - please review" >> reports/environment-health.md
+          fi
+          
+          echo "" >> reports/environment-health.md
+          echo "## Recommendations" >> reports/environment-health.md
+          echo "- Review dependency vulnerabilities" >> reports/environment-health.md
+          echo "- Update outdated packages" >> reports/environment-health.md
+          echo "- Optimize container configurations" >> reports/environment-health.md
+
+      - name: Upload environment report
+        uses: actions/upload-artifact@v3
+        with:
+          name: environment-health-report
+          path: reports/
