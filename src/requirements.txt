@@ -31,6 +31,10 @@ dkimpy
 
 # django-cms requirements
 django-cms
+django-sekizai
+django-treebeard
+django-filer
+easy-thumbnails
 djangocms_text_ckeditor
 djangocms-frontend
 djangocms-versioning
