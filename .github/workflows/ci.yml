@@ -170,6 +170,8 @@ jobs:
         run: |
           cd src
           python -m pip install --upgrade pip
+          # Install pycairo with system package instead of compiling
+          pip install --prefer-binary pycairo || pip install pycairo
           pip install -r requirements.txt
           pip install coverage pytest-cov
 
