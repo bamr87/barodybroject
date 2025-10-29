@@ -36,10 +36,10 @@ dependencies = [
   
   # Django CMS Core
   "django-cms",
-  "djangocms_admin_style",
+  "djangocms-admin-style",
   
   # Django CMS Content Plugins
-  "djangocms_text_ckeditor",
+  "djangocms-text-ckeditor",
   "djangocms-link",
   "djangocms-frontend",
   
