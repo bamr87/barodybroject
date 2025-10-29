@@ -23,11 +23,20 @@ def test_assistant_group_create(ensure_logged_in):
     page.fill("input[name='group_type']", "default")
 
     # Fill inline formset fields for membership; using the default formset prefix.
-    page.select_option("select[name='assistantgroupmembership_set-0-assistants']", label="GroupAssistant1")
+    page.select_option(
+        "select[name='assistantgroupmembership_set-0-assistants']",
+        label="GroupAssistant1",
+    )
     page.fill("input[name='assistantgroupmembership_set-0-position']", "1")
-    page.select_option("select[name='assistantgroupmembership_set-1-assistants']", label="GroupAssistant2")
+    page.select_option(
+        "select[name='assistantgroupmembership_set-1-assistants']",
+        label="GroupAssistant2",
+    )
     page.fill("input[name='assistantgroupmembership_set-1-position']", "2")
-    page.select_option("select[name='assistantgroupmembership_set-2-assistants']", label="GroupAssistant3")
+    page.select_option(
+        "select[name='assistantgroupmembership_set-2-assistants']",
+        label="GroupAssistant3",
+    )
     page.fill("input[name='assistantgroupmembership_set-2-position']", "3")
 
     page.once("dialog", lambda dialog: dialog.accept())

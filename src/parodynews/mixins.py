@@ -2,16 +2,20 @@ from django.views.generic import View
 from .models import AppConfig
 from openai import OpenAI
 
+
 class ModelFieldsMixin(View):
     model = None
 
     def get_model_fields(self):
         if self.model is None:
-                raise ValueError("ModelFieldsMixin requires a 'model' attribute to be defined.")
+            raise ValueError(
+                "ModelFieldsMixin requires a 'model' attribute to be defined."
+            )
         fields = self.model._meta.get_fields()
         display_fields = self.model().get_display_fields()
         return fields, display_fields
-    
+
+
 class AppConfigClientMixin(View):
     def get_client(self):
         app_config = AppConfig.objects.first()
@@ -22,9 +26,10 @@ class AppConfigClientMixin(View):
         project_id = app_config.project_id
         client = OpenAI(organization=org_id, project=project_id, api_key=api_key)
         return client
-    
+
 
 # myapp/mixins.py
+
 
 class DefaultFormFieldsMixin:
     """
@@ -32,11 +37,12 @@ class DefaultFormFieldsMixin:
     set the form's 'initial' value to that default.
     This way, the DB-based default overrides the model's default.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # If there's no model on this form, do nothing:
-        if not getattr(self, 'instance', None) or not self._meta.model:
+        if not getattr(self, "instance", None) or not self._meta.model:
             return
 
         # We only apply defaults if this is a new (unsaved) instance.
@@ -46,6 +52,7 @@ class DefaultFormFieldsMixin:
 
             # Local import to avoid circular references:
             from .utils import get_model_defaults
+
             db_defaults = get_model_defaults(model_name)
 
             # For each field in the form, if there's a DB default, use it.

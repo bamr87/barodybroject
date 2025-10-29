@@ -1,11 +1,12 @@
 from playwright.sync_api import Page
 
+
 def login_user(page: Page, username: str, password: str) -> bool:
     """
     Performs the login process using Playwright.
     Returns True if the login was successful, False otherwise.
     """
-    login_url = 'http://localhost:8000/accounts/login/'
+    login_url = "http://localhost:8000/accounts/login/"
     page.goto(login_url)
     try:
         page.locator("#id_login").fill(username)

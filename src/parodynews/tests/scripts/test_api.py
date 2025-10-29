@@ -2,45 +2,48 @@ import pytest  # noqa: F401
 import requests
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def assistant_id():
-    url = 'http://localhost:8000/api/assistants/'
+    url = "http://localhost:8000/api/assistants/"
     data = {
-        'name': 'API Test',
-        'description': 'This is a test assistant.',
-        'instructions': 'This is a test instruction.',
-        'prompt': 'you are a helpful assistant',
-        'model': 1  # Updated from a string to a valid numeric id
+        "name": "API Test",
+        "description": "This is a test assistant.",
+        "instructions": "This is a test instruction.",
+        "prompt": "you are a helpful assistant",
+        "model": 1,  # Updated from a string to a valid numeric id
     }
     response = requests.post(url, json=data)
     assert response.status_code == 201
     response_data = response.json()
-    return response_data['id']
+    return response_data["id"]
+
 
 def test_create_assistant(assistant_id):
     # This test ensures that the assistant was created successfully
-    url = f'http://localhost:8000/api/assistants/{assistant_id}/'
+    url = f"http://localhost:8000/api/assistants/{assistant_id}/"
     response = requests.get(url)
     assert response.status_code == 200
     response_data = response.json()
-    assert response_data['name'] == 'API Test'
-    assert response_data['description'] == 'This is a test assistant.'
-    assert response_data['instructions'] == 'This is a test instruction.'
-    assert response_data['prompt'] == 'you are a helpful assistant.'
-    assert response_data['model'] == 'gpt-4o-mini'
+    assert response_data["name"] == "API Test"
+    assert response_data["description"] == "This is a test assistant."
+    assert response_data["instructions"] == "This is a test instruction."
+    assert response_data["prompt"] == "you are a helpful assistant."
+    assert response_data["model"] == "gpt-4o-mini"
+
 
 def test_get_assistant(assistant_id):
     # Perform a GET request to retrieve the assistant
-    url = f'http://localhost:8000/api/assistants/{assistant_id}/'
+    url = f"http://localhost:8000/api/assistants/{assistant_id}/"
     response = requests.get(url)
     assert response.status_code == 200
     response_data = response.json()
-    assert response_data['id'] == assistant_id
-    assert response_data['name'] == 'API Test'
-    assert response_data['description'] == 'This is a test assistant.'
-    assert response_data['instructions'] == 'This is a test instruction.'
-    assert response_data['prompt'] == 'you are a helpful assistant.'
-    assert response_data['model'] == 'gpt-4o-mini'
+    assert response_data["id"] == assistant_id
+    assert response_data["name"] == "API Test"
+    assert response_data["description"] == "This is a test assistant."
+    assert response_data["instructions"] == "This is a test instruction."
+    assert response_data["prompt"] == "you are a helpful assistant."
+    assert response_data["model"] == "gpt-4o-mini"
+
 
 # def test_get_content_items():
 #     url = 'http://127.0.0.1:8000/api/content-items/'

@@ -3,6 +3,7 @@ from cms.plugin_pool import plugin_pool
 from django.utils.translation import gettext_lazy as _
 from .models import PostPluginModel
 
+
 @plugin_pool.register_plugin
 class PostPlugin(CMSPluginBase):
     model = PostPluginModel
@@ -13,5 +14,5 @@ class PostPlugin(CMSPluginBase):
 
     def render(self, context, instance, placeholder):
         context = super().render(context, instance, placeholder)
-        context['post'] = instance.post
+        context["post"] = instance.post
         return context

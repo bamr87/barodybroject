@@ -11,7 +11,7 @@ def test_assistant_create_api():
         "instructions": "you are a helpful assistant.",
         "model": "gpt-4o-mini",  # Adjust as necessary based on your model field
         "json_schema": None,
-        "assistant_group_memberships": []
+        "assistant_group_memberships": [],
     }
     response = client.post("/api/assistants/", payload, format="json")
     assert response.status_code == 201

@@ -17,4 +17,5 @@ class ParodyNewsApphook(CMSApp):
     def get_urls(self, page=None, language=None, **kwargs):
         return ["parodynews.urls"]
 
+
 apphook_pool.register(ParodyNewsApphook)

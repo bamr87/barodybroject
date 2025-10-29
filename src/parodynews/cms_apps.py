@@ -4,8 +4,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 
 
-
-
 @apphook_pool.register
 class PostPageConfig(CMSApp):
     app_name = "parodynews"
@@ -25,8 +23,14 @@ class PostPageConfig(CMSApp):
 
     def get_config_add_url(self):
         try:
-           return reverse("admin:{}_{}_add".format(self.app_config._meta.app_label, self.app_config._meta.model_name))
+            return reverse(
+                "admin:{}_{}_add".format(
+                    self.app_config._meta.app_label, self.app_config._meta.model_name
+                )
+            )
         except AttributeError:
             return reverse(
-                "admin:{}_{}_add".format(self.app_config._meta.app_label, self.app_config._meta.module_name)
+                "admin:{}_{}_add".format(
+                    self.app_config._meta.app_label, self.app_config._meta.module_name
+                )
             )

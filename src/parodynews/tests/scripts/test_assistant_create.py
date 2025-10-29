@@ -17,6 +17,5 @@ def test_assistant_create(ensure_logged_in):
 
     page.wait_for_timeout(1000)
 
-
     # Check for success message or confirm creation
     assert "Assistant created successfully." in page.content()

@@ -98,16 +98,31 @@ jobs:
       
       - name: Test docker-compose services
         run: |
-          # Start services in background
+          # Start database service only
           docker compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
           
           # Wait for database to be ready
           timeout 60 bash -c 'until docker compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb pg_isready -U test_user -d test_db; do sleep 2; done'
           
-          # Test Django application startup
-          docker compose -f .devcontainer/docker-compose_dev.yml run --rm python python manage.py check
-          
-          echo "✓ Docker Compose services working correctly"
+          # Create a simple Python container to test Django setup
+          docker compose -f .devcontainer/docker-compose_dev.yml run --rm -e SECRET_KEY="ci-test-key-not-for-production" python bash -c "
+            set -e
+            echo '🔧 Installing system dependencies...'
+            apt-get update -qq
+            apt-get install -y -qq postgresql-client git build-essential pkg-config libcairo2-dev python3-dev
+            
+            echo '🐍 Installing Python dependencies...'
+            pip install --upgrade pip -q
+            pip install -r requirements.txt -q
+            
+            echo '🔍 Testing Django configuration...'
+            python manage.py check --deploy
+            
+            echo '📊 Testing database migrations...'
+            python manage.py migrate --noinput
+            
+            echo '✓ Docker Compose services working correctly'
+          "
       
       - name: Cleanup containers
         if: always()

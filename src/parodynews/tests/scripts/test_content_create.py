@@ -3,7 +3,7 @@ import pytest  # noqa: F401
 
 def test_content_create(ensure_logged_in):
     page = ensure_logged_in
-    page.goto('http://localhost:8000/content/')
+    page.goto("http://localhost:8000/content/")
     page.wait_for_selector("#content-form")
     page.fill("input[name='title']", "My Test Title")
     page.fill("textarea[name='description']", "Test description text.")
@@ -15,7 +15,7 @@ def test_content_create(ensure_logged_in):
     page.wait_for_timeout(1000)  # or wait for condition
     # Automatically handle the confirmation dialog on button click
     page.once("dialog", lambda dialog: dialog.accept())
-    
+
     page.click("button#create-button")
     page.wait_for_timeout(1000)  # or wait for condition
 
@@ -34,4 +34,4 @@ def test_content_create(ensure_logged_in):
     page.wait_for_timeout(1000)  # or wait for condition
 
     page.wait_for_selector("text=Message created successfully.")
-    assert 'Message created successfully.' in page.content()
+    assert "Message created successfully." in page.content()

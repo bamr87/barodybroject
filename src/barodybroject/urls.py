@@ -27,31 +27,24 @@ from parodynews.views import (
 )
 
 
-
 router = routers.DefaultRouter()
 
 urlpatterns = [
     # Home page and admin page
-
     path("", TemplateView.as_view(template_name="index.html")),
-    path('accounts/', include('allauth.urls')),
+    path("accounts/", include("allauth.urls")),
     path("accounts/profile/", TemplateView.as_view(template_name="profile.html")),
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
-
-
     # Include your app's URLs under a specific prefix to avoid conflicts
-    path('', include('parodynews.urls')),
-    path('', include('cms.urls')),
-    path('footer/', FooterView.as_view(), name='footer'),
+    path("", include("parodynews.urls")),
+    path("", include("cms.urls")),
+    path("footer/", FooterView.as_view(), name="footer"),
     # Include django CMS URLs at the root
-
-
     # Include the API endpoints under 'api/' path
-    path('api/', include(router.urls)),
+    path("api/", include(router.urls)),
     # Remove the redundant include
     # path('api/', include('parodynews.urls')),
-
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Remove i18n_patterns if not needed or adjust accordingly
