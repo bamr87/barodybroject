@@ -148,36 +148,45 @@ if not SECRET_KEY or (IS_PRODUCTION and SECRET_KEY == SECRET_KEY_FALLBACK):
         'Set it in environment variables or AWS Secrets Manager.'
     )
 
-# Security settings for production
-if IS_PRODUCTION:
-    SECURE_SSL_REDIRECT = env.bool('USE_HTTPS', default=True)
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
-    
-    # Cookie security
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_HTTPONLY = True
-    CSRF_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
-    CSRF_COOKIE_SAMESITE = 'Lax'
-    
-    # Additional security headers
-    X_FRAME_OPTIONS = 'DENY'
-    
-else:
-    # Development security settings
-    SECURE_SSL_REDIRECT = False
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_HTTPONLY = True
-    CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript access in development
-    X_FRAME_OPTIONS = 'SAMEORIGIN'
+# ==============================================================================
+# SECURITY SETTINGS
+# ==============================================================================
+
+# SSL/HTTPS Configuration  
+SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=True)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# HSTS (HTTP Strict Transport Security) - Always set for deploy check compatibility
+# In development, this won't affect local HTTP traffic but satisfies security checks
+SECURE_HSTS_SECONDS = 31536000  # 1 year - required for deploy check
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Required for deploy check
+SECURE_HSTS_PRELOAD = True  # Required for deploy check
+
+# Content Security
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Always enabled for security
+SECURE_BROWSER_XSS_FILTER = True   # Always enabled for security
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Cookie Security - Set secure defaults for deploy check while allowing dev override via environment
+# These will be secure by default but can be overridden in local development if needed
+SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=True)
+CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=True)
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = IS_PRODUCTION
+
+# Cookie SameSite policy
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Frame options - Secure default for deploy check
+X_FRAME_OPTIONS = 'DENY'
+
+# Development-specific overrides when DEBUG is True
+if DEBUG:
+    # Override SSL redirect for local development (can be re-enabled via env var)
+    SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
+    # Note: Other security settings remain secure by default for deploy check compliance
+    # This allows local development while maintaining security best practices
 
 # ==============================================================================
 # ENVIRONMENT-SPECIFIC CONFIGURATION
@@ -615,6 +624,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        'django.utils.autoreload': {
+            'handlers': ['file'],  # Only log to file, not console
+            'level': 'INFO',  # Hide DEBUG messages from autoreload
+            'propagate': False,
+        },
     },
 }
 
@@ -696,11 +710,14 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory' if IS_PRODUCTION else 'optional'
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = True
-ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minutes
 ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_PRESERVE_USERNAME_CASING = False
 ACCOUNT_SESSION_REMEMBER = True
+
+# Rate limiting configuration (replaces deprecated ACCOUNT_LOGIN_ATTEMPTS_LIMIT/TIMEOUT)
+ACCOUNT_RATE_LIMITS = {
+    'login_failed': '5/5m',  # 5 attempts per 5 minutes
+}
 
 # Multi-factor authentication
 MFA_SUPPORTED_TYPES = [
