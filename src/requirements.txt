@@ -29,12 +29,14 @@ setuptools
 aiosmtpd
 dkimpy
 
-# django-cms requirements
+# django-cms requirements - Complete CMS stack
 django-cms
 django-sekizai
 django-treebeard
 django-filer
+django-polymorphic
 easy-thumbnails
+Pillow
 djangocms_text_ckeditor
 djangocms_link
 djangocms-frontend
