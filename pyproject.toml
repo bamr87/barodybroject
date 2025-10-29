@@ -34,13 +34,25 @@ dependencies = [
   "djangorestframework",
   "django-environ",
   
-  # Django CMS
+  # Django CMS Core
   "django-cms",
+  "djangocms_admin_style",
+  
+  # Django CMS Content Plugins
   "djangocms_text_ckeditor",
+  "djangocms-link",
   "djangocms-frontend",
+  
+  # Django CMS Advanced Features
   "djangocms-versioning",
   "djangocms-alias",
-  "djangocms_admin_style",
+  
+  # Django CMS Dependencies
+  "django-sekizai",
+  "django-treebeard",
+  "pillow",
+  "django-filer",
+  "easy-thumbnails",
   
   # Django utilities
   "django-import-export",
