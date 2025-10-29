@@ -44,18 +44,8 @@ import json
 from datetime import datetime
 
 import yaml
-
-# Temporary CMS stubs for CI - TODO: Re-enable proper CMS integration
-try:
-    from cms.apphook_pool import apphook_pool
-    from cms.utils import get_language_from_request
-except ImportError:
-    # Create stub functions when CMS is not available
-    def apphook_pool(*args, **kwargs):
-        pass
-    def get_language_from_request(request):
-        return getattr(request, 'LANGUAGE_CODE', 'en')
-
+from cms.apphook_pool import apphook_pool
+from cms.utils import get_language_from_request
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin

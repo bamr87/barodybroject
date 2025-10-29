@@ -15,17 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.contrib import admin
-from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import include, path
 from django.views.generic.base import TemplateView
-
 from rest_framework import routers
-from parodynews.views import (
-    FooterView,
-)
 
+from parodynews.views import FooterView
 
 router = routers.DefaultRouter()
 
@@ -38,8 +35,7 @@ urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),
     # Include your app's URLs under a specific prefix to avoid conflicts
     path("", include("parodynews.urls")),
-    # Temporarily disabled CMS URLs for CI
-    # path("", include("cms.urls")),
+    path("", include("cms.urls")),
     path("footer/", FooterView.as_view(), name="footer"),
     # Include django CMS URLs at the root
     # Include the API endpoints under 'api/' path

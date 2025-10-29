@@ -1,28 +1,12 @@
-from django.db import models
+from cms.models.fields import PlaceholderRelationField
+from cms.models.pluginmodel import CMSPlugin
+from django.contrib.auth.models import User
 from django.core.cache import cache
+from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
-# Temporary CMS stubs for CI - TODO: Re-enable proper CMS integration
-try:
-    from cms.models.fields import PlaceholderRelationField
-    from cms.models.pluginmodel import CMSPlugin
-except ImportError:
-    # Create stub classes when CMS is not available
-    class PlaceholderRelationField(models.TextField):
-        def __init__(self, placeholder_name, *args, **kwargs):
-            kwargs.setdefault('blank', True)
-            kwargs.setdefault('default', '')
-            kwargs.setdefault('help_text', f'CMS Placeholder: {placeholder_name}')
-            super().__init__(*args, **kwargs)
-    
-    class CMSPlugin(models.Model):
-        class Meta:
-            abstract = True
-
-from django.urls import reverse
 from martor.models import MartorField
-from django.contrib.auth.models import User
 
 print("Loading models.py")
 # TODO: Update assistant model to include dynamic type fields for categorization and organization of assistants.
