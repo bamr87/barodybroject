@@ -36,6 +36,7 @@ django-treebeard
 django-filer
 easy-thumbnails
 djangocms_text_ckeditor
+djangocms_link
 djangocms-frontend
 djangocms-versioning
 djangocms-alias
