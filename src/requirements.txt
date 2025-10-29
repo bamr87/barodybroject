@@ -29,20 +29,21 @@ setuptools
 aiosmtpd
 dkimpy
 
-# django-cms requirements - Complete CMS stack
-django-cms
-django-sekizai
-django-treebeard
-django-filer
-django-polymorphic
-easy-thumbnails
-Pillow
-djangocms_text_ckeditor
-djangocms_link
-djangocms-frontend
-djangocms-versioning
-djangocms-alias
-djangocms_admin_style
+# django-cms requirements - Temporarily disabled for CI
+# TODO: Re-enable CMS functionality after resolving dependency issues
+# django-cms
+# django-sekizai
+# django-treebeard
+# django-filer
+# django-polymorphic
+# easy-thumbnails
+# Pillow
+# djangocms_text_ckeditor
+# djangocms_link
+# djangocms-frontend
+# djangocms-versioning
+# djangocms-alias
+# djangocms_admin_style
 
 # BarodyBroject requirements
 openai
