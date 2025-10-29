@@ -41,7 +41,10 @@ jobs:
             python3-dev \
             python3-cairo \
             python3-gi \
-            python3-gi-cairo
+            python3-gi-cairo \
+            libcairo-gobject2 \
+            libcairo-gobject-perl \
+            gobject-introspection
 
       - name: Install dependencies
         run: |
@@ -170,9 +173,35 @@ jobs:
         run: |
           cd src
           python -m pip install --upgrade pip
-          # Install pycairo with system package instead of compiling
-          pip install --prefer-binary pycairo || pip install pycairo
-          pip install -r requirements.txt
+          # Try to use system pycairo first, then install other dependencies
+          python -c "import gi.repository.cairo as cairo; print('System pycairo available')" || echo "System pycairo not available, will install from PyPI"
+          # Install other requirements first to avoid pycairo conflicts
+          pip install -r requirements.txt --no-deps
+          # Install dependencies for requirements
+          pip install \
+            django \
+            djangorestframework \
+            psycopg2-binary \
+            gunicorn \
+            openai \
+            setuptools \
+            jsonref \
+            jsonschema \
+            jsonschema-specifications \
+            Markdown \
+            PyYAML \
+            aiosmtpd \
+            dkimpy \
+            boto3 \
+            azure-monitor-opentelemetry \
+            pygithub \
+            django-import-export \
+            django-json-widget \
+            django-markdownify \
+            django-ses \
+            django-environ \
+            martor
+          # Install testing dependencies
           pip install coverage pytest-cov
 
       - name: Run database migrations
