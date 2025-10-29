@@ -62,7 +62,7 @@ jobs:
 
       - name: Upload Bandit report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bandit-security-report
           path: bandit-report.json
@@ -101,7 +101,7 @@ jobs:
 
       - name: Upload security reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: security-reports
           path: |
@@ -133,7 +133,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -190,7 +190,7 @@ jobs:
 
       - name: Upload quality reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: code-quality-reports
           path: |
@@ -210,10 +210,10 @@ jobs:
       - name: Validate Docker Compose configurations
         run: |
           # Validate production docker-compose
-          docker-compose config -q
+          docker compose config -q
           
           # Validate development docker-compose
-          docker-compose -f .devcontainer/docker-compose_dev.yml config -q
+          docker compose -f .devcontainer/docker-compose_dev.yml config -q
 
       - name: Validate Azure configuration
         working-directory: src

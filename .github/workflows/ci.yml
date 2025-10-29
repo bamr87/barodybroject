@@ -29,6 +29,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libcairo2-dev python3-dev
+
       - name: Install dependencies
         run: |
           cd src
@@ -83,20 +88,20 @@ jobs:
       - name: Test docker-compose services
         run: |
           # Start services in background
-          docker-compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
+          docker compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
           
           # Wait for database to be ready
-          timeout 60 bash -c 'until docker-compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb pg_isready -U test_user -d test_db; do sleep 2; done'
+          timeout 60 bash -c 'until docker compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb pg_isready -U test_user -d test_db; do sleep 2; done'
           
           # Test Django application startup
-          docker-compose -f .devcontainer/docker-compose_dev.yml run --rm python python manage.py check
+          docker compose -f .devcontainer/docker-compose_dev.yml run --rm python python manage.py check
           
           echo "✓ Docker Compose services working correctly"
       
       - name: Cleanup containers
         if: always()
         run: |
-          docker-compose -f .devcontainer/docker-compose_dev.yml down -v
+          docker compose -f .devcontainer/docker-compose_dev.yml down -v
 
   # Comprehensive testing with multiple Python versions
   test:

@@ -27,12 +27,12 @@ jobs:
       
       - name: Validate development compose
         run: |
-          docker-compose -f .devcontainer/docker-compose_dev.yml config --quiet
+          docker compose -f .devcontainer/docker-compose_dev.yml config --quiet
           echo "✓ Development compose file is valid"
       
       - name: Validate production compose  
         run: |
-          docker-compose config --quiet
+          docker compose config --quiet
           echo "✓ Production compose file is valid"
       
       - name: Test compose services startup
@@ -54,18 +54,18 @@ jobs:
           EOL
           
           # Test development services can start
-          docker-compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
+          docker compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
           sleep 10
           
           # Check if database is accessible
-          docker-compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb pg_isready -U test_user -d test_db
+          docker compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb pg_isready -U test_user -d test_db
           
           echo "✓ Docker Compose services working correctly"
       
       - name: Cleanup
         if: always()
         run: |
-          docker-compose -f .devcontainer/docker-compose_dev.yml down -v
+          docker compose -f .devcontainer/docker-compose_dev.yml down -v
 
   # Build and test containerized services
   build-services:
@@ -100,26 +100,26 @@ jobs:
       
       - name: Build ${{ matrix.service }} service
         run: |
-          docker-compose -f .devcontainer/docker-compose_dev.yml build ${{ matrix.service }}
+          docker compose -f .devcontainer/docker-compose_dev.yml build ${{ matrix.service }}
           echo "✓ ${{ matrix.service }} service built successfully"
       
       - name: Test ${{ matrix.service }} service startup
         run: |
           # Start dependencies if needed
           if [ "${{ matrix.service }}" = "python" ]; then
-            docker-compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
+            docker compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
             sleep 10
           fi
           
           # Test service can start
-          docker-compose -f .devcontainer/docker-compose_dev.yml run --rm ${{ matrix.service }} --version || true
+          docker compose -f .devcontainer/docker-compose_dev.yml run --rm ${{ matrix.service }} --version || true
           
           echo "✓ ${{ matrix.service }} service startup test completed"
       
       - name: Cleanup
         if: always()
         run: |
-          docker-compose -f .devcontainer/docker-compose_dev.yml down -v
+          docker compose -f .devcontainer/docker-compose_dev.yml down -v
 
   # Security scanning using Trivy  
   security-scan:
@@ -140,7 +140,7 @@ jobs:
           output: 'trivy-results.sarif'
       
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -175,7 +175,7 @@ jobs:
       - name: Performance test services
         run: |
           # Start all services
-          docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+          docker compose -f .devcontainer/docker-compose_dev.yml up -d
           
           # Wait for services to be ready
           sleep 30
@@ -184,14 +184,14 @@ jobs:
           docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"
           
           # Test Django application responsiveness
-          timeout 30 bash -c 'until docker-compose -f .devcontainer/docker-compose_dev.yml exec -T python python manage.py check; do sleep 2; done'
+          timeout 30 bash -c 'until docker compose -f .devcontainer/docker-compose_dev.yml exec -T python python manage.py check; do sleep 2; done'
           
           echo "✓ Performance test completed"
       
       - name: Cleanup
         if: always()
         run: |
-          docker-compose -f .devcontainer/docker-compose_dev.yml down -v
+          docker compose -f .devcontainer/docker-compose_dev.yml down -v
 
   # Final container summary
   container-summary:
