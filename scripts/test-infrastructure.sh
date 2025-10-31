@@ -184,6 +184,26 @@ main() {
         exit 1
     fi
     
+    # Wait for Django installation to complete (check for django module)
+    log_info "Waiting for package installation to complete..."
+    MAX_WAIT=180  # 3 minutes max wait
+    WAIT_COUNT=0
+    while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
+        if docker-compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>/dev/null | grep -q "Django installed"; then
+            log_success "Package installation completed"
+            break
+        fi
+        sleep 5
+        WAIT_COUNT=$((WAIT_COUNT + 5))
+        if [ $((WAIT_COUNT % 30)) -eq 0 ]; then
+            log_info "Still waiting for package installation... ($WAIT_COUNT seconds elapsed)"
+        fi
+    done
+    
+    if [ $WAIT_COUNT -ge $MAX_WAIT ]; then
+        log_warning "Package installation timeout reached. Some tests may fail."
+    fi
+    
     log_success "Docker containers started successfully"
     echo ""
 
