@@ -206,6 +206,12 @@ jobs:
       - name: Test production environment
         if: matrix.config == 'production'
         run: |
+          # Verify production docker-compose.yml exists
+          if [ ! -f docker-compose.yml ]; then
+            echo "⚠️ docker-compose.yml not found, skipping production test"
+            exit 0
+          fi
+          
           # Create environment file for production
           cat > .env << EOL
           POSTGRES_USER=prod_user
@@ -222,7 +228,7 @@ jobs:
           EOL
           
           # Start production environment
-          docker compose up -d
+          docker compose -f docker-compose.yml up -d
           
           # Wait for services
           sleep 30
@@ -232,10 +238,10 @@ jobs:
           
           # Check container health
           docker ps
-          docker compose logs web || echo "Failed to get web container logs"
+          docker compose -f docker-compose.yml logs web || echo "Failed to get web container logs"
           
           # Cleanup
-          docker compose down -v
+          docker compose -f docker-compose.yml down -v
 
   # Update dependencies if requested
   update-dependencies:

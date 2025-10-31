@@ -110,8 +110,8 @@ jobs:
           # Start dependencies if needed
           if [ "${{ matrix.service }}" = "python" ]; then
             docker compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
-            # Wait for database to be healthy
-            timeout 60 bash -c 'until docker compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb pg_isready -U postgres -d barodydb; do sleep 2; done'
+            # Wait for database to be healthy (using correct user from .env)
+            timeout 60 bash -c 'until docker compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb pg_isready -U build_user -d build_db; do sleep 2; done'
           fi
           
           # Test service can start with appropriate command
