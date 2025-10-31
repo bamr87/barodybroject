@@ -204,8 +204,9 @@ main() {
         "docker_exec python test -d /workspace/src"
     
     # Test network connectivity between containers
+    # Using Python socket instead of nc (netcat) for better container compatibility
     run_test "Inter-container Network" \
-        "docker_exec python nc -z barodydb 5432"
+        "docker_exec python python3 -c 'import socket; s = socket.socket(); s.settimeout(2); s.connect((\"barodydb\", 5432)); s.close()'"
     
     echo ""
 
