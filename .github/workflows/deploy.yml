@@ -36,6 +36,7 @@ jobs:
   pre-deployment:
     name: Pre-deployment Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
 
     outputs:
@@ -67,10 +68,9 @@ jobs:
 
       - name: Validate Azure configuration
         if: steps.env-config.outputs.should-deploy == 'true'
-        working-directory: src
         run: |
           if [ ! -f azure.yaml ]; then
-            echo "❌ azure.yaml not found"
+            echo "❌ azure.yaml not found in root directory"
             exit 1
           fi
           
@@ -81,6 +81,7 @@ jobs:
   deploy:
     name: Deploy to Azure (${{ needs.pre-deployment.outputs.deploy-environment }})
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: pre-deployment
     if: needs.pre-deployment.outputs.should-deploy == 'true'
     
@@ -171,6 +172,7 @@ jobs:
   post-deployment:
     name: Post-deployment Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [pre-deployment, deploy]
     if: needs.deploy.result == 'success'
 

@@ -216,16 +216,27 @@ jobs:
           docker compose -f .devcontainer/docker-compose_dev.yml config -q
 
       - name: Validate Azure configuration
-        working-directory: src
         run: |
+          # Check root directory for azure.yaml
           if [ -f azure.yaml ]; then
-            echo "Azure configuration found"
+            echo "✅ Azure configuration found in root"
             cat azure.yaml
+          elif [ -f src/azure.yaml ]; then
+            echo "✅ Azure configuration found in src/"
+            cat src/azure.yaml
+          else
+            echo "⚠️ No azure.yaml found"
           fi
           
+          # Check for apprunner.yaml
           if [ -f apprunner.yaml ]; then
-            echo "App Runner configuration found"
+            echo "✅ App Runner configuration found"
             cat apprunner.yaml
+          elif [ -f src/apprunner.yaml ]; then
+            echo "✅ App Runner configuration found in src/"
+            cat src/apprunner.yaml
+          else
+            echo "⚠️ No apprunner.yaml found"
           fi
 
       - name: Check for secrets in code

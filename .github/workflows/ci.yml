@@ -19,6 +19,7 @@ jobs:
   pre-checks:
     name: Pre-flight Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -62,16 +63,22 @@ jobs:
           DATABASE_URL: "sqlite:///ci_test.db"
 
       - name: Check for migration issues
+        working-directory: src
         run: |
           # Check if there are any unapplied migrations (which is expected in CI)
           python manage.py showmigrations --plan || echo "Migration planning check completed"
           # Check model integrity without requiring exact migration state
           python manage.py check --deploy || echo "Deployment check completed with warnings"
+        env:
+          SECRET_KEY: "ci-test-key-not-for-production"
+          DEBUG: "False"
+          DATABASE_URL: "sqlite:///ci_test.db"
 
   # Docker Compose services verification  
   container-compose-test:
     name: Docker Compose Test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: pre-checks
     
     steps:
@@ -132,6 +139,7 @@ jobs:
   test:
     name: Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: pre-checks
     
     strategy:
