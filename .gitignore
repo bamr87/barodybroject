@@ -186,3 +186,4 @@ package.json
 .venv*
 .azure
 src/parodynews/migrations/0*
+src/.installation
