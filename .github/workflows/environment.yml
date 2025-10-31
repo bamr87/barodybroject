@@ -26,6 +26,7 @@ jobs:
   dependency-check:
     name: Dependency Health Check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -89,6 +90,7 @@ jobs:
   environment-validation:
     name: Environment Validation (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
     
     strategy:
       fail-fast: false
@@ -153,6 +155,7 @@ jobs:
   container-environments:
     name: Container Environment Test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     strategy:
       matrix:
@@ -238,6 +241,7 @@ jobs:
   update-dependencies:
     name: Update Dependencies
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [dependency-check, environment-validation]
     if: inputs.update_dependencies == true
 
@@ -309,6 +313,7 @@ jobs:
   cleanup-environments:
     name: Cleanup and Optimization
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: inputs.force_rebuild == true || github.event_name == 'schedule'
 
     steps:

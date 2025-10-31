@@ -18,6 +18,7 @@ permissions:
 jobs:
     build:
       runs-on: ubuntu-latest
+      timeout-minutes: 45
       outputs:
         uri: ${{ steps.output.outputs.uri }}
       env:
@@ -81,6 +82,7 @@ jobs:
 
     smoketests:
       runs-on: ubuntu-latest
+      timeout-minutes: 20
       needs: build
       steps:
 
