@@ -313,6 +313,17 @@ Before setting up the project, ensure you have the following installed:
 
 ### Quick Start
 
+**Fastest Way (Docker)**:
+
+```bash
+# Clone and run
+git clone https://github.com/bamr87/barodybroject.git
+cd barodybroject
+./run.sh
+```
+
+**Detailed Setup**:
+
 1. **Set Naming Parameters**
 
 ```bash
@@ -429,19 +440,37 @@ Visit [http://localhost:8000](http://localhost:8000) to view the application.
 
 ## Running the Application
 
-### Local Development
+### Quick Start (Recommended)
 
-After completing the installation steps, run the Django development server:
+The easiest way to run the application is using the provided `run.sh` script:
 
 ```bash
-cd src
-python manage.py runserver
+# Start the application in development mode
+./run.sh
+
+# Start in production mode
+./run.sh --prod
+
+# Include Jekyll static site generator
+./run.sh --jekyll
+
+# View all options
+./run.sh --help
 ```
 
 The application will be available at:
 - **Django App**: [http://localhost:8000](http://localhost:8000)
 - **Admin Interface**: [http://localhost:8000/admin](http://localhost:8000/admin)
 - **API Root**: [http://localhost:8000/api](http://localhost:8000/api)
+
+### Local Development (Manual)
+
+Alternatively, you can run the Django development server directly after completing the installation steps:
+
+```bash
+cd src
+python manage.py runserver
+```
 
 ### With PostgreSQL (Local)
 

@@ -48,6 +48,30 @@ This project maintains a comprehensive changelog documentation system to track a
 
 ### Set Up a Local Development Environment
 
+#### Quick Start (Docker - Recommended)
+
+The fastest way to get started is using Docker:
+
+1. **Clone and Run**
+
+   ```sh
+   git clone https://github.com/bamr87/barodybroject.git
+   cd barodybroject
+   ./run.sh
+   ```
+
+   That's it! The application will be running at [http://localhost:8000](http://localhost:8000).
+
+   **Useful commands:**
+   - `./run.sh --help` - View all available options
+   - `./run.sh --build` - Rebuild containers
+   - `./run.sh --stop` - Stop all services
+   - `./run.sh --logs` - View container logs
+
+#### Manual Setup (Virtual Environment)
+
+If you prefer not to use Docker:
+
 1. **Clone the Repository**
 
    ```sh
@@ -93,6 +117,7 @@ This project maintains a comprehensive changelog documentation system to track a
    Apply the database migrations to set up your database schema:
 
    ```sh
+   cd src
    python manage.py makemigrations
    python manage.py migrate
    ```
