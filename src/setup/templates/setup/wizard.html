@@ -1,0 +1,256 @@
+{% extends 'setup/base.html' %}
+
+{% block title %}Setup Wizard - Barodybroject{% endblock %}
+{% block subtitle %}First-time installation and configuration{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2 class="text-primary mb-3">
+        <i class="bi bi-magic me-2"></i>
+        Welcome to Barodybroject!
+    </h2>
+    <p class="lead text-muted">
+        Let's get your parody news generator configured and ready to create hilarious content.
+    </p>
+</div>
+
+<!-- Setup Progress -->
+<div class="mb-4">
+    <h5 class="mb-3">Setup Progress</h5>
+    
+    <div class="progress-step completed">
+        <div class="step-icon">
+            <i class="bi bi-check2"></i>
+        </div>
+        <div>
+            <strong>System Check</strong>
+            <br>
+            <small class="text-muted">Database and dependencies verified</small>
+        </div>
+    </div>
+    
+    <div class="progress-step current">
+        <div class="step-icon">
+            <i class="bi bi-person-plus"></i>
+        </div>
+        <div>
+            <strong>Create Administrator</strong>
+            <br>
+            <small class="text-muted">Set up your admin account</small>
+        </div>
+    </div>
+    
+    <div class="progress-step pending">
+        <div class="step-icon">
+            <i class="bi bi-gear"></i>
+        </div>
+        <div>
+            <strong>Configure Application</strong>
+            <br>
+            <small class="text-muted">OpenAI API and basic settings</small>
+        </div>
+    </div>
+    
+    <div class="progress-step pending">
+        <div class="step-icon">
+            <i class="bi bi-rocket"></i>
+        </div>
+        <div>
+            <strong>Complete Setup</strong>
+            <br>
+            <small class="text-muted">Ready to generate parodies!</small>
+        </div>
+    </div>
+</div>
+
+{% if setup_mode == 'interactive' %}
+    <!-- Interactive Setup Mode -->
+    <div class="alert alert-setup alert-info">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <strong>Interactive Setup</strong>
+        <br>
+        This wizard will guide you through setting up your Barodybroject installation.
+    </div>
+    
+    <div class="d-grid gap-2">
+        <a href="{% url 'setup:create-admin' %}" class="btn btn-setup btn-lg">
+            <i class="bi bi-arrow-right me-2"></i>
+            Start Setup
+        </a>
+        
+        <a href="{% url 'setup:status' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-info-circle me-2"></i>
+            Check Setup Status
+        </a>
+    </div>
+
+{% elif setup_mode == 'headless' %}
+    <!-- Headless Setup Mode -->
+    <div class="alert alert-setup alert-warning">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Headless Installation Detected</strong>
+        <br>
+        A setup token has been generated for secure web-based configuration.
+    </div>
+    
+    {% if setup_token %}
+        <div class="security-warning">
+            <h6 class="mb-2">
+                <i class="bi bi-shield-exclamation me-2"></i>
+                Security Information
+            </h6>
+            <p class="mb-2">
+                Your setup token is displayed below. This token:
+            </p>
+            <ul class="mb-2">
+                <li>Expires in <strong>30 minutes</strong></li>
+                <li>Can only be used <strong>once</strong></li>
+                <li>Provides access to create the admin account</li>
+                <li>Should be kept secure and not shared</li>
+            </ul>
+        </div>
+        
+        <div class="token-display">
+            <h6 class="mb-2">Setup Token</h6>
+            <div class="fw-bold fs-5 text-primary">{{ setup_token }}</div>
+            <small class="text-muted mt-2 d-block">
+                Copy this token to continue setup in your browser
+            </small>
+        </div>
+        
+        <div class="d-grid gap-2">
+            <a href="{% url 'setup:create-admin' %}" class="btn btn-setup btn-lg">
+                <i class="bi bi-arrow-right me-2"></i>
+                Continue with Token
+            </a>
+            
+            <button type="button" class="btn btn-outline-secondary" onclick="copyToken()">
+                <i class="bi bi-clipboard me-2"></i>
+                Copy Token to Clipboard
+            </button>
+        </div>
+        
+        <script>
+            function copyToken() {
+                const tokenText = '{{ setup_token }}';
+                navigator.clipboard.writeText(tokenText).then(function() {
+                    // Show success feedback
+                    const btn = event.target;
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="bi bi-check2 me-2"></i>Copied!';
+                    btn.classList.remove('btn-outline-secondary');
+                    btn.classList.add('btn-success');
+                    
+                    setTimeout(function() {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-outline-secondary');
+                    }, 2000);
+                }, function(err) {
+                    console.error('Could not copy token: ', err);
+                    alert('Could not copy token. Please copy manually: ' + tokenText);
+                });
+            }
+        </script>
+    {% endif %}
+
+{% else %}
+    <!-- Default/Unknown Mode -->
+    <div class="alert alert-setup alert-info">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <strong>Setup Required</strong>
+        <br>
+        Your Barodybroject installation needs to be configured.
+    </p>
+    
+    <div class="d-grid gap-2">
+        <a href="{% url 'setup:create-admin' %}" class="btn btn-setup btn-lg">
+            <i class="bi bi-arrow-right me-2"></i>
+            Begin Setup
+        </a>
+    </div>
+{% endif %}
+
+<!-- Additional Information -->
+<div class="mt-4 pt-4 border-top">
+    <h6 class="text-muted mb-3">
+        <i class="bi bi-question-circle me-2"></i>
+        What happens during setup?
+    </h6>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="d-flex align-items-start mb-3">
+                <i class="bi bi-person-check text-primary me-3 mt-1"></i>
+                <div>
+                    <strong>Admin Account</strong>
+                    <br>
+                    <small class="text-muted">Create your administrator account to manage the application</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="d-flex align-items-start mb-3">
+                <i class="bi bi-key text-primary me-3 mt-1"></i>
+                <div>
+                    <strong>API Configuration</strong>
+                    <br>
+                    <small class="text-muted">Configure OpenAI API for content generation</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="d-flex align-items-start mb-3">
+                <i class="bi bi-database text-primary me-3 mt-1"></i>
+                <div>
+                    <strong>Database Setup</strong>
+                    <br>
+                    <small class="text-muted">Initialize database tables and default data</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="d-flex align-items-start mb-3">
+                <i class="bi bi-shield-check text-primary me-3 mt-1"></i>
+                <div>
+                    <strong>Security Settings</strong>
+                    <br>
+                    <small class="text-muted">Configure security and authentication settings</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="text-center mt-4 pt-4 border-top">
+    <small class="text-muted">
+        <i class="bi bi-info-circle me-1"></i>
+        This setup process will only run once. You can modify settings later in the admin panel.
+    </small>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh token expiry if in headless mode
+    {% if setup_mode == 'headless' and setup_token %}
+        setTimeout(function() {
+            window.location.reload();
+        }, 1800000); // 30 minutes
+        
+        // Show countdown
+        let timeLeft = 1800; // 30 minutes in seconds
+        const countdown = setInterval(function() {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                window.location.reload();
+            }
+        }, 1000);
+    {% endif %}
+</script>
+{% endblock %}

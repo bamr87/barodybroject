@@ -53,7 +53,7 @@
       "label": "⛔ Docker: Stop Development",
       "type": "shell", 
       "command": "docker-compose",
-      "args": ["-f", ".devcontainer/docker-compose_dev.yml", "down"],
+      "args": ["-f", ".devcontainer/docker-compose_dev.yml", "stop"],
       "options": { "cwd": "${workspaceFolder}" },
       "group": "build",
       "presentation": {
@@ -63,7 +63,7 @@
         "panel": "shared"
       },
       "problemMatcher": [],
-      "detail": "Stop and remove development containers and networks"
+      "detail": "Stop development containers and networks"
     },
 
     {

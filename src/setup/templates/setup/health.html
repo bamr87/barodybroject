@@ -1,0 +1,432 @@
+{% extends 'setup/base.html' %}
+
+{% block title %}Setup Health Check - Barodybroject{% endblock %}
+{% block subtitle %}System status and health monitoring{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2 class="text-primary mb-3">
+        <i class="bi bi-activity me-2"></i>
+        System Health Check
+    </h2>
+    <p class="text-muted">
+        Real-time monitoring of your Barodybroject installation health.
+    </p>
+</div>
+
+<!-- Overall Health Status -->
+<div class="mb-4">
+    {% if health.overall_status == 'healthy' %}
+        <div class="alert alert-setup alert-success">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong>System Healthy</strong>
+            <br>
+            All components are functioning normally.
+        </div>
+    {% elif health.overall_status == 'warning' %}
+        <div class="alert alert-setup alert-warning">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Minor Issues Detected</strong>
+            <br>
+            Some components have warnings but system is operational.
+        </div>
+    {% else %}
+        <div class="alert alert-setup alert-danger">
+            <i class="bi bi-x-circle-fill me-2"></i>
+            <strong>System Issues</strong>
+            <br>
+            Critical issues detected that may affect functionality.
+        </div>
+    {% endif %}
+</div>
+
+<!-- Health Metrics Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center">
+                <i class="bi bi-speedometer text-{{ health.performance_status }} fs-2"></i>
+                <h5 class="mt-2">Performance</h5>
+                <h6 class="text-{{ health.performance_status }} mb-0">{{ health.performance_score }}/100</h6>
+                <small class="text-muted">Overall score</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center">
+                <i class="bi bi-shield text-{{ health.security_status }} fs-2"></i>
+                <h5 class="mt-2">Security</h5>
+                <h6 class="text-{{ health.security_status }} mb-0">{{ health.security_issues }}</h6>
+                <small class="text-muted">Issues found</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center">
+                <i class="bi bi-database text-{{ health.database_status }} fs-2"></i>
+                <h5 class="mt-2">Database</h5>
+                <h6 class="text-{{ health.database_status }} mb-0">{{ health.database_response_time }}ms</h6>
+                <small class="text-muted">Response time</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center">
+                <i class="bi bi-cpu text-{{ health.system_status }} fs-2"></i>
+                <h5 class="mt-2">System</h5>
+                <h6 class="text-{{ health.system_status }} mb-0">{{ health.system_uptime }}</h6>
+                <small class="text-muted">Uptime</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Health Checks -->
+<div class="row">
+    <div class="col-md-6">
+        <h5 class="mb-3">
+            <i class="bi bi-list-check me-2"></i>
+            Core Components
+        </h5>
+        
+        <div class="list-group mb-4">
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-database me-2"></i>
+                    <strong>Database Connection</strong>
+                    <br>
+                    <small class="text-muted">PostgreSQL connectivity</small>
+                </div>
+                {% if health.checks.database %}
+                    <span class="badge bg-success">✓ Healthy</span>
+                {% else %}
+                    <span class="badge bg-danger">✗ Error</span>
+                {% endif %}
+            </div>
+            
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-arrow-up-down me-2"></i>
+                    <strong>Database Migrations</strong>
+                    <br>
+                    <small class="text-muted">Schema up to date</small>
+                </div>
+                {% if health.checks.migrations %}
+                    <span class="badge bg-success">✓ Current</span>
+                {% else %}
+                    <span class="badge bg-warning">⚠ Pending</span>
+                {% endif %}
+            </div>
+            
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-files me-2"></i>
+                    <strong>Static Files</strong>
+                    <br>
+                    <small class="text-muted">CSS, JS, images</small>
+                </div>
+                {% if health.checks.static_files %}
+                    <span class="badge bg-success">✓ Available</span>
+                {% else %}
+                    <span class="badge bg-warning">⚠ Missing</span>
+                {% endif %}
+            </div>
+            
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-key me-2"></i>
+                    <strong>OpenAI API</strong>
+                    <br>
+                    <small class="text-muted">Content generation service</small>
+                </div>
+                {% if health.checks.openai_api %}
+                    <span class="badge bg-success">✓ Connected</span>
+                {% elif health.checks.openai_api is None %}
+                    <span class="badge bg-secondary">- Not configured</span>
+                {% else %}
+                    <span class="badge bg-danger">✗ Error</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <h5 class="mb-3">
+            <i class="bi bi-shield-check me-2"></i>
+            Security Status
+        </h5>
+        
+        <div class="list-group mb-4">
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-lock me-2"></i>
+                    <strong>HTTPS Enabled</strong>
+                    <br>
+                    <small class="text-muted">Secure connections</small>
+                </div>
+                {% if health.security.https_enabled %}
+                    <span class="badge bg-success">✓ Enabled</span>
+                {% else %}
+                    <span class="badge bg-warning">⚠ HTTP only</span>
+                {% endif %}
+            </div>
+            
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-shield me-2"></i>
+                    <strong>Debug Mode</strong>
+                    <br>
+                    <small class="text-muted">Production safety</small>
+                </div>
+                {% if health.security.debug_disabled %}
+                    <span class="badge bg-success">✓ Disabled</span>
+                {% else %}
+                    <span class="badge bg-danger">✗ Enabled</span>
+                {% endif %}
+            </div>
+            
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-key-fill me-2"></i>
+                    <strong>Secret Key</strong>
+                    <br>
+                    <small class="text-muted">Django security</small>
+                </div>
+                {% if health.security.secret_key_set %}
+                    <span class="badge bg-success">✓ Configured</span>
+                {% else %}
+                    <span class="badge bg-danger">✗ Default</span>
+                {% endif %}
+            </div>
+            
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-person-check me-2"></i>
+                    <strong>Admin Account</strong>
+                    <br>
+                    <small class="text-muted">Superuser access</small>
+                </div>
+                {% if health.security.admin_exists %}
+                    <span class="badge bg-success">✓ Created</span>
+                {% else %}
+                    <span class="badge bg-danger">✗ Missing</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics -->
+<div class="mb-4">
+    <h5 class="mb-3">
+        <i class="bi bi-graph-up me-2"></i>
+        Performance Metrics
+    </h5>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="bi bi-clock me-2"></i>
+                        Response Times
+                    </h6>
+                    <table class="table table-sm table-borderless">
+                        <tbody>
+                            <tr>
+                                <td>Database:</td>
+                                <td><strong>{{ health.performance.db_response }}ms</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Cache:</td>
+                                <td><strong>{{ health.performance.cache_response }}ms</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Homepage:</td>
+                                <td><strong>{{ health.performance.page_response }}ms</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="bi bi-memory me-2"></i>
+                        Resource Usage
+                    </h6>
+                    <table class="table table-sm table-borderless">
+                        <tbody>
+                            <tr>
+                                <td>Memory:</td>
+                                <td><strong>{{ health.resources.memory_usage }}%</strong></td>
+                            </tr>
+                            <tr>
+                                <td>CPU:</td>
+                                <td><strong>{{ health.resources.cpu_usage }}%</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Disk:</td>
+                                <td><strong>{{ health.resources.disk_usage }}%</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="bi bi-activity me-2"></i>
+                        System Info
+                    </h6>
+                    <table class="table table-sm table-borderless">
+                        <tbody>
+                            <tr>
+                                <td>Uptime:</td>
+                                <td><strong>{{ health.system.uptime }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Django:</td>
+                                <td><strong>{{ health.system.django_version }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Python:</td>
+                                <td><strong>{{ health.system.python_version }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+{% if health.recent_activity %}
+    <div class="mb-4">
+        <h5 class="mb-3">
+            <i class="bi bi-clock-history me-2"></i>
+            Recent Activity
+        </h5>
+        
+        <div class="card border-0 bg-light">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Event</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in health.recent_activity %}
+                                <tr>
+                                    <td>{{ activity.timestamp|timesince }} ago</td>
+                                    <td>{{ activity.event }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ activity.status }}">
+                                            {{ activity.status_text }}
+                                        </span>
+                                    </td>
+                                    <td>{{ activity.details|truncatechars:50 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Health Check Actions -->
+<div class="d-grid gap-2">
+    <button type="button" class="btn btn-setup" onclick="refreshHealth()">
+        <i class="bi bi-arrow-clockwise me-2"></i>
+        Refresh Health Check
+    </button>
+    
+    {% if not health.overall_status == 'healthy' %}
+        <a href="{% url 'setup:status' %}" class="btn btn-outline-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            View Setup Status
+        </a>
+    {% endif %}
+    
+    <a href="/admin/" class="btn btn-outline-secondary">
+        <i class="bi bi-speedometer2 me-2"></i>
+        Go to Admin Panel
+    </a>
+</div>
+
+<!-- Last Check Information -->
+<div class="text-center mt-4 pt-4 border-top">
+    <small class="text-muted">
+        <i class="bi bi-clock me-1"></i>
+        Last health check: {{ health.last_check|timesince }} ago
+        <br>
+        Next automatic check in {{ health.next_check_in }} minutes
+    </small>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function refreshHealth() {
+        const btn = document.querySelector('.btn-setup');
+        const originalHtml = btn.innerHTML;
+        
+        btn.innerHTML = '<i class="bi bi-arrow-repeat spin me-2"></i>Checking...';
+        btn.disabled = true;
+        
+        // Add CSS for spin animation if not already added
+        if (!document.querySelector('#spin-styles')) {
+            const style = document.createElement('style');
+            style.id = 'spin-styles';
+            style.textContent = `
+                .spin {
+                    animation: spin 1s linear infinite;
+                }
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Simulate health check delay
+        setTimeout(function() {
+            location.reload();
+        }, 1500);
+    }
+    
+    // Auto-refresh every 5 minutes
+    setInterval(function() {
+        location.reload();
+    }, 300000);
+    
+    // Add tooltips to health status badges
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(function(tooltip) {
+            new bootstrap.Tooltip(tooltip);
+        });
+    });
+</script>
+{% endblock %}

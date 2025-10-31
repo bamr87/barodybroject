@@ -64,6 +64,9 @@ IS_PRODUCTION = env.bool(
 )  # Default to development
 DEBUG = env.bool("DEBUG", default=not IS_PRODUCTION)
 
+# Installation wizard configuration
+SKIP_INSTALLATION_CHECK = env.bool("SKIP_INSTALLATION_CHECK", default=False)
+
 # Basic validation
 if not env.str("SECRET_KEY", default="") and IS_PRODUCTION:
     raise ImproperlyConfigured("SECRET_KEY must be set in production")
@@ -350,6 +353,7 @@ THIRD_PARTY_APPS = [
 # Local applications
 LOCAL_APPS = [
     "parodynews",
+    "setup",  # Installation wizard application
 ]
 
 # Development-only apps
@@ -371,6 +375,7 @@ INSTALLED_APPS = (
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "setup.middleware.InstallationMiddleware",  # Installation wizard middleware
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",

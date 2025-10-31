@@ -1,0 +1,312 @@
+{% extends 'setup/base.html' %}
+
+{% block title %}Create Admin Account - Barodybroject{% endblock %}
+{% block subtitle %}Set up your administrator account{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2 class="text-primary mb-3">
+        <i class="bi bi-person-plus me-2"></i>
+        Create Administrator Account
+    </h2>
+    <p class="text-muted">
+        This account will have full access to manage your Barodybroject installation.
+    </p>
+</div>
+
+<!-- Setup Progress -->
+<div class="mb-4">
+    <div class="progress-step completed">
+        <div class="step-icon">
+            <i class="bi bi-check2"></i>
+        </div>
+        <div>
+            <strong>System Check</strong>
+            <small class="text-muted d-block">Verified and ready</small>
+        </div>
+    </div>
+    
+    <div class="progress-step current">
+        <div class="step-icon">2</div>
+        <div>
+            <strong>Create Administrator</strong>
+            <small class="text-muted d-block">In progress</small>
+        </div>
+    </div>
+</div>
+
+{% if requires_token %}
+    <!-- Token Required Section -->
+    <div class="alert alert-setup alert-warning mb-4">
+        <i class="bi bi-shield-exclamation me-2"></i>
+        <strong>Security Token Required</strong>
+        <br>
+        Enter the setup token generated during headless installation.
+    </div>
+    
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="{{ token_form.token.id_for_label }}" class="form-label fw-bold">
+                <i class="bi bi-key me-2"></i>
+                Setup Token
+            </label>
+            {{ token_form.token }}
+            {% if token_form.token.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in token_form.token.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div class="form-text">
+                Enter the token displayed during the command-line setup process.
+            </div>
+        </div>
+        
+        <button type="submit" name="verify_token" class="btn btn-setup">
+            <i class="bi bi-unlock me-2"></i>
+            Verify Token
+        </button>
+    </form>
+    
+    <div class="text-center">
+        <small class="text-muted">
+            <i class="bi bi-clock me-1"></i>
+            Tokens expire after 30 minutes for security
+        </small>
+    </div>
+
+{% else %}
+    <!-- Admin Creation Form -->
+    <form method="post" novalidate>
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.username.id_for_label }}" class="form-label fw-bold">
+                        <i class="bi bi-person me-2"></i>
+                        Username
+                    </label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.username.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-text">
+                        Choose a unique username for your admin account.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label fw-bold">
+                        <i class="bi bi-envelope me-2"></i>
+                        Email Address
+                    </label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.email.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-text">
+                        Used for password resets and notifications.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.password1.id_for_label }}" class="form-label fw-bold">
+                        <i class="bi bi-lock me-2"></i>
+                        Password
+                    </label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.password1.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-text">
+                        Minimum 8 characters with mixed case, numbers, and symbols.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.password2.id_for_label }}" class="form-label fw-bold">
+                        <i class="bi bi-lock-fill me-2"></i>
+                        Confirm Password
+                    </label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.password2.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-text">
+                        Re-enter your password to confirm.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                        <i class="bi bi-person-badge me-2"></i>
+                        First Name
+                    </label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.first_name.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                        <i class="bi bi-person-badge-fill me-2"></i>
+                        Last Name
+                    </label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.last_name.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Security Information -->
+        <div class="alert alert-setup alert-info mb-4">
+            <h6 class="mb-2">
+                <i class="bi bi-shield-check me-2"></i>
+                Security Features
+            </h6>
+            <ul class="mb-0">
+                <li>This account will have superuser privileges</li>
+                <li>You can create additional staff accounts later</li>
+                <li>Two-factor authentication is recommended after setup</li>
+                <li>Password can be changed in the admin panel</li>
+            </ul>
+        </div>
+        
+        <div class="d-grid gap-2">
+            <button type="submit" name="create_admin" class="btn btn-setup btn-lg">
+                <i class="bi bi-person-check me-2"></i>
+                Create Administrator Account
+            </button>
+            
+            <a href="{% url 'setup:wizard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>
+                Back to Setup Overview
+            </a>
+        </div>
+    </form>
+{% endif %}
+
+<!-- Password Strength Indicator -->
+<div class="mt-4">
+    <h6 class="text-muted mb-3">
+        <i class="bi bi-info-circle me-2"></i>
+        Password Requirements
+    </h6>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <ul class="list-unstyled">
+                <li class="mb-1">
+                    <i class="bi bi-check-circle text-success me-2"></i>
+                    At least 8 characters
+                </li>
+                <li class="mb-1">
+                    <i class="bi bi-check-circle text-success me-2"></i>
+                    Contains uppercase letters
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <ul class="list-unstyled">
+                <li class="mb-1">
+                    <i class="bi bi-check-circle text-success me-2"></i>
+                    Contains numbers
+                </li>
+                <li class="mb-1">
+                    <i class="bi bi-check-circle text-success me-2"></i>
+                    Contains special characters
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Real-time password validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const password1 = document.getElementById('{{ form.password1.id_for_label }}');
+        const password2 = document.getElementById('{{ form.password2.id_for_label }}');
+        
+        if (password1 && password2) {
+            function validatePasswords() {
+                const pwd1 = password1.value;
+                const pwd2 = password2.value;
+                
+                // Password confirmation validation
+                if (pwd2 && pwd1 !== pwd2) {
+                    password2.classList.add('is-invalid');
+                    password2.classList.remove('is-valid');
+                } else if (pwd2) {
+                    password2.classList.add('is-valid');
+                    password2.classList.remove('is-invalid');
+                }
+                
+                // Password strength validation
+                const requirements = [
+                    pwd1.length >= 8,
+                    /[A-Z]/.test(pwd1),
+                    /[0-9]/.test(pwd1),
+                    /[^A-Za-z0-9]/.test(pwd1)
+                ];
+                
+                if (pwd1 && requirements.every(req => req)) {
+                    password1.classList.add('is-valid');
+                    password1.classList.remove('is-invalid');
+                } else if (pwd1) {
+                    password1.classList.add('is-invalid');
+                    password1.classList.remove('is-valid');
+                }
+            }
+            
+            password1.addEventListener('input', validatePasswords);
+            password2.addEventListener('input', validatePasswords);
+        }
+    });
+</script>
+{% endblock %}

@@ -38,11 +38,17 @@ services:
       DEBUG: "True"
       PYTHONPATH: /workspace/src
       PYTHONUNBUFFERED: 1
+      # Installation wizard configuration for development
+      SKIP_INSTALLATION_CHECK: ${SKIP_INSTALLATION_CHECK:-true}
+      SETUP_TOKEN_EXPIRY_HOURS: ${SETUP_TOKEN_EXPIRY_HOURS:-2}
+      SETUP_DATA_DIR: /workspace/setup_data
     ports:
       - "8000:8000"
       - "5678:5678"  # VS Code debugger
     volumes:
       - ../:/workspace
+      - setup-data-dev:/workspace/setup_data  # Persist installation wizard state
+      - dev-logs:/workspace/logs               # Persist development logs
     networks:
       - barody-network
     command:
@@ -52,7 +58,14 @@ services:
         apt-get update && apt-get install -y postgresql-client git build-essential pkg-config libcairo2-dev python3-dev
         pip install --upgrade pip
         pip install -r requirements.txt
+        
+        # Create necessary directories
+        mkdir -p /workspace/setup_data /workspace/logs
+        
+        # Run database migrations
         python manage.py migrate
+        
+        # Start development server
         python manage.py runserver 0.0.0.0:8000
 
   jekyll:
@@ -70,6 +83,8 @@ services:
 
 volumes:
   postgres-data:
+  setup-data-dev:
+  dev-logs:
 
 networks:
   barody-network:

@@ -1,0 +1,416 @@
+{% extends 'setup/base.html' %}
+
+{% block title %}Setup Status - Barodybroject{% endblock %}
+{% block subtitle %}Installation progress and system information{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2 class="text-primary mb-3">
+        <i class="bi bi-clipboard-check me-2"></i>
+        Setup Status
+    </h2>
+    <p class="text-muted">
+        Current installation progress and system health check.
+    </p>
+</div>
+
+<!-- Overall Status -->
+<div class="mb-4">
+    {% if status.is_complete %}
+        <div class="alert alert-setup alert-success">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong>Setup Complete!</strong>
+            <br>
+            Your Barodybroject installation is fully configured and ready to use.
+        </div>
+    {% elif status.in_progress %}
+        <div class="alert alert-setup alert-warning">
+            <i class="bi bi-clock-fill me-2"></i>
+            <strong>Setup In Progress</strong>
+            <br>
+            Some configuration steps are still pending.
+        </div>
+    {% else %}
+        <div class="alert alert-setup alert-info">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <strong>Setup Required</strong>
+            <br>
+            Your installation needs to be configured.
+        </div>
+    {% endif %}
+</div>
+
+<!-- Progress Overview -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center">
+                <i class="bi bi-list-check text-primary fs-2"></i>
+                <h5 class="mt-2">Completed</h5>
+                <h3 class="text-primary mb-0">{{ status.completed_steps }}</h3>
+                <small class="text-muted">of {{ status.total_steps }} steps</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center">
+                <i class="bi bi-clock text-warning fs-2"></i>
+                <h5 class="mt-2">Remaining</h5>
+                <h3 class="text-warning mb-0">{{ status.remaining_steps }}</h3>
+                <small class="text-muted">steps to complete</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center">
+                <i class="bi bi-percent text-success fs-2"></i>
+                <h5 class="mt-2">Progress</h5>
+                <h3 class="text-success mb-0">{{ status.progress_percentage }}%</h3>
+                <small class="text-muted">complete</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="fw-bold">Overall Progress</span>
+        <span class="text-muted">{{ status.progress_percentage }}%</span>
+    </div>
+    <div class="progress" style="height: 8px;">
+        <div class="progress-bar bg-gradient" 
+             role="progressbar" 
+             style="width: {{ status.progress_percentage }}%"
+             aria-valuenow="{{ status.progress_percentage }}" 
+             aria-valuemin="0" 
+             aria-valuemax="100">
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Step Status -->
+<div class="mb-4">
+    <h5 class="mb-3">Setup Steps</h5>
+    
+    <!-- System Check -->
+    <div class="progress-step {% if status.system_check %}completed{% else %}pending{% endif %}">
+        <div class="step-icon">
+            {% if status.system_check %}
+                <i class="bi bi-check2"></i>
+            {% else %}
+                <i class="bi bi-exclamation-triangle"></i>
+            {% endif %}
+        </div>
+        <div class="flex-grow-1">
+            <strong>System Check</strong>
+            <br>
+            <small class="text-muted">
+                {% if status.system_check %}
+                    Database connectivity and dependencies verified
+                {% else %}
+                    System requirements not verified
+                {% endif %}
+            </small>
+        </div>
+        {% if status.system_check %}
+            <i class="bi bi-check-circle text-success"></i>
+        {% else %}
+            <i class="bi bi-x-circle text-danger"></i>
+        {% endif %}
+    </div>
+    
+    <!-- Admin User -->
+    <div class="progress-step {% if status.admin_user %}completed{% else %}pending{% endif %}">
+        <div class="step-icon">
+            {% if status.admin_user %}
+                <i class="bi bi-check2"></i>
+            {% else %}
+                2
+            {% endif %}
+        </div>
+        <div class="flex-grow-1">
+            <strong>Administrator Account</strong>
+            <br>
+            <small class="text-muted">
+                {% if status.admin_user %}
+                    Admin user created and configured
+                {% else %}
+                    No administrator account found
+                {% endif %}
+            </small>
+        </div>
+        {% if status.admin_user %}
+            <i class="bi bi-check-circle text-success"></i>
+        {% else %}
+            <i class="bi bi-x-circle text-danger"></i>
+        {% endif %}
+    </div>
+    
+    <!-- Database Migration -->
+    <div class="progress-step {% if status.database_migrated %}completed{% else %}pending{% endif %}">
+        <div class="step-icon">
+            {% if status.database_migrated %}
+                <i class="bi bi-check2"></i>
+            {% else %}
+                3
+            {% endif %}
+        </div>
+        <div class="flex-grow-1">
+            <strong>Database Migration</strong>
+            <br>
+            <small class="text-muted">
+                {% if status.database_migrated %}
+                    All database tables created
+                {% else %}
+                    Database migrations pending
+                {% endif %}
+            </small>
+        </div>
+        {% if status.database_migrated %}
+            <i class="bi bi-check-circle text-success"></i>
+        {% else %}
+            <i class="bi bi-x-circle text-danger"></i>
+        {% endif %}
+    </div>
+    
+    <!-- Configuration -->
+    <div class="progress-step {% if status.basic_config %}completed{% else %}pending{% endif %}">
+        <div class="step-icon">
+            {% if status.basic_config %}
+                <i class="bi bi-check2"></i>
+            {% else %}
+                4
+            {% endif %}
+        </div>
+        <div class="flex-grow-1">
+            <strong>Basic Configuration</strong>
+            <br>
+            <small class="text-muted">
+                {% if status.basic_config %}
+                    Application settings configured
+                {% else %}
+                    Basic configuration pending
+                {% endif %}
+            </small>
+        </div>
+        {% if status.basic_config %}
+            <i class="bi bi-check-circle text-success"></i>
+        {% else %}
+            <i class="bi bi-x-circle text-danger"></i>
+        {% endif %}
+    </div>
+</div>
+
+<!-- System Information -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h6 class="text-muted mb-3">
+            <i class="bi bi-gear me-2"></i>
+            System Information
+        </h6>
+        
+        <table class="table table-sm">
+            <tbody>
+                <tr>
+                    <td><strong>Database Status</strong></td>
+                    <td>
+                        {% if status.database_connected %}
+                            <span class="badge bg-success">Connected</span>
+                        {% else %}
+                            <span class="badge bg-danger">Disconnected</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Setup Token</strong></td>
+                    <td>
+                        {% if status.has_valid_token %}
+                            <span class="badge bg-warning">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">None</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Installation Date</strong></td>
+                    <td>
+                        {% if status.installation_date %}
+                            {{ status.installation_date|date:"M d, Y H:i" }}
+                        {% else %}
+                            <span class="text-muted">Not completed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="col-md-6">
+        <h6 class="text-muted mb-3">
+            <i class="bi bi-clock-history me-2"></i>
+            Recent Activity
+        </h6>
+        
+        {% if status.recent_activities %}
+            <div class="list-group list-group-flush">
+                {% for activity in status.recent_activities %}
+                    <div class="list-group-item px-0 py-2">
+                        <div class="d-flex align-items-center">
+                            <i class="bi {{ activity.icon }} text-{{ activity.status }} me-2"></i>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">{{ activity.title }}</div>
+                                <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-muted text-center py-3">
+                <i class="bi bi-clock-history fs-4 mb-2"></i>
+                <br>
+                No recent activity
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="d-grid gap-2">
+    {% if not status.is_complete %}
+        {% if not status.admin_user %}
+            <a href="{% url 'setup:create-admin' %}" class="btn btn-setup btn-lg">
+                <i class="bi bi-arrow-right me-2"></i>
+                Continue Setup
+            </a>
+        {% else %}
+            <a href="{% url 'setup:wizard' %}" class="btn btn-setup btn-lg">
+                <i class="bi bi-gear me-2"></i>
+                Complete Configuration
+            </a>
+        {% endif %}
+    {% else %}
+        <a href="/admin/" class="btn btn-setup btn-lg">
+            <i class="bi bi-speedometer2 me-2"></i>
+            Go to Admin Panel
+        </a>
+    {% endif %}
+    
+    <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">
+        <i class="bi bi-arrow-clockwise me-2"></i>
+        Refresh Status
+    </button>
+    
+    {% if not status.is_complete %}
+        <a href="{% url 'setup:wizard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>
+            Back to Setup
+        </a>
+    {% endif %}
+</div>
+
+<!-- Health Check Information -->
+<div class="mt-4 pt-4 border-top">
+    <h6 class="text-muted mb-3">
+        <i class="bi bi-activity me-2"></i>
+        Health Check
+    </h6>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="text-center">
+                {% if status.health.database %}
+                    <i class="bi bi-check-circle text-success fs-4"></i>
+                    <br>
+                    <strong>Database</strong>
+                    <br>
+                    <small class="text-success">Healthy</small>
+                {% else %}
+                    <i class="bi bi-x-circle text-danger fs-4"></i>
+                    <br>
+                    <strong>Database</strong>
+                    <br>
+                    <small class="text-danger">Error</small>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="text-center">
+                {% if status.health.migrations %}
+                    <i class="bi bi-check-circle text-success fs-4"></i>
+                    <br>
+                    <strong>Migrations</strong>
+                    <br>
+                    <small class="text-success">Up to date</small>
+                {% else %}
+                    <i class="bi bi-exclamation-circle text-warning fs-4"></i>
+                    <br>
+                    <strong>Migrations</strong>
+                    <br>
+                    <small class="text-warning">Pending</small>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="text-center">
+                {% if status.health.static_files %}
+                    <i class="bi bi-check-circle text-success fs-4"></i>
+                    <br>
+                    <strong>Static Files</strong>
+                    <br>
+                    <small class="text-success">Collected</small>
+                {% else %}
+                    <i class="bi bi-exclamation-circle text-warning fs-4"></i>
+                    <br>
+                    <strong>Static Files</strong>
+                    <br>
+                    <small class="text-warning">Missing</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh status every 30 seconds if setup is not complete
+    {% if not status.is_complete %}
+        setInterval(function() {
+            location.reload();
+        }, 30000);
+    {% endif %}
+    
+    // Add loading animation to refresh button
+    function refreshStatus() {
+        const btn = document.querySelector('.btn-outline-secondary');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat spin me-2"></i>Refreshing...';
+        btn.disabled = true;
+        
+        setTimeout(function() {
+            location.reload();
+        }, 500);
+    }
+    
+    // Add CSS for spin animation
+    const style = document.createElement('style');
+    style.textContent = `
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}
