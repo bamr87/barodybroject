@@ -55,27 +55,27 @@ log() {
     local level=$1
     shift
     local message="$*"
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] [${level}] ${message}" | tee -a "${LOG_FILE}"
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] [${level}] ${message}" | tee -a "${LOG_FILE}" >&2
 }
 
 log_info() {
-    echo -e "${BLUE}${STAR} $*${RESET}" | tee -a "${LOG_FILE}"
+    echo -e "${BLUE}${STAR} $*${RESET}" | tee -a "${LOG_FILE}" >&2
 }
 
 log_success() {
-    echo -e "${GREEN}${CHECK} $*${RESET}" | tee -a "${LOG_FILE}"
+    echo -e "${GREEN}${CHECK} $*${RESET}" | tee -a "${LOG_FILE}" >&2
 }
 
 log_warning() {
-    echo -e "${YELLOW}${WARNING} $*${RESET}" | tee -a "${LOG_FILE}"
+    echo -e "${YELLOW}${WARNING} $*${RESET}" | tee -a "${LOG_FILE}" >&2
 }
 
 log_error() {
-    echo -e "${RED}${CROSS} $*${RESET}" | tee -a "${LOG_FILE}"
+    echo -e "${RED}${CROSS} $*${RESET}" | tee -a "${LOG_FILE}" >&2
 }
 
 log_mystical() {
-    echo -e "${MAGENTA}${SPARKLES} $*${RESET}" | tee -a "${LOG_FILE}"
+    echo -e "${MAGENTA}${SPARKLES} $*${RESET}" | tee -a "${LOG_FILE}" >&2
 }
 
 print_banner() {
@@ -246,24 +246,31 @@ analyze_all_readmes() {
     local count=0
     
     while IFS= read -r readme_path; do
-        ((count++))
+        count=$((count + 1))
         
         local scores=$(analyze_readme "${readme_path}" "${analysis_file}")
         IFS=',' read -r eng struct ai comp <<< "$scores"
         
-        ((total_engagement+=eng))
-        ((total_structure+=struct))
-        ((total_ai_readability+=ai))
-        ((total_completeness+=comp))
+        total_engagement=$((total_engagement + eng))
+        total_structure=$((total_structure + struct))
+        total_ai_readability=$((total_ai_readability + ai))
+        total_completeness=$((total_completeness + comp))
         
         log_info "Analyzed: $(basename $(dirname "${readme_path}"))/README.md"
     done < "${readme_list}"
     
-    # Calculate averages
-    local avg_engagement=$((total_engagement / count))
-    local avg_structure=$((total_structure / count))
-    local avg_ai_readability=$((total_ai_readability / count))
-    local avg_completeness=$((total_completeness / count))
+    # Calculate averages (protect against division by zero)
+    local avg_engagement=0
+    local avg_structure=0
+    local avg_ai_readability=0
+    local avg_completeness=0
+    
+    if [ $count -gt 0 ]; then
+        avg_engagement=$((total_engagement / count))
+        avg_structure=$((total_structure / count))
+        avg_ai_readability=$((total_ai_readability / count))
+        avg_completeness=$((total_completeness / count))
+    fi
     
     log_success "Analysis complete: ${count} files"
     echo ""
@@ -301,7 +308,7 @@ compile_library() {
         # Copy README to library
         cp "${readme_path}" "${target_dir}/"
         
-        ((copied_count++))
+        copied_count=$((copied_count + 1))
         log_info "Archived: ${rel_path}"
     done < "${readme_list}"
     
@@ -402,11 +409,11 @@ EOF
         while IFS='|' read -r path eng struct ai comp; do
             [ "${path}" = "Path" ] && continue  # Skip header
             
-            ((total_engagement+=eng))
-            ((total_structure+=struct))
-            ((total_ai_readability+=ai))
-            ((total_completeness+=comp))
-            ((count++))
+            total_engagement=$((total_engagement + eng))
+            total_structure=$((total_structure + struct))
+            total_ai_readability=$((total_ai_readability + ai))
+            total_completeness=$((total_completeness + comp))
+            count=$((count + 1))
         done < "${analysis_file}"
         
         if [ $count -gt 0 ]; then
@@ -535,7 +542,7 @@ validate_readmes() {
         # Check markdown syntax (basic)
         if grep -qE '^#{7,}' "${readme_path}"; then
             log_warning "Invalid heading depth in: ${readme_path}"
-            ((warnings++))
+            warnings=$((warnings + 1))
             issues_found=true
         fi
         
@@ -548,7 +555,7 @@ validate_readmes() {
             
             if [ -n "${target}" ] && [ "${target:0:1}" != "#" ] && [ ! -f "${full_path}" ] && [ ! -d "${full_path}" ]; then
                 log_warning "Broken link in ${readme_path}: ${target}"
-                ((warnings++))
+                warnings=$((warnings + 1))
                 issues_found=true
             fi
         done <<< "$links"
@@ -557,7 +564,7 @@ validate_readmes() {
         local content=$(cat "${readme_path}")
         if ! echo "$content" | grep -qiE '^#+\s+(overview|purpose|what)'; then
             log_warning "Missing purpose/overview section: ${readme_path}"
-            ((warnings++))
+            warnings=$((warnings + 1))
             issues_found=true
         fi
         
