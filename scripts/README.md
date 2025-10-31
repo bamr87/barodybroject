@@ -30,6 +30,93 @@ This interactive script will:
 
 ## Script Categories
 
+### 📚 Documentation & Library Management
+
+#### `README.sh` ⭐ **NEW - The Forbidden Librarian**
+**Purpose**: Compile, analyze, and enhance all README.md files in the repository
+
+*⚠️ This mystical tool creates a master library of all documentation, analyzing quality, validating structure, and generating an irresistible index for both humans and AI agents ⚠️*
+
+**Features**:
+- **Repository-wide README discovery** - Finds every README.md file automatically
+- **Quality analysis** - Scores documentation on engagement, structure, AI readability, and completeness
+- **Link validation** - Checks internal links and references
+- **Master library compilation** - Creates organized archive in `README/` directory
+- **Automated index generation** - Builds comprehensive navigation and search tools
+- **AI-optimized documentation** - Structures content for optimal AI agent understanding
+
+**Commands**:
+```bash
+# Full compilation (recommended first run)
+./scripts/README.sh compile
+
+# Individual operations
+./scripts/README.sh scan       # Discover all READMEs
+./scripts/README.sh analyze    # Quality analysis
+./scripts/README.sh validate   # Check for errors
+./scripts/README.sh index      # Generate master index
+
+# Help and version info
+./scripts/README.sh --help
+./scripts/README.sh --version
+```
+
+**What It Does**:
+1. 🔍 **Scans** the entire repository for README.md files
+2. 🧠 **Analyzes** each README for:
+   - Engagement score (compelling content, hooks, visual elements)
+   - Structure score (proper formatting, required sections)
+   - AI readability (context, metadata, navigation)
+   - Completeness (content depth, examples, links)
+3. 🛡️ **Validates** documentation:
+   - Markdown syntax
+   - Internal link integrity
+   - Required sections
+   - Heading hierarchy
+4. 📚 **Compiles** a master library:
+   - Copies all READMEs to `README/` directory
+   - Preserves directory structure
+   - Creates organized archive
+5. ✨ **Generates** master index:
+   - Directory tree with descriptions
+   - Quality metrics dashboard
+   - Search tips and AI guidance
+   - Cross-references and navigation
+
+**Output Locations**:
+- **Master Library**: `README/` directory at project root
+- **Master Index**: `README/README.md`
+- **Analysis Data**: `logs/readme-analysis-*.csv`
+- **Execution Logs**: `logs/readme-architect-*.log`
+
+**Quality Metrics Example**:
+```
+Quality Metrics:
+  ✨ Engagement Score:    75/100
+  🛡️ Structure Score:     82/100
+  🧠 AI Readability:      68/100
+  ✅ Completeness:        79/100
+```
+
+**Use Cases**:
+- **First-time setup**: Understand entire repository structure through documentation
+- **Documentation audits**: Identify areas needing improvement
+- **AI agent training**: Provide comprehensive context for AI assistants
+- **Onboarding**: Help new contributors quickly navigate codebase
+- **Compliance**: Ensure all directories have proper documentation
+
+**Integration with AI Agents**:
+- Generates AI-optimized metadata
+- Creates structured navigation for AI understanding
+- Provides quality scores for prioritization
+- Enables AI agents to quickly locate relevant documentation
+
+**Related Documentation**:
+- [README Architect Agent](../.github/agents/DONTREADME.md) - Full agent documentation
+- [Agents README](../.github/agents/README.md) - Agent ecosystem overview
+
+---
+
 ### 🏁 Initialization Scripts
 
 #### `../init_setup.sh` (Project Root)

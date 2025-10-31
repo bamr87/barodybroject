@@ -8,6 +8,71 @@ GitHub Agents are specialized automation tools that perform specific tasks, moni
 
 ## 🤖 Available Agents
 
+### README Architect Agent
+
+**File:** `DONTREADME.md`  
+**Purpose:** Build irresistible, well-organized README documentation with mystical forbidden gateway theme  
+**Status:** ✅ Active  
+**Version:** 1.0.0
+
+**The Forbidden Gateway Theme:**
+This agent uses engaging, mystical language to make documentation compelling and irresistible. Rather than boring technical docs, it creates an experience that draws readers in with warnings, mystical symbols, and narrative hooks.
+
+**The 5 Mystical Powers:**
+- 📚 **Scanner Supreme** - Discovers all README files in the repository
+- 🔮 **Deep Analyzer** - Calculates 4-dimensional quality scores
+- ⚡ **Master Validator** - Checks syntax, structure, and completeness
+- 📖 **Library Compiler** - Organizes READMEs into navigable master library
+- ✨ **Index Alchemist** - Generates comprehensive master index with metrics
+
+**Quality Metrics System:**
+1. **Engagement Score (0-100)** - Compelling content, visual elements, hooks
+2. **Structure Score (0-100)** - Valid syntax, heading hierarchy, organization
+3. **AI Readability Score (0-100)** - Metadata, context, navigation for AI agents
+4. **Completeness Score (0-100)** - Content depth, examples, comprehensive docs
+
+**Key Workflows:**
+1. **Awakening** - Repository scan and README discovery
+2. **Analysis** - Quality scoring and metric calculation
+3. **Enhancement** - Validation and improvement recommendations
+4. **Compilation** - Master library organization in `README/`
+5. **Validation** - Final quality checks and PR creation
+
+**Quick Start:**
+```bash
+# Run full workflow (recommended)
+./scripts/README.sh compile
+
+# Or run individual commands
+./scripts/README.sh scan       # Discover all README files
+./scripts/README.sh analyze    # Calculate quality scores
+./scripts/README.sh validate   # Check for errors and issues
+./scripts/README.sh index      # Generate master index
+
+# Get help
+./scripts/README.sh --help
+```
+
+**Output Locations:**
+- `README/` - Master library with organized README files
+- `README/README.md` - Master index with navigation and metrics
+- `logs/readme-list-*.txt` - List of discovered README files
+- `logs/readme-analysis-*.csv` - Quality metrics for all READMEs
+- `logs/readme-architect-*.log` - Execution logs
+
+**Documentation:**
+- [Quick Start Guide](README_ARCHITECT_QUICK_START.md) - Get started in 5 minutes
+- [Implementation Summary](README_ARCHITECT_IMPLEMENTATION_SUMMARY.md) - Complete documentation
+- [Scripts README](../../scripts/README.md) - README.sh command reference
+
+**Current Stats (barodybroject):**
+- READMEs Discovered: 7,305 files
+- Master Library: `README/` directory
+- Quality Dimensions: 4 scoring metrics
+- Commands Available: 5 CLI commands
+
+---
+
 ### Infrastructure Tester Agent
 
 **File:** `infra-tester.md`  
@@ -50,6 +115,15 @@ GitHub Agents are specialized automation tools that perform specific tasks, moni
 ```
 
 ## 📊 Agent Performance Metrics
+
+### README Architect
+- **READMEs Discovered:** 7,305 files
+- **Quality Dimensions:** 4 scoring metrics
+- **Average Execution Time:** ~2 minutes (scan + analyze)
+- **Master Library:** Organized in `README/` directory
+- **Commands Available:** 5 CLI commands (compile, scan, analyze, validate, index)
+- **Status:** ✅ Active and tested
+- **Last Run:** 2025-10-30
 
 ### Infrastructure Tester
 - **Test Success Rate:** 100% (38/38 tests passing)
@@ -277,6 +351,7 @@ If an agent is not functioning correctly:
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2025-10-30 | 1.1.0 | Added README Architect Agent with forbidden gateway theme |
 | 2025-10-30 | 1.0.0 | Initial infrastructure tester agent |
 
 ---
