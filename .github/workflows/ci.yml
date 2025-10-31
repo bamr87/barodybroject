@@ -281,4 +281,7 @@ jobs:
             exit 1
           else
             echo "✅ CI Pipeline Passed"
+            echo ""
+            echo "💡 For comprehensive infrastructure testing, check the Infrastructure Testing workflow"
+            echo "   or run: ./scripts/test-infrastructure.sh"
           fi

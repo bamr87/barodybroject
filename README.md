@@ -866,7 +866,47 @@ This will:
 
 ## Testing
 
-The project includes comprehensive testing using pytest and Playwright.
+The project includes comprehensive testing at multiple levels: unit tests, integration tests, and infrastructure validation.
+
+### 🏗️ Infrastructure Testing (NEW)
+
+We have implemented a comprehensive infrastructure testing system that validates all critical components:
+
+```bash
+# Run complete infrastructure tests
+./scripts/test-infrastructure.sh
+
+# Verbose output with detailed logging
+./scripts/test-infrastructure.sh --verbose
+
+# CI/CD mode for automated environments
+./scripts/test-infrastructure.sh --ci-mode
+
+# Skip cleanup for debugging
+./scripts/test-infrastructure.sh --skip-cleanup
+```
+
+**What Infrastructure Testing Validates:**
+- ✅ Docker container orchestration (PostgreSQL, Django, Jekyll)
+- ✅ Database connectivity and migration execution
+- ✅ Django service layer and configuration
+- ✅ Web interface components and view classes
+- ✅ Management commands and CLI interface
+- ✅ Token authentication and security systems
+- ✅ Admin user creation and permissions
+- ✅ Unit test infrastructure (24/24 tests)
+
+**CI/CD Integration:**
+- Automatic execution on push/PR to main/develop branches
+- Daily scheduled testing (2 AM UTC)
+- Manual workflow dispatch with configurable options
+- Comprehensive logging and artifact collection
+
+📖 **Full Documentation**: See [Infrastructure Testing Guide](docs/INFRASTRUCTURE_TESTING.md)
+
+### 🧪 Unit and Integration Testing
+
+Standard Django and pytest testing for application logic.
 
 ### Install Test Dependencies
 
@@ -889,20 +929,40 @@ python -m pytest src/parodynews/tests/test_models.py
 
 # Run with verbose output
 python -m pytest -v
+
+# Run installation wizard unit tests
+python -m pytest test/unit/test_services.py -v
 ```
 
 ### Test Structure
 
-- **Unit Tests**: Located in `src/parodynews/tests/`
-- **Integration Tests**: Test API endpoints and views
+- **Infrastructure Tests**: Comprehensive system validation in `scripts/test-infrastructure.sh`
+- **Unit Tests**: Application logic testing in `test/unit/`
+- **Integration Tests**: Cross-component testing in `test/integration/`
+- **Django Tests**: Standard Django tests in `src/parodynews/tests/`
 - **End-to-End Tests**: Playwright tests for browser automation
 - **Coverage Reports**: Generated in `htmlcov/` directory
 
 ### Running Tests in Docker
 
 ```bash
+# Infrastructure testing (recommended)
+./scripts/test-infrastructure.sh
+
+# Standard Django tests
 docker compose exec python python -m pytest
+
+# Installation wizard tests specifically
+docker compose exec python python -m pytest test/unit/test_services.py -v
 ```
+
+### 🚀 CI/CD Testing Workflows
+
+**GitHub Actions Workflows:**
+- `infrastructure-test.yml`: Comprehensive infrastructure validation
+- `ci.yml`: Standard CI with unit tests and build validation
+- Daily scheduled testing for infrastructure drift detection
+- Pull request validation with full test suite execution
 
 ## Development Container Workflow
 
