@@ -238,7 +238,10 @@ jobs:
           
           # Check container health
           docker ps
-          docker compose -f docker-compose.yml logs web || echo "Failed to get web container logs"
+          
+          # Get logs from all services (more reliable than specific service name)
+          echo "=== Container Logs ==="
+          docker compose -f docker-compose.yml logs || echo "Failed to get container logs"
           
           # Cleanup
           docker compose -f docker-compose.yml down -v
