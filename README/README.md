@@ -160,6 +160,143 @@ This mystical library contains every README.md file, organized by location and p
   - Purpose
   - **[src/docs/](src/docs/README.md)**
     - Purpose
+  - **[README/events/](README/events/README.md)**
+    - Purpose
+  - **[README/.vscode/](README/.vscode/README.md)**
+    - Purpose
+  - **[README/scripts/](README/scripts/README.md)**
+      - **[README/.github/workflows/archive/](README/.github/workflows/archive/README.md)**
+    - **[README/.github/workflows/](README/.github/workflows/README.md)**
+      - Purpose
+  - **[README/.github/](README/.github/README.md)**
+    - **[README/.github/agents/](README/.github/agents/README.md)**
+    - **[README/.github/instructions/](README/.github/instructions/README.md)**
+      - Purpose
+    - **[README/.github/ISSUE_TEMPLATE/](README/.github/ISSUE_TEMPLATE/README.md)**
+      - Purpose
+  - **[README/.devcontainer/](README/.devcontainer/README.md)**
+    - Purpose
+- **[README/](README/README.md)**
+    - **[README/docs/configuration/](README/docs/configuration/README.md)**
+  - **[README/docs/](README/docs/README.md)**
+        - **[README/docs/changelog/releases/v1.0.0/](README/docs/changelog/releases/v1.0.0/README.md)**
+    - **[README/docs/changelog/](README/docs/changelog/README.md)**
+    - **[README/docs/features/](README/docs/features/README.md)**
+  - **[README/test/](README/test/README.md)**
+  - **[README/infra/](README/infra/README.md)**
+    - Purpose
+    - **[README/infra/app/](README/infra/app/README.md)**
+      - Purpose
+    - **[README/infra/shared/](README/infra/shared/README.md)**
+      - Purpose
+    - **[README/infra/modules/](README/infra/modules/README.md)**
+      - Purpose
+    - **[README/src/_data/](README/src/_data/README.md)**
+      - **[README/src/_data/navigation/](README/src/_data/navigation/README.md)**
+        - Purpose
+    - **[README/src/setup/](README/src/setup/README.md)**
+      - **[README/src/parodynews/schema/](README/src/parodynews/schema/README.md)**
+        - Purpose
+      - **[README/src/parodynews/templatetags/](README/src/parodynews/templatetags/README.md)**
+        - Purpose
+      - **[README/src/parodynews/utils/](README/src/parodynews/utils/README.md)**
+        - Purpose
+      - **[README/src/parodynews/migrations/](README/src/parodynews/migrations/README.md)**
+        - Purpose
+      - **[README/src/parodynews/scripts/](README/src/parodynews/scripts/README.md)**
+        - Purpose
+    - **[README/src/parodynews/](README/src/parodynews/README.md)**
+      - Purpose
+      - **[README/src/parodynews/docs/](README/src/parodynews/docs/README.md)**
+        - Purpose
+        - **[README/src/parodynews/docs/source/](README/src/parodynews/docs/source/README.md)**
+          - Purpose
+        - **[README/src/parodynews/tests/scripts/](README/src/parodynews/tests/scripts/README.md)**
+          - Purpose
+          - **[README/src/parodynews/tests/scripts/functions/](README/src/parodynews/tests/scripts/functions/README.md)**
+            - Purpose
+      - **[README/src/parodynews/tests/](README/src/parodynews/tests/README.md)**
+        - Purpose
+        - **[README/src/parodynews/tests/data/](README/src/parodynews/tests/data/README.md)**
+          - Purpose
+        - **[README/src/parodynews/templates/admin/](README/src/parodynews/templates/admin/README.md)**
+          - Purpose
+          - **[README/src/parodynews/templates/socialaccount/messages/](README/src/parodynews/templates/socialaccount/messages/README.md)**
+            - Purpose
+          - **[README/src/parodynews/templates/socialaccount/email/](README/src/parodynews/templates/socialaccount/email/README.md)**
+            - Purpose
+        - **[README/src/parodynews/templates/socialaccount/](README/src/parodynews/templates/socialaccount/README.md)**
+          - Purpose
+          - **[README/src/parodynews/templates/socialaccount/snippets/](README/src/parodynews/templates/socialaccount/snippets/README.md)**
+            - Purpose
+        - **[README/src/parodynews/templates/allauth/](README/src/parodynews/templates/allauth/README.md)**
+          - Purpose
+          - **[README/src/parodynews/templates/allauth/elements/](README/src/parodynews/templates/allauth/elements/README.md)**
+            - Purpose
+          - **[README/src/parodynews/templates/allauth/layouts/](README/src/parodynews/templates/allauth/layouts/README.md)**
+            - Purpose
+          - **[README/src/parodynews/templates/usersessions/messages/](README/src/parodynews/templates/usersessions/messages/README.md)**
+            - Purpose
+        - **[README/src/parodynews/templates/usersessions/](README/src/parodynews/templates/usersessions/README.md)**
+          - Purpose
+        - **[README/src/parodynews/templates/parodynews/](README/src/parodynews/templates/parodynews/README.md)**
+          - Purpose
+          - **[README/src/parodynews/templates/mfa/webauthn/](README/src/parodynews/templates/mfa/webauthn/README.md)**
+            - Purpose
+            - **[README/src/parodynews/templates/mfa/webauthn/snippets/](README/src/parodynews/templates/mfa/webauthn/snippets/README.md)**
+              - Purpose
+          - **[README/src/parodynews/templates/mfa/totp/](README/src/parodynews/templates/mfa/totp/README.md)**
+            - Purpose
+          - **[README/src/parodynews/templates/mfa/messages/](README/src/parodynews/templates/mfa/messages/README.md)**
+            - Purpose
+          - **[README/src/parodynews/templates/mfa/email/](README/src/parodynews/templates/mfa/email/README.md)**
+            - Purpose
+        - **[README/src/parodynews/templates/mfa/](README/src/parodynews/templates/mfa/README.md)**
+          - Purpose
+          - **[README/src/parodynews/templates/mfa/recovery_codes/](README/src/parodynews/templates/mfa/recovery_codes/README.md)**
+            - Purpose
+        - **[README/src/parodynews/templates/includes/](README/src/parodynews/templates/includes/README.md)**
+          - Purpose
+      - **[README/src/parodynews/templates/](README/src/parodynews/templates/README.md)**
+        - Purpose
+        - **[README/src/parodynews/templates/menu/](README/src/parodynews/templates/menu/README.md)**
+          - Purpose
+          - **[README/src/parodynews/templates/account/messages/](README/src/parodynews/templates/account/messages/README.md)**
+            - Purpose
+          - **[README/src/parodynews/templates/account/email/](README/src/parodynews/templates/account/email/README.md)**
+            - Purpose
+        - **[README/src/parodynews/templates/account/](README/src/parodynews/templates/account/README.md)**
+          - Purpose
+          - **[README/src/parodynews/templates/account/snippets/](README/src/parodynews/templates/account/snippets/README.md)**
+            - Purpose
+        - **[README/src/parodynews/templates/registration/](README/src/parodynews/templates/registration/README.md)**
+          - Purpose
+        - **[README/src/parodynews/management/commands/](README/src/parodynews/management/commands/README.md)**
+          - Purpose
+      - **[README/src/parodynews/management/](README/src/parodynews/management/README.md)**
+        - Purpose
+    - **[README/src/scripts/](README/src/scripts/README.md)**
+      - Purpose
+    - **[README/src/barodybroject/](README/src/barodybroject/README.md)**
+      - Purpose
+    - **[README/src/pages/](README/src/pages/README.md)**
+      - Purpose
+      - **[README/src/pages/_docs/](README/src/pages/_docs/README.md)**
+        - Purpose
+      - **[README/src/pages/_posts/](README/src/pages/_posts/README.md)**
+        - Purpose
+      - **[README/src/pages/_about/](README/src/pages/_about/README.md)**
+        - Purpose
+      - **[README/src/assets/images/](README/src/assets/images/README.md)**
+        - Purpose
+    - **[README/src/assets/](README/src/assets/README.md)**
+      - Purpose
+      - **[README/src/assets/js/](README/src/assets/js/README.md)**
+        - Purpose
+  - **[README/src/](README/src/README.md)**
+    - Purpose
+    - **[README/src/docs/](README/src/docs/README.md)**
+      - Purpose
 
 ---
 
@@ -174,7 +311,7 @@ This mystical library contains every README.md file, organized by location and p
 | 🧠 AI Readability | 8/100 | ⚠️ Needs Improvement |
 | ✅ Completeness | 48/100 | ⚠️ Needs Improvement |
 
-**Total Documentation Files:** 75
+**Total Documentation Files:** 150
 
 
 ---
