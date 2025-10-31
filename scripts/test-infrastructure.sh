@@ -188,8 +188,10 @@ main() {
     log_info "Waiting for package installation to complete..."
     MAX_WAIT=180  # 3 minutes max wait
     WAIT_COUNT=0
+    LAST_ERROR=""
     while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-        if docker-compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>/dev/null | grep -q "Django installed"; then
+        LAST_ERROR=$(docker-compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>&1)
+        if echo "$LAST_ERROR" | grep -q "Django installed"; then
             log_success "Package installation completed"
             break
         fi
@@ -202,6 +204,7 @@ main() {
     
     if [ $WAIT_COUNT -ge $MAX_WAIT ]; then
         log_warning "Package installation timeout reached. Some tests may fail."
+        log_error "Last error from Django import: $LAST_ERROR"
     fi
     
     log_success "Docker containers started successfully"
@@ -226,7 +229,9 @@ main() {
     # Test network connectivity between containers
     # Using Python socket instead of nc (netcat) for better container compatibility
     run_test "Inter-container Network" \
-        "docker_exec python python3 -c 'import socket; s = socket.socket(); s.settimeout(2); s.connect((\"barodydb\", 5432)); s.close()'"
+        "docker_exec python python3 -c 'import socket; s = socket.socket(); s.settimeout(2); \
+try: s.connect((\"barodydb\", 5432)); print(\"Connection successful\") \
+finally: s.close()'"
     
     echo ""
 
