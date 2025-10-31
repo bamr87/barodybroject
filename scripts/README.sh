@@ -273,13 +273,13 @@ analyze_all_readmes() {
     fi
     
     log_success "Analysis complete: ${count} files"
-    echo ""
-    echo -e "${CYAN}${BOLD}Quality Metrics:${RESET}"
-    echo -e "  ${SPARKLES} Engagement Score:    ${avg_engagement}/100"
-    echo -e "  ${SHIELD} Structure Score:     ${avg_structure}/100"
-    echo -e "  ${BRAIN} AI Readability:      ${avg_ai_readability}/100"
-    echo -e "  ${CHECK} Completeness:        ${avg_completeness}/100"
-    echo ""
+    echo "" >&2
+    echo -e "${CYAN}${BOLD}Quality Metrics:${RESET}" >&2
+    echo -e "  ${SPARKLES} Engagement Score:    ${avg_engagement}/100" >&2
+    echo -e "  ${SHIELD} Structure Score:     ${avg_structure}/100" >&2
+    echo -e "  ${BRAIN} AI Readability:      ${avg_ai_readability}/100" >&2
+    echo -e "  ${CHECK} Completeness:        ${avg_completeness}/100" >&2
+    echo "" >&2
     
     log "INFO" "Detailed analysis saved to: ${analysis_file}"
     
@@ -578,7 +578,7 @@ validate_readmes() {
     else
         log_warning "Found ${warnings} warnings and ${errors} errors"
     fi
-    echo ""
+    echo "" >&2
 }
 
 # ============================================================================
@@ -589,34 +589,34 @@ run_full_compile() {
     print_banner
     
     log_mystical "Beginning full repository documentation compilation..."
-    echo ""
+    echo "" >&2
     
     # Step 1: Scan
     local readme_list=$(scan_readmes)
-    echo ""
+    echo "" >&2
     
     # Step 2: Analyze
     local analysis_file=$(analyze_all_readmes "${readme_list}")
-    echo ""
+    echo "" >&2
     
     # Step 3: Validate
     validate_readmes "${readme_list}"
     
     # Step 4: Compile
     compile_library "${readme_list}"
-    echo ""
+    echo "" >&2
     
     # Step 5: Generate Index
     generate_master_index "${readme_list}" "${analysis_file}"
-    echo ""
+    echo "" >&2
     
     log_success "Compilation complete!"
     log_info "Master library: ${README_LIBRARY}"
     log_info "Full log: ${LOG_FILE}"
-    echo ""
+    echo "" >&2
     
-    echo -e "${MAGENTA}${SPARKLES}${BOLD} The Forbidden Library has been updated ${SPARKLES}${RESET}"
-    echo ""
+    echo -e "${MAGENTA}${SPARKLES}${BOLD} The Forbidden Library has been updated ${SPARKLES}${RESET}" >&2
+    echo "" >&2
 }
 
 # ============================================================================
