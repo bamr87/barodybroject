@@ -4,7 +4,7 @@ Description: Django app configuration for setup wizard application
 Author: Barodybroject Team <team@example.com>
 Created: 2025-01-27
 Last Modified: 2025-01-27
-Version: 1.0.0
+Version: 0.2.0
 
 Dependencies:
 - django.apps: Django application configuration framework

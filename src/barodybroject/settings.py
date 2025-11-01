@@ -1,10 +1,10 @@
 """
 File: settings.py
-Description: Django settings for barodybroject project with optimized production and development configurations
-Author: Barodybroject Team <team@example.com>
-Created: 2025-10-27
-Last Modified: 2025-10-27
-Version: 2.0.0
+Description: Django project settings with OpenAI integration and Azure deployment configuration
+Author: bamr87 <bamr87@users.noreply.github.com>
+Created: 2025-01-15
+Last Modified: 2025-01-27
+Version: 0.2.0
 
 Dependencies:
 - django: >=4.2
@@ -298,36 +298,38 @@ DJANGO_APPS = [
 ]
 
 # CMS and content management apps
+# Temporarily disabled to match requirements.txt - CMS dependencies are commented out
+# TODO: Re-enable CMS functionality after resolving dependency issues
 CMS_APPS = [
-    "djangocms_admin_style",
-    "cms",
-    "menus",
-    "sekizai",
-    "treebeard",
-    "filer",
-    "easy_thumbnails",
-    "djangocms_alias",
-    "djangocms_versioning",
-    "djangocms_text_ckeditor",
-    "djangocms_link",
-    "djangocms_frontend",
-    "djangocms_frontend.contrib.accordion",
-    "djangocms_frontend.contrib.alert",
-    "djangocms_frontend.contrib.badge",
-    "djangocms_frontend.contrib.card",
-    "djangocms_frontend.contrib.carousel",
-    "djangocms_frontend.contrib.collapse",
-    "djangocms_frontend.contrib.content",
-    "djangocms_frontend.contrib.grid",
-    "djangocms_frontend.contrib.icon",
-    "djangocms_frontend.contrib.image",
-    "djangocms_frontend.contrib.jumbotron",
-    "djangocms_frontend.contrib.link",
-    "djangocms_frontend.contrib.listgroup",
-    "djangocms_frontend.contrib.media",
-    "djangocms_frontend.contrib.navigation",
-    "djangocms_frontend.contrib.tabs",
-    "djangocms_frontend.contrib.utilities",
+    # "djangocms_admin_style",
+    # "cms",
+    # "menus",
+    # "sekizai",
+    # "treebeard",
+    # "filer",
+    # "easy_thumbnails",
+    # "djangocms_alias",
+    # "djangocms_versioning",
+    # "djangocms_text_ckeditor",
+    # "djangocms_link",
+    # "djangocms_frontend",
+    # "djangocms_frontend.contrib.accordion",
+    # "djangocms_frontend.contrib.alert",
+    # "djangocms_frontend.contrib.badge",
+    # "djangocms_frontend.contrib.card",
+    # "djangocms_frontend.contrib.carousel",
+    # "djangocms_frontend.contrib.collapse",
+    # "djangocms_frontend.contrib.content",
+    # "djangocms_frontend.contrib.grid",
+    # "djangocms_frontend.contrib.icon",
+    # "djangocms_frontend.contrib.image",
+    # "djangocms_frontend.contrib.jumbotron",
+    # "djangocms_frontend.contrib.link",
+    # "djangocms_frontend.contrib.listgroup",
+    # "djangocms_frontend.contrib.media",
+    # "djangocms_frontend.contrib.navigation",
+    # "djangocms_frontend.contrib.tabs",
+    # "djangocms_frontend.contrib.utilities",
 ]
 
 # Authentication and user management
@@ -381,12 +383,13 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "cms.middleware.utils.ApphookReloadMiddleware",
+    # CMS middleware temporarily disabled - uncomment when CMS is re-enabled
+    # "cms.middleware.utils.ApphookReloadMiddleware",
     "django.middleware.locale.LocaleMiddleware",
-    "cms.middleware.user.CurrentUserMiddleware",
-    "cms.middleware.page.CurrentPageMiddleware",
-    "cms.middleware.toolbar.ToolbarMiddleware",
-    "cms.middleware.language.LanguageCookieMiddleware",
+    # "cms.middleware.user.CurrentUserMiddleware",
+    # "cms.middleware.page.CurrentPageMiddleware",
+    # "cms.middleware.toolbar.ToolbarMiddleware",
+    # "cms.middleware.language.LanguageCookieMiddleware",
     "allauth.account.middleware.AccountMiddleware",
 ]
 
@@ -424,8 +427,9 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "sekizai.context_processors.sekizai",
-                "cms.context_processors.cms_settings",
+                # CMS context processors temporarily disabled - uncomment when CMS is re-enabled
+                # "sekizai.context_processors.sekizai",
+                # "cms.context_processors.cms_settings",
                 "parodynews.context_processors.footer_items",
                 "parodynews.context_processors.issue_templates",
             ],

@@ -44,8 +44,9 @@ import json
 from datetime import datetime
 
 import yaml
-from cms.apphook_pool import apphook_pool
-from cms.utils import get_language_from_request
+# CMS imports temporarily disabled - uncomment when CMS is re-enabled
+# from cms.apphook_pool import apphook_pool
+# from cms.utils import get_language_from_request
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -63,61 +64,25 @@ from rest_framework import status, viewsets
 from rest_framework.response import Response
 
 from . import models
-from .forms import (
-    AssistantForm,
-    AssistantGroupForm,
-    AssistantGroupMembershipFormSet,
-    ContentDetailForm,
-    ContentItemForm,
-    JSONSchemaForm,
-    MyObjectForm,
-    PostForm,
-    PostFrontMatterForm,
-    ThreadForm,
-)
+from .forms import (AssistantForm, AssistantGroupForm,
+                    AssistantGroupMembershipFormSet, ContentDetailForm,
+                    ContentItemForm, JSONSchemaForm, MyObjectForm, PostForm,
+                    PostFrontMatterForm, ThreadForm)
 from .mixins import AppConfigClientMixin, ModelFieldsMixin
-from .models import (
-    AppConfig,
-    Assistant,
-    AssistantGroup,
-    AssistantGroupMembership,
-    ContentDetail,
-    ContentItem,
-    GeneralizedCodes,
-    JSONSchema,
-    Message,
-    MyObject,
-    Post,
-    PostFrontMatter,
-    PostVersion,
-    PoweredBy,
-    Thread,
-)
-from .serializers import (
-    AssistantGroupSerializer,
-    AssistantSerializer,
-    ContentDetailSerializer,
-    ContentItemSerializer,
-    GeneralizedCodesSerializer,
-    JSONSchemaSerializer,
-    MessageSerializer,
-    MyObjectSerializer,
-    PostFrontMatterSerializer,
-    PostSerializer,
-    PoweredBySerializer,
-    ThreadSerializer,
-)
-from .utils import (
-    create_or_update_assistant,
-    create_run,
-    delete_assistant,
-    generate_content,
-    generate_content_detail,
-    get_openai_client,
-    openai_create_message,
-    openai_delete_message,
-    save_assistant,
-)
+from .models import (AppConfig, Assistant, AssistantGroup,
+                     AssistantGroupMembership, ContentDetail, ContentItem,
+                     GeneralizedCodes, JSONSchema, Message, MyObject, Post,
+                     PostFrontMatter, PostVersion, PoweredBy, Thread)
+from .serializers import (AssistantGroupSerializer, AssistantSerializer,
+                          ContentDetailSerializer, ContentItemSerializer,
+                          GeneralizedCodesSerializer, JSONSchemaSerializer,
+                          MessageSerializer, MyObjectSerializer,
+                          PostFrontMatterSerializer, PostSerializer,
+                          PoweredBySerializer, ThreadSerializer)
+from .utils import (create_or_update_assistant, create_run, delete_assistant,
+                    generate_content, generate_content_detail,
+                    get_openai_client, openai_create_message,
+                    openai_delete_message, save_assistant)
 
 print("Loading views.py")
 
@@ -3174,26 +3139,31 @@ def get_app_instance(request):
                 # Use app-specific configuration
                 pass
     """
-    namespace, config = "", None
-    if getattr(request, "current_page", None) and request.current_page.application_urls:
-        app = apphook_pool.get_apphook(request.current_page.application_urls)
-        if app and app.app_config:
-            try:
-                config = None
-                with override(get_language_from_request(request)):
-                    if hasattr(request, "toolbar") and hasattr(
-                        request.toolbar, "request_path"
-                    ):
-                        path = (
-                            request.toolbar.request_path
-                        )  # If v4 endpoint take request_path from toolbar
-                    else:
-                        path = request.path_info
-                    namespace = resolve(path).namespace
-                    config = app.get_config(namespace)
-            except Resolver404:
-                pass
-    return namespace, config
+    # CMS functionality temporarily disabled - return empty defaults
+    # Uncomment the code below when CMS is re-enabled
+    return "", None
+    
+    # Original CMS code (commented out):
+    # namespace, config = "", None
+    # if getattr(request, "current_page", None) and request.current_page.application_urls:
+    #     app = apphook_pool.get_apphook(request.current_page.application_urls)
+    #     if app and app.app_config:
+    #         try:
+    #             config = None
+    #             with override(get_language_from_request(request)):
+    #                 if hasattr(request, "toolbar") and hasattr(
+    #                     request.toolbar, "request_path"
+    #                 ):
+    #                     path = (
+    #                         request.toolbar.request_path
+    #                     )  # If v4 endpoint take request_path from toolbar
+    #                 else:
+    #                     path = request.path_info
+    #                 namespace = resolve(path).namespace
+    #                 config = app.get_config(namespace)
+    #         except Resolver404:
+    #             pass
+    # return namespace, config
 
 
 class AppHookConfigMixin:
@@ -3238,48 +3208,50 @@ class AppHookConfigMixin:
         return qs.filter(app_config__namespace=self.namespace)
 
 
-class PostPageView(AppHookConfigMixin, ListView):
-    """
-    List view for displaying posts in Django CMS context.
-
-    Displays a paginated list of Entry objects (posts) within
-    a Django CMS application hook context. Provides app-specific
-    filtering and pagination configuration.
-
-    Attributes:
-        model: models.Entry - The model class for posts
-        template_name (str): Template for rendering the post list
-
-    Features:
-        - App-specific post filtering via AppHookConfigMixin
-        - Configurable pagination based on app settings
-        - CMS integration with namespace isolation
-
-    Pagination:
-        Uses app configuration for pagination settings, falls back
-        to default of 10 items per page if not configured.
-
-    Template Context:
-        Provides standard ListView context with Entry objects
-        filtered by current app configuration.
-
-    Example:
-        .. code-block:: python
-
-            # URL configuration in CMS app hook
-            urlpatterns = [
-                path('', PostPageView.as_view(), name='post_list'),
-            ]
-    """
-
-    model = models.Entry
-    template_name = "index.html"
-
-    def get_paginate_by(self, queryset):
-        try:
-            return self.config.paginate_by
-        except AttributeError:
-            return 10
+# CMS-specific view commented out since Entry model is disabled
+# Uncomment when CMS is re-enabled
+# class PostPageView(AppHookConfigMixin, ListView):
+#     """
+#     List view for displaying posts in Django CMS context.
+#
+#     Displays a paginated list of Entry objects (posts) within
+#     a Django CMS application hook context. Provides app-specific
+#     filtering and pagination configuration.
+#
+#     Attributes:
+#         model: models.Entry - The model class for posts
+#         template_name (str): Template for rendering the post list
+#
+#     Features:
+#         - App-specific post filtering via AppHookConfigMixin
+#         - Configurable pagination based on app settings
+#         - CMS integration with namespace isolation
+#
+#     Pagination:
+#         Uses app configuration for pagination settings, falls back
+#         to default of 10 items per page if not configured.
+#
+#     Template Context:
+#         Provides standard ListView context with Entry objects
+#         filtered by current app configuration.
+#
+#     Example:
+#         .. code-block:: python
+#
+#             # URL configuration in CMS app hook
+#             urlpatterns = [
+#                 path('', PostPageView.as_view(), name='post_list'),
+#             ]
+#     """
+#
+#     model = models.Entry
+#     template_name = "index.html"
+#
+#     def get_paginate_by(self, queryset):
+#         try:
+#             return self.config.paginate_by
+#         except AttributeError:
+#             return 10
 
 
 def send_welcome_email(user_email):

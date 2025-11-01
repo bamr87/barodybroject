@@ -1,5 +1,6 @@
-from cms.models.fields import PlaceholderRelationField
-from cms.models.pluginmodel import CMSPlugin
+# CMS imports temporarily disabled - uncomment when CMS is re-enabled
+# from cms.models.fields import PlaceholderRelationField
+# from cms.models.pluginmodel import CMSPlugin
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import models
@@ -294,19 +295,21 @@ class PostPageConfigModel(models.Model):
     paginated_by = models.IntegerField(_("paginate size"), blank=False, default=5)
 
 
-class Entry(models.Model):
-    app_config = models.ForeignKey(
-        PostPageConfigModel, null=False, on_delete=models.CASCADE
-    )
-    title = models.TextField(blank=True, default="")
-    content_text = PlaceholderRelationField("page_content")
-
-    def __str__(self):
-        return self.title or "<no title>"
-
-    class Meta:
-        verbose_name = _("Entry")
-        verbose_name_plural = _("Entries")
+# Entry model temporarily disabled - depends on CMS PlaceholderRelationField
+# TODO: Re-enable when CMS is restored
+# class Entry(models.Model):
+#     app_config = models.ForeignKey(
+#         PostPageConfigModel, null=False, on_delete=models.CASCADE
+#     )
+#     title = models.TextField(blank=True, default="")
+#     content_text = PlaceholderRelationField("page_content")
+#
+#     def __str__(self):
+#         return self.title or "<no title>"
+#
+#     class Meta:
+#         verbose_name = _("Entry")
+#         verbose_name_plural = _("Entries")
 
 
 # Post Model
@@ -364,14 +367,16 @@ class Post(models.Model):
         return ["TextPlugin", "ImagePlugin", "LinkPlugin"]
 
 
-class PostPluginModel(CMSPlugin):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.post.content_detail.title
-
-    class Meta:
-        abstract = False  # Ensure this is either omitted or set to False
+# PostPluginModel temporarily disabled - depends on CMSPlugin
+# TODO: Re-enable when CMS is restored
+# class PostPluginModel(CMSPlugin):
+#     post = models.ForeignKey(Post, on_delete=models.CASCADE)
+#
+#     def __str__(self):
+#         return self.post.content_detail.title
+#
+#     class Meta:
+#         abstract = False  # Ensure this is either omitted or set to False
 
 
 class PostFrontMatter(models.Model):

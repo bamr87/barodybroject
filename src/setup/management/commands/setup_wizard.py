@@ -4,7 +4,7 @@ Description: Django management command for first-time installation wizard
 Author: Barodybroject Team <team@example.com>
 Created: 2025-10-30
 Last Modified: 2025-10-30
-Version: 1.0.0
+Version: 0.2.0
 
 Dependencies:
 - django.core.management: Base command functionality

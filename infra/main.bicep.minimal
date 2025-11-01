@@ -1,0 +1,124 @@
+// Minimal Cost Azure Deployment for Barodybroject
+// Estimated cost: ~$25/month
+
+targetScope = 'subscription'
+
+@minLength(1)
+@maxLength(64)
+param environmentName string
+
+@minLength(1)
+param location string
+
+@secure()
+param databasePassword string
+
+param principalId string = ''
+
+var tags = {
+  'azd-env-name': environmentName
+  'cost-optimization': 'minimal'
+}
+
+var abbrs = loadJsonContent('./abbreviations.json')
+var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
+
+resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
+  name: 'rg-${environmentName}'
+  location: location
+  tags: tags
+}
+
+// PostgreSQL Flexible Server - Burstable tier
+module postgresDb './app/db-postgres-minimal.bicep' = {
+  name: 'postgresDb'
+  params: {
+    serverName: '${abbrs.dBforPostgreSQLServers}${resourceToken}'
+    location: location
+    tags: tags
+    databasePassword: databasePassword
+    allowAllIPsFirewall: true
+  }
+  scope: rg
+}
+
+// App Service Plan - B1 tier
+resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
+  name: '${abbrs.webServerFarms}${resourceToken}'
+  location: location
+  tags: tags
+  sku: {
+    name: 'B1'  // Basic tier - most economical for production
+    tier: 'Basic'
+    capacity: 1
+  }
+  kind: 'linux'
+  properties: {
+    reserved: true  // Required for Linux
+  }
+}
+
+// App Service - Linux container
+resource webApp 'Microsoft.Web/sites@2022-03-01' = {
+  name: '${abbrs.webSitesAppService}${resourceToken}'
+  location: location
+  tags: union(tags, { 'azd-service-name': 'src' })
+  properties: {
+    serverFarmId: appServicePlan.id
+    siteConfig: {
+      linuxFxVersion: 'DOCKER|bamr87/barodybroject:latest'  // Replace with your Docker Hub image
+      alwaysOn: true
+      appSettings: [
+        {
+          name: 'WEBSITES_PORT'
+          value: '8000'
+        }
+        {
+          name: 'DB_HOST'
+          value: postgresDb.outputs.databaseHost
+        }
+        {
+          name: 'DB_NAME'
+          value: postgresDb.outputs.databaseName
+        }
+        {
+          name: 'DB_USERNAME'
+          value: postgresDb.outputs.databaseUser
+        }
+        {
+          name: 'DB_PASSWORD'
+          value: databasePassword
+        }
+        {
+          name: 'DJANGO_SETTINGS_MODULE'
+          value: 'barodybroject.settings'
+        }
+        {
+          name: 'PYTHONUNBUFFERED'
+          value: '1'
+        }
+      ]
+    }
+    httpsOnly: true
+  }
+}
+
+// Optional: Add Key Vault only if you need advanced secret management
+// Uncomment when needed (adds ~$0.03/10k operations)
+/*
+module keyVault './shared/keyvault.bicep' = if (!empty(principalId)) {
+  name: 'keyvault'
+  params: {
+    location: location
+    tags: tags
+    name: '${abbrs.keyVaultVaults}${resourceToken}'
+    principalId: principalId
+  }
+  scope: rg
+}
+*/
+
+output APP_SERVICE_URL string = 'https://${webApp.properties.defaultHostName}'
+output DATABASE_HOST string = postgresDb.outputs.databaseHost
+output DATABASE_NAME string = postgresDb.outputs.databaseName
+output RESOURCE_GROUP_NAME string = rg.name

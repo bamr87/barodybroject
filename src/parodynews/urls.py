@@ -4,35 +4,14 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import include, path
 from rest_framework import routers
 
-from .views import (
-    AssistantGroupViewSet,
-    AssistantViewSet,
-    ContentDetailViewSet,
-    ContentItemViewSet,
-    FooterView,
-    GeneralizedCodesViewSet,
-    JSONSchemaViewSet,
-    ManageAssistantGroupsView,
-    ManageAssistantsView,
-    ManageContentView,
-    ManageMessageView,
-    ManagePostView,
-    MessageViewSet,
-    MyObjectView,
-    MyObjectViewSet,
-    PostFrontMatterViewSet,
-    PostPageView,
-    PostViewSet,
-    PoweredByViewSet,
-    ProcessContentView,
-    ThreadViewSet,
-    create_schema,
-    delete_schema,
-    edit_schema,
-    export_schema,
-    get_assistant_details,
-    list_schemas,
-)
+from .views import (  # PostPageView,  # Commented out - CMS-specific view disabled
+    AssistantGroupViewSet, AssistantViewSet, ContentDetailViewSet,
+    ContentItemViewSet, FooterView, GeneralizedCodesViewSet, JSONSchemaViewSet,
+    ManageAssistantGroupsView, ManageAssistantsView, ManageContentView,
+    ManageMessageView, ManagePostView, MessageViewSet, MyObjectView,
+    MyObjectViewSet, PostFrontMatterViewSet, PostViewSet, PoweredByViewSet,
+    ProcessContentView, ThreadViewSet, create_schema, delete_schema,
+    edit_schema, export_schema, get_assistant_details, list_schemas)
 
 print("Registering parodynews urls")
 
@@ -52,7 +31,8 @@ router.register(r"my-objects", MyObjectViewSet)
 router.register(r"generalized-codes", GeneralizedCodesViewSet)
 
 urlpatterns = [
-    path("postpage/", PostPageView.as_view(), name="index"),
+    # PostPageView temporarily disabled - CMS-specific view
+    # path("postpage/", PostPageView.as_view(), name="index"),
     path("martor/", include("martor.urls")),
     # Remove or adjust the root path to prevent conflict with django CMS
     path("footer/", FooterView.as_view(), name="footer"),

@@ -38,7 +38,8 @@ urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),
     # Include your app's URLs under a specific prefix to avoid conflicts
     path("", include("parodynews.urls")),
-    path("", include("cms.urls")),
+    # CMS URLs temporarily disabled - uncomment when CMS is re-enabled
+    # path("", include("cms.urls")),
     path("footer/", FooterView.as_view(), name="footer"),
     # Include django CMS URLs at the root
     # Include the API endpoints under 'api/' path

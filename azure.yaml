@@ -3,10 +3,10 @@
 name: barodybroject
 metadata:
   template: azd-init@1.10.3
+  
+# Container Apps configuration with Azure Container Registry
 services:
   src:
     project: src
     host: containerapp
     language: python
-    # Note: Using docker-compose configuration instead of standalone Dockerfile
-    # Refer to docker-compose.yml for container configuration

@@ -4,7 +4,7 @@ Description: Installation wizard service for managing first-time setup and confi
 Author: Barodybroject Team <team@example.com>
 Created: 2025-10-30
 Last Modified: 2025-10-30
-Version: 1.0.0
+Version: 0.2.0
 
 Dependencies:
 - django: >=4.2
@@ -215,10 +215,9 @@ class InstallationService:
             installation_data = {
                 'completed': True,
                 'completed_at': timezone.now().isoformat(),
-                'admin_created': bool(admin_user_id),
-                'admin_user_id': admin_user_id,
+                'admin_created': self.admin_user_created,
                 'installation_id': secrets.token_hex(16),
-                'version': '1.0.0'
+                'version': '0.2.0'
             }
             
             with open(self.installation_file, 'w') as f:
@@ -253,7 +252,7 @@ class InstallationService:
                 'has_admin_user': has_admin_user,
                 'admin_created_during_install': installation_data.get('admin_created', False),
                 'installation_id': installation_data.get('installation_id'),
-                'version': installation_data.get('version', '1.0.0')
+                'version': installation_data.get('version', '0.2.0')
             }
         except Exception as e:
             logger.error(f"Error getting installation status: {e}")
@@ -263,7 +262,7 @@ class InstallationService:
                 'has_admin_user': False,
                 'admin_created_during_install': False,
                 'installation_id': None,
-                'version': '1.0.0',
+                'version': '0.2.0',
                 'error': str(e)
             }
     

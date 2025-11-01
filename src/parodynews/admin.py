@@ -1,5 +1,6 @@
 # parodynews/admin.py
-from cms.admin.placeholderadmin import FrontendEditableAdminMixin
+# CMS admin import temporarily disabled - uncomment when CMS is re-enabled
+# from cms.admin.placeholderadmin import FrontendEditableAdminMixin
 from django import forms
 from django.contrib import admin, messages
 from django.core.management import call_command
@@ -9,28 +10,12 @@ from import_export.admin import ImportExportModelAdmin
 from martor.widgets import AdminMartorWidget
 
 # myapp/admin.py
-from .models import (
-    AppConfig,
-    Assistant,
-    AssistantGroup,
-    AssistantGroupMembership,
-    Entry,
-    FieldDefaults,
-    GeneralizedCodes,
-    JSONSchema,
-    OpenAIModel,
-    Post,
-    PostFrontMatter,
-    PostPageConfigModel,
-    PostVersion,
-    PoweredBy,
-)
-from .resources import (
-    AssistantResource,
-    JSONSchemaResource,
-    OpenAIModelResource,
-    PostResource,
-)
+from .models import (  # Entry,  # Temporarily disabled - depends on CMS
+    AppConfig, Assistant, AssistantGroup, AssistantGroupMembership,
+    FieldDefaults, GeneralizedCodes, JSONSchema, OpenAIModel, Post,
+    PostFrontMatter, PostPageConfigModel, PostVersion, PoweredBy)
+from .resources import (AssistantResource, JSONSchemaResource,
+                        OpenAIModelResource, PostResource)
 from .utils import delete_assistant, get_openai_client
 
 print("Registering AppConfig model")
@@ -41,7 +26,7 @@ admin.site.register(PoweredBy)
 admin.site.register(GeneralizedCodes)
 
 admin.site.register(PostFrontMatter)
-admin.site.register(Entry)
+# admin.site.register(Entry)  # Temporarily disabled - depends on CMS
 admin.site.register(PostPageConfigModel)
 # JSON Schema model
 
@@ -216,7 +201,8 @@ class OpenAIModelAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 admin.site.register(OpenAIModel, OpenAIModelAdmin)
 
 
-class PostAdmin(FrontendEditableAdminMixin, ImportExportModelAdmin, admin.ModelAdmin):
+# Removed FrontendEditableAdminMixin - CMS temporarily disabled
+class PostAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     # frontend_editable_fields = ("post_content",)
     resource_class = PostResource
     list_display = (
@@ -239,17 +225,20 @@ class PostAdmin(FrontendEditableAdminMixin, ImportExportModelAdmin, admin.ModelA
 admin.site.register(Post, PostAdmin)
 
 
-class PostFrontMatterAdmin(FrontendEditableAdminMixin, admin.ModelAdmin):
-    frontend_editable_fields = ("title", "description", "author", "date", "tags")
+# Removed FrontendEditableAdminMixin - CMS temporarily disabled
+class PostFrontMatterAdmin(admin.ModelAdmin):
+    # frontend_editable_fields = ("title", "description", "author", "date", "tags")
+    pass  # Placeholder to maintain admin registration
 
 
-class EntryAdmin(admin.ModelAdmin):
-    list_display = (
-        "title",
-        "content_text",
-        "app_config",
-    )
-    list_filter = ("app_config",)
+# EntryAdmin temporarily disabled - Entry model depends on CMS
+# class EntryAdmin(admin.ModelAdmin):
+#     list_display = (
+#         "title",
+#         "content_text",
+#         "app_config",
+#     )
+#     list_filter = ("app_config",)
 
 
 class FaqConfigAdmin(admin.ModelAdmin):

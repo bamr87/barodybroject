@@ -17,17 +17,17 @@ TODO: Add embeddings functionality [https://platform.openai.com/docs/guides/embe
 {% endcomment %}
 
 <!DOCTYPE html>
-{% load cms_tags menu_tags sekizai_tags static i18n %}{% spaceless %}
+{% load static i18n %}{% spaceless %}
 <html lang="{{ LANGUAGE_CODE }}" data-bs-theme="auto">
     <head>
         <meta charset="utf-8"/>
         <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
         {% block meta %}
-            <meta name="description" content="{% page_attribute meta_description %}"/>
+            <meta name="description" content="AI-powered parody news generator using Django and OpenAI"/>
             <meta property="og:type" content="website"/>
-            <meta property="og:title" content="{% page_attribute "page_title" %}"/>
-            <meta property="og:description" content="{% page_attribute meta_description %}"/>
+            <meta property="og:title" content="Barody Broject"/>
+            <meta property="og:description" content="AI-powered parody news generator using Django and OpenAI"/>
         {% endblock meta %}
         {% block canonical_url %}
             <link rel="canonical" href="{{ request.build_absolute_uri }}"/>
@@ -35,7 +35,7 @@ TODO: Add embeddings functionality [https://platform.openai.com/docs/guides/embe
         {% endblock canonical_url %}
         {% block fb_meta %}{% endblock fb_meta %}
         <title>
-            {% block title %}{% page_attribute "page_title" %} | Barody Broject{% endblock %}
+            {% block title %}Barody Broject | AI Parody News{% endblock %}
         </title>
         {% block base_css %}
             <!-- Bootstrap 5.3.3 -->
@@ -84,14 +84,14 @@ TODO: Add embeddings functionality [https://platform.openai.com/docs/guides/embe
             </style>
         {% endblock %}
         {% endspaceless %}
-            {% render_block 'css' %}
+            {% comment %} CMS render_block disabled {% endcomment %}
         {% spaceless %}
         {% block page_head %}{% endblock %}
     </head>
 
     <body {% block body_attrs %}{% endblock %}>
     {% endspaceless %}
-        {% cms_toolbar %}
+        {% comment %} CMS toolbar disabled {% endcomment %}
     {% spaceless %}
 
         <!-- Navigation Bar -->
@@ -114,7 +114,7 @@ TODO: Add embeddings functionality [https://platform.openai.com/docs/guides/embe
                     
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         {% block menubar %}
-                            {% show_menu 0 100 0 100 'menu/meno.html' %}
+                            {% comment %} CMS menu disabled - replace with static navigation {% endcomment %}
                         {% endblock %}
                         <li class="nav-item">
                             <a class="nav-link" href="/content/">Content</a>
@@ -267,7 +267,7 @@ TODO: Add embeddings functionality [https://platform.openai.com/docs/guides/embe
 
                 <!-- Page Content -->
                 {% block content %}
-                    {% placeholder "content" %}
+                    {% comment %} CMS placeholder disabled {% endcomment %}
                 {% endblock content %}
             {% endblock body %}
             {% block extra_body %}{% endblock extra_body %}
@@ -343,7 +343,7 @@ TODO: Add embeddings functionality [https://platform.openai.com/docs/guides/embe
             <script src="{% static 'js/table_utils.js' %}"></script>
         {% endblock %}
 
-        {% endspaceless %}{% render_block 'js' %}{% spaceless %}
+        {% endspaceless %}{% comment %} CMS render_block disabled {% endcomment %}{% spaceless %}
         {% block end_js %}{% endblock %}
         {% block bottom_css %}{% endblock %}
     </body>
