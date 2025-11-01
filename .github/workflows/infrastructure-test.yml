@@ -167,18 +167,18 @@ jobs:
       - name: Build and start Docker services
         run: |
           echo "🐳 Building and starting Docker services..."
-          docker-compose -f .devcontainer/docker-compose_dev.yml build --parallel
-          docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+          docker compose -f .devcontainer/docker-compose_dev.yml build --parallel
+          docker compose -f .devcontainer/docker-compose_dev.yml up -d
 
       - name: Wait for services to be ready
         run: |
           echo "⏳ Waiting for services to initialize..."
           
           # Wait for PostgreSQL
-          timeout 60 bash -c 'until docker-compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb pg_isready -U test_user -d test_db; do sleep 2; done'
+          timeout 60 bash -c 'until docker compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb pg_isready -U test_user -d test_db; do sleep 2; done'
           
           # Wait for Python container
-          timeout 60 bash -c 'until docker-compose -f .devcontainer/docker-compose_dev.yml exec -T python echo "Ready"; do sleep 2; done'
+          timeout 60 bash -c 'until docker compose -f .devcontainer/docker-compose_dev.yml exec -T python echo "Ready"; do sleep 2; done'
           
           echo "✅ Services are ready"
 
@@ -213,17 +213,17 @@ jobs:
           
           # Get Docker logs
           echo "🐳 Collecting Docker container logs..."
-          docker-compose -f .devcontainer/docker-compose_dev.yml logs --no-color > artifacts/logs/docker-compose.log 2>&1 || echo "Failed to collect Docker logs"
+          docker compose -f .devcontainer/docker-compose_dev.yml logs --no-color > artifacts/logs/docker-compose.log 2>&1 || echo "Failed to collect Docker logs"
           
           # Get individual container logs
-          docker-compose -f .devcontainer/docker-compose_dev.yml logs --no-color python > artifacts/logs/python-container.log 2>&1 || echo "Failed to collect Python logs"
-          docker-compose -f .devcontainer/docker-compose_dev.yml logs --no-color barodydb > artifacts/logs/postgres-container.log 2>&1 || echo "Failed to collect PostgreSQL logs"
-          docker-compose -f .devcontainer/docker-compose_dev.yml logs --no-color jekyll > artifacts/logs/jekyll-container.log 2>&1 || echo "Failed to collect Jekyll logs"
+          docker compose -f .devcontainer/docker-compose_dev.yml logs --no-color python > artifacts/logs/python-container.log 2>&1 || echo "Failed to collect Python logs"
+          docker compose -f .devcontainer/docker-compose_dev.yml logs --no-color barodydb > artifacts/logs/postgres-container.log 2>&1 || echo "Failed to collect PostgreSQL logs"
+          docker compose -f .devcontainer/docker-compose_dev.yml logs --no-color jekyll > artifacts/logs/jekyll-container.log 2>&1 || echo "Failed to collect Jekyll logs"
           
           # Get system information
           echo "🔍 Collecting system information..."
           docker system df > artifacts/logs/docker-system-info.log 2>&1 || echo "Failed to collect Docker system info"
-          docker-compose -f .devcontainer/docker-compose_dev.yml ps > artifacts/logs/container-status.log 2>&1 || echo "Failed to collect container status"
+          docker compose -f .devcontainer/docker-compose_dev.yml ps > artifacts/logs/container-status.log 2>&1 || echo "Failed to collect container status"
           
           echo "📁 Log collection completed"
 
@@ -255,7 +255,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📊 Container Status" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          docker-compose -f .devcontainer/docker-compose_dev.yml ps >> $GITHUB_STEP_SUMMARY 2>&1 || echo "Failed to get container status" >> $GITHUB_STEP_SUMMARY
+          docker compose -f .devcontainer/docker-compose_dev.yml ps >> $GITHUB_STEP_SUMMARY 2>&1 || echo "Failed to get container status" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -267,7 +267,7 @@ jobs:
         if: always() && github.event.inputs.skip_cleanup != 'true'
         run: |
           echo "🧹 Cleaning up Docker environment..."
-          docker-compose -f .devcontainer/docker-compose_dev.yml down -v --remove-orphans || echo "Cleanup completed with warnings"
+          docker compose -f .devcontainer/docker-compose_dev.yml down -v --remove-orphans || echo "Cleanup completed with warnings"
           docker system prune -f || echo "Docker system prune completed"
 
   # Unit tests validation (separate job for parallel execution)

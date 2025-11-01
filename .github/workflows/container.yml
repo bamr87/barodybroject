@@ -20,6 +20,7 @@ jobs:
   validate-compose:
     name: Validate Docker Compose
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     steps:
       - name: Checkout code
@@ -71,6 +72,7 @@ jobs:
   build-services:
     name: Build Services
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     needs: validate-compose
     
     strategy:
@@ -108,11 +110,17 @@ jobs:
           # Start dependencies if needed
           if [ "${{ matrix.service }}" = "python" ]; then
             docker compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
-            sleep 10
+            # Wait for database to be healthy (let Docker's healthcheck handle it)
+            timeout 60 bash -c 'until [ "$(docker inspect --format="{{.State.Health.Status}}" $(docker compose -f .devcontainer/docker-compose_dev.yml ps -q barodydb))" = "healthy" ]; do echo "Waiting for database..."; sleep 2; done'
+            echo "✓ Database is healthy"
           fi
           
-          # Test service can start
-          docker compose -f .devcontainer/docker-compose_dev.yml run --rm ${{ matrix.service }} --version || true
+          # Test service can start with appropriate command
+          if [ "${{ matrix.service }}" = "python" ]; then
+            docker compose -f .devcontainer/docker-compose_dev.yml run --rm ${{ matrix.service }} python --version
+          elif [ "${{ matrix.service }}" = "jekyll" ]; then
+            docker compose -f .devcontainer/docker-compose_dev.yml run --rm ${{ matrix.service }} jekyll --version
+          fi
           
           echo "✓ ${{ matrix.service }} service startup test completed"
       
@@ -125,6 +133,7 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: build-services
     
     steps:
@@ -149,6 +158,7 @@ jobs:
   performance-test:
     name: Performance Test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: build-services
     
     steps:
