@@ -7,7 +7,7 @@ azure-monitor-opentelemetry
 boto3
 
 # django requirements
-Django==4.2.20
+Django==4.2.25
 django-import-export
 django-json-widget
 django-markdownify
