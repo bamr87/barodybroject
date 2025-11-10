@@ -1,0 +1,137 @@
+services:
+  db:
+    image: postgres:12-alpine
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6.2.7-alpine
+    restart: on-failure
+    command: redis-server --maxmemory-policy allkeys-lru --maxmemory ${REDIS_MAX_MEMORY}
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.11.1.2711
+    restart: on-failure
+    depends_on:
+      - kafka
+      - zookeeper
+    volumes:
+      - ./clickhouse/config.xml:/etc/clickhouse-server/config.xml
+      - ./clickhouse/users.xml:/etc/clickhouse-server/users.xml
+      - clickhouse-data:/var/lib/clickhouse
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DATABASE}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    restart: on-failure
+    environment:
+      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
+      ZOOKEEPER_TICK_TIME: ${ZOOKEEPER_TICK_TIME}
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    restart: on-failure
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
+      KAFKA_ZOOKEEPER_CONNECT: ${KAFKA_ZOOKEEPER_CONNECT}
+      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: ${KAFKA_TRANSACTION_STATE_LOG_MIN_ISR}
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR}
+
+  worker:
+    image: posthog/posthog:latest
+    command: ./bin/docker-worker-celery --with-scheduler
+    restart: on-failure
+    environment:
+      IS_BEHIND_PROXY: ${IS_BEHIND_PROXY}
+      DATABASE_URL: ${DATABASE_URL}
+      CLICKHOUSE_HOST: ${CLICKHOUSE_HOST}
+      CLICKHOUSE_DATABASE: ${CLICKHOUSE_DATABASE}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_SECURE: ${CLICKHOUSE_SECURE}
+      CLICKHOUSE_VERIFY: ${CLICKHOUSE_VERIFY}
+      KAFKA_HOSTS: ${KAFKA_HOSTS}
+      REDIS_URL: ${REDIS_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      SITE_URL: ${SITE_URL}
+      DISABLE_SECURE_SSL_REDIRECT: ${DISABLE_SECURE_SSL_REDIRECT}
+      TRUST_ALL_PROXIES: ${TRUST_ALL_PROXIES}
+    depends_on:
+      - db
+      - redis
+      - clickhouse
+      - kafka
+
+  web:
+    image: posthog/posthog:latest
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    restart: on-failure
+    ports:
+      - '${WEB_PORT}:8000'
+    environment:
+      IS_BEHIND_PROXY: ${IS_BEHIND_PROXY}
+      DATABASE_URL: ${DATABASE_URL}
+      CLICKHOUSE_HOST: ${CLICKHOUSE_HOST}
+      CLICKHOUSE_DATABASE: ${CLICKHOUSE_DATABASE}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_SECURE: ${CLICKHOUSE_SECURE}
+      CLICKHOUSE_VERIFY: ${CLICKHOUSE_VERIFY}
+      KAFKA_HOSTS: ${KAFKA_HOSTS}
+      REDIS_URL: ${REDIS_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      POSTHOG_PERSONAL_API_KEY: 'phx_$(openssl rand -hex 16)'
+      SITE_URL: ${SITE_URL}
+      DISABLE_SECURE_SSL_REDIRECT: ${DISABLE_SECURE_SSL_REDIRECT}
+      TRUST_ALL_PROXIES: ${TRUST_ALL_PROXIES}
+    depends_on:
+      - db
+      - redis
+      - clickhouse
+      - kafka
+      - worker
+
+  plugins:
+    image: posthog/posthog:latest
+    command: ./bin/plugin-server --no-restart-loop
+    restart: on-failure
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      KAFKA_HOSTS: ${KAFKA_HOSTS}
+      REDIS_URL: ${REDIS_URL}
+      CLICKHOUSE_HOST: ${CLICKHOUSE_HOST}
+      CLICKHOUSE_DATABASE: ${CLICKHOUSE_DATABASE}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_SECURE: ${CLICKHOUSE_SECURE}
+      CLICKHOUSE_VERIFY: ${CLICKHOUSE_VERIFY}
+      SECRET_KEY: ${SECRET_KEY}
+      SITE_URL: ${SITE_URL}
+      ENCRYPTION_KEYS: ${ENCRYPTION_KEYS}
+      ENCRYPTION_SALT_KEYS: ${ENCRYPTION_SALT_KEYS}
+    depends_on:
+      - db
+      - redis
+      - clickhouse
+      - kafka
+
+volumes:
+  postgres-data:
+  clickhouse-data:
+  zookeeper-data:
+  zookeeper-logs:
