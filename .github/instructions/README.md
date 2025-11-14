@@ -83,24 +83,24 @@ Each instruction file follows this structure:
 
 ```yaml
 ---
-file: filename.instructions.md
-description: Brief description of content
-author: Team name
-created: YYYY-MM-DD
-lastModified: YYYY-MM-DD
-version: X.Y.Z
-applyTo: "file patterns"  # Optional
-dependencies:
-  - other-file.md: Relationship description
-containerRequirements:  # If applicable
-  baseImage: image:tag
-  exposedPorts: ports
-  volumes: volume mounts
-  environment: required env vars
+applyTo: 'file-patterns'  # Required: glob patterns for file matching
 ---
 
-# Content sections with examples
+# Content Title
+
+Brief description of the instruction file's purpose and scope.
+
+## Content sections with examples
+
+---
+
+**Version:** X.Y.Z | **Last Modified:** YYYY-MM-DD | **Author:** Team Name
+
+**Related Files:**
+- `other-file.md`: Relationship description
 ```
+
+**Note:** Per GitHub Copilot documentation, only the `applyTo` field is required in frontmatter. Additional metadata (version, author, etc.) is placed in the document body footer.
 
 ## Container Configuration
 

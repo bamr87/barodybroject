@@ -1,32 +1,10 @@
 ---
-file: features.instructions.md
-description: VS Code Copilot-optimized feature development pipeline for Django/OpenAI applications with CI/CD integration
-author: Barodybroject Team
-created: 2025-10-28
-lastModified: 2025-10-28
-version: 1.0.0
-applyTo: "**"
-dependencies:
-  - copilot-instructions.md: Core principles and project context
-  - languages.instructions.md: Language-specific patterns
-  - workflows.instructions.md: CI/CD pipeline standards
-  - space.instructions.md: Project organization patterns
-containerRequirements:
-  description: "Django feature development optimized for VS Code Copilot assistance"
-  validation: "feature integration validation, AI-readability scoring"
-paths:
-  feature_development_path:
-    - feature_planning
-    - ai_assisted_implementation
-    - django_integration
-    - openai_service_integration
-    - testing_and_validation
-    - deployment_automation
+applyTo: '**/*.py,**/*.js,**/*.ts,**/*.jsx,**/*.tsx,**/*.sh,**/*.bash,.github/workflows/*.yml,.github/workflows/*.yaml'
 ---
 
 # Feature Development Pipeline for Barodybroject
 
-These instructions provide comprehensive guidance for developing features in the Django/OpenAI parody news generator, optimized for VS Code Copilot assistance. They focus on creating robust, scalable features that integrate seamlessly with Django best practices and OpenAI API patterns.
+VS Code Copilot-optimized feature development pipeline for Django/OpenAI applications with CI/CD integration. These instructions provide comprehensive guidance for developing features in the Django/OpenAI parody news generator, optimized for VS Code Copilot assistance. They focus on creating robust, scalable features that integrate seamlessly with Django best practices and OpenAI API patterns.
 
 ## 🤖 VS Code Copilot Integration for Django Feature Development
 
@@ -781,5 +759,13 @@ Brief description of what this feature does and why it exists.
 ```
 
 ---
+
+**Version:** 1.0.0 | **Last Modified:** 2025-10-28 | **Author:** Barodybroject Team
+
+**Related Files:**
+- `copilot-instructions.md`: Core principles and project context
+- `languages.instructions.md`: Language-specific patterns
+- `workflows.instructions.md`: CI/CD pipeline standards
+- `space.instructions.md`: Project organization patterns
 
 *These feature development guidelines ensure that all Barodybroject features are built with Django best practices, robust OpenAI integration, comprehensive testing, and proper CI/CD automation.*

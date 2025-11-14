@@ -1,59 +1,10 @@
 ---
-file: test.instructions.md
-description: VS Code Copilot-optimized testing standards and best practices for Django/OpenAI applications
-author: Barodybroject Team
-created: 2025-10-11
-lastModified: 2025-10-28
-version: 1.1.0
-applyTo: "tests/**/*.py,**/*test*.py"
-dependencies:
-  - copilot-instructions.md: Core principles and VS Code Copilot integration
-  - languages.instructions.md: Python testing patterns and standards
-  - features.instructions.md: Feature development and testing integration
-  - frontmatter.standards.md: Unified metadata and documentation standards
-relatedEvolutions:
-  - "Enhanced Django/OpenAI testing patterns"
-  - "Container-based testing environments"
-  - "AI service mocking and validation strategies"
-containerRequirements:
-  baseImage: python:3.8-slim
-  description: "Django testing environment with PostgreSQL and OpenAI service mocking"
-  exposedPorts:
-    - 8000
-  portDescription: "Django test server for integration testing"
-  volumes:
-    - "/app/tests:rw"
-    - "/app/coverage:rw"
-    - "/app/src:ro"
-  environment:
-    DJANGO_SETTINGS_MODULE: barodybroject.settings.testing
-    DATABASE_URL: postgresql://test_user:test_password@db:5432/test_db
-    OPENAI_API_KEY: mock-key-for-testing
-  resources:
-    cpu: "0.5-1.0"
-    memory: "512MiB-1GiB"
-  healthCheck: "pytest --version command validation"
-paths:
-  testing_workflow_path:
-    - test_planning
-    - unit_test_development
-    - integration_test_creation
-    - api_testing_validation
-    - ui_testing_automation
-    - coverage_analysis
-    - ci_integration
-changelog:
-  - date: "2025-10-28"
-    description: "Enhanced with VS Code Copilot optimization and comprehensive Django/OpenAI testing patterns"
-    author: "Barodybroject Team"
-  - date: "2025-10-11"
-    description: "Initial creation with core testing standards"
-    author: "Barodybroject Team"
-usage: "Reference for all testing activities in Django/OpenAI applications including unit, integration, API, and UI testing"
-notes: "Emphasizes Django testing best practices, OpenAI service mocking, container-based testing, and comprehensive coverage"
+applyTo: 'tests/**/*.py,**/*test*.py,**/test_*.py'
 ---
 
 # Testing Standards
+
+VS Code Copilot-optimized testing standards and best practices for Django/OpenAI applications.
 
 ## Testing Philosophy
 
@@ -1288,3 +1239,15 @@ def test_custom_middleware(client, test_user):
     # Check middleware added custom header
     assert 'X-Custom-Header' in response
 ```
+
+---
+
+**Version:** 1.1.0 | **Last Modified:** 2025-10-28 | **Author:** Barodybroject Team
+
+**Related Files:**
+- `copilot-instructions.md`: Core principles and VS Code Copilot integration
+- `languages.instructions.md`: Python testing patterns and standards
+- `features.instructions.md`: Feature development and testing integration
+- `frontmatter.standards.md`: Unified metadata and documentation standards
+
+**Usage:** Reference for all testing activities in Django/OpenAI applications including unit, integration, API, and UI testing. Emphasizes Django testing best practices, OpenAI service mocking, container-based testing, and comprehensive coverage.

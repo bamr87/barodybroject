@@ -1,54 +1,10 @@
 ---
-file: languages.instructions.md
-description: VS Code Copilot-optimized language-specific coding standards for Python/Django, JavaScript, and Bash development
-author: Barodybroject Team
-created: 2025-10-11
-lastModified: 2025-10-28
-version: 1.1.0
-applyTo: "**/*.py,**/*.js,**/*.sh,**/*.bash"
-dependencies:
-  - copilot-instructions.md: Core principles and VS Code Copilot integration
-  - space.instructions.md: Project organization and workspace standards
-  - features.instructions.md: Feature development patterns
-containerRequirements:
-  baseImage: python:3.8-slim, node:18-alpine
-  description: "Multi-language development environment for Django/OpenAI applications"
-  exposedPorts:
-    - 8000
-    - 4002
-  portDescription: "Django development server and Jekyll static site server"
-  volumes:
-    - "/app/src:rw"
-    - "/app/static:rw"
-    - "/app/templates:rw"
-  environment:
-    DJANGO_SETTINGS_MODULE: barodybroject.settings
-    PYTHONUNBUFFERED: 1
-    OPENAI_API_KEY: required
-  resources:
-    cpu: "0.5-1.0"
-    memory: "512MiB-1GiB"
-  healthCheck: "/health endpoint on Django development server"
-paths:
-  language_development_path:
-    - python_django_patterns
-    - javascript_frontend_integration
-    - bash_automation_scripts
-    - openai_service_integration
-    - testing_and_validation
-    - deployment_automation
-changelog:
-  - date: "2025-10-28"
-    description: "Enhanced with VS Code Copilot optimization and Django/OpenAI specific patterns"
-    author: "Barodybroject Team"
-  - date: "2025-10-11"
-    description: "Initial creation with core language standards"
-    author: "Barodybroject Team"
+applyTo: '**/*.py,**/*.js,**/*.mjs,**/*.cjs,**/*.sh,**/*.bash'
 ---
 
 # Language-Specific Coding Standards
 
-Apply the [general coding guidelines](../copilot-instructions.md) to all code.
+VS Code Copilot-optimized language-specific coding standards for Python/Django, JavaScript, and Bash development. Apply the [general coding guidelines](../copilot-instructions.md) to all code.
 
 ## Python/Django Development
 
@@ -1167,3 +1123,11 @@ class ArticleGenerator {
 7. Follow project conventions consistently
 8. Review security implications of all changes
 
+---
+
+**Version:** 1.1.0 | **Last Modified:** 2025-10-28 | **Author:** Barodybroject Team
+
+**Related Files:**
+- `copilot-instructions.md`: Core principles and VS Code Copilot integration
+- `space.instructions.md`: Project organization and workspace standards
+- `features.instructions.md`: Feature development patterns

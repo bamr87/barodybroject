@@ -1,29 +1,10 @@
 ---
-file: space.instructions.md
-description: VS Code Copilot-optimized workspace organization and project structure guidelines for Django/OpenAI development
-author: Barodybroject Team
-created: 2025-10-28
-lastModified: 2025-10-28
-version: 1.0.0
-applyTo: "**"
-dependencies:
-  - copilot-instructions.md: Core principles and project context
-  - languages.instructions.md: Language-specific patterns
-containerRequirements:
-  description: "Django development workspace optimized for VS Code Copilot assistance"
-  validation: "project-structure validation, AI-readability scoring"
-paths:
-  django_organization_path:
-    - project_structure_design
-    - ai_assisted_organization
-    - django_app_architecture
-    - workspace_optimization
-    - continuous_improvement
+applyTo: '**/*'
 ---
 
 # Workspace Organization Guidelines for Barodybroject
 
-These instructions provide comprehensive guidance for organizing Django/OpenAI workspaces and implementing project structure best practices optimized for VS Code Copilot assistance. They focus on creating clear, navigable project structures that enhance AI understanding and collaboration throughout the Django development process.
+VS Code Copilot-optimized workspace organization and project structure guidelines for Django/OpenAI development. These instructions provide comprehensive guidance for organizing Django/OpenAI workspaces and implementing project structure best practices optimized for VS Code Copilot assistance. They focus on creating clear, navigable project structures that enhance AI understanding and collaboration throughout the Django development process.
 
 ## 🤖 VS Code Copilot Integration for Django Workspace Organization
 
@@ -255,5 +236,11 @@ src/barodybroject/
 - Include Django management command documentation and usage examples
 
 ---
+
+**Version:** 1.0.0 | **Last Modified:** 2025-10-28 | **Author:** Barodybroject Team
+
+**Related Files:**
+- `copilot-instructions.md`: Core principles and project context
+- `languages.instructions.md`: Language-specific patterns
 
 *These workspace organization guidelines ensure that the Barodybroject Django project is optimally structured for VS Code Copilot assistance while maintaining Django best practices and supporting OpenAI integration patterns.*

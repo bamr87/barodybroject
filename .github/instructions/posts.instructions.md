@@ -1,40 +1,10 @@
 ---
-file: posts.instructions.md
-description: VS Code Copilot-optimized content creation standards for Django/OpenAI development blog and technical documentation
-author: Barodybroject Team
-created: 2025-10-28
-lastModified: 2025-10-28
-version: 1.0.0
-applyTo: "src/pages/_posts/**/*.md"
-dependencies:
-  - copilot-instructions.md: Core principles and project context
-  - documentation.instructions.md: Markdown formatting standards
-  - features.instructions.md: Feature development patterns
-containerRequirements:
-  baseImage: jekyll/jekyll:latest
-  description: "Jekyll development environment for content creation"
-  exposedPorts:
-    - 4002
-  portDescription: "Jekyll development server for blog content"
-  volumes:
-    - "/pages:rw"
-    - "/assets:rw"
-  environment:
-    JEKYLL_ENV: development
-    CONTENT_VALIDATION: enabled
-paths:
-  content_creation_path:
-    - research_and_planning
-    - drafting
-    - technical_validation
-    - review_and_editing
-    - publication
-    - community_engagement
+applyTo: 'src/pages/_posts/**/*.md'
 ---
 
 # Content Creation Instructions for Barodybroject
 
-These instructions provide comprehensive guidance for creating high-quality technical content that documents Django/OpenAI development experiences and shares valuable insights about AI-powered web application development. Posts serve as both learning resources and development chronicles for the Barodybroject community.
+VS Code Copilot-optimized content creation standards for Django/OpenAI development blog and technical documentation. These instructions provide comprehensive guidance for creating high-quality technical content that documents Django/OpenAI development experiences and shares valuable insights about AI-powered web application development. Posts serve as both learning resources and development chronicles for the Barodybroject community.
 
 ## 🤖 VS Code Copilot Integration for Content Creation
 
@@ -663,5 +633,12 @@ CACHES = {
 - Build networks of Django/OpenAI practitioners
 
 ---
+
+**Version:** 1.0.0 | **Last Modified:** 2025-10-28 | **Author:** Barodybroject Team
+
+**Related Files:**
+- `copilot-instructions.md`: Core principles and project context
+- `documentation.instructions.md`: Markdown formatting standards
+- `features.instructions.md`: Feature development patterns
 
 *These content creation instructions ensure that all Barodybroject technical content maintains high standards for accuracy, educational value, and practical applicability while supporting the Django/OpenAI development community.*

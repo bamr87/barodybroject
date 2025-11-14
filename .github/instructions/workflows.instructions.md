@@ -1,54 +1,10 @@
 ---
-file: workflows.instructions.md
-description: VS Code Copilot-optimized GitHub Actions workflow standards for Django/OpenAI CI/CD automation
-author: Barodybroject Team
-created: 2025-10-11
-lastModified: 2025-10-28
-version: 1.1.0
-applyTo: "**/.github/workflows/*.yml,**/.github/workflows/*.yaml"
-dependencies:
-  - copilot-instructions.md: Core principles and VS Code Copilot integration
-  - languages.instructions.md: Script execution standards and automation patterns
-  - test.instructions.md: Testing automation and validation workflows
-  - features.instructions.md: Feature development pipeline integration
-  - frontmatter.standards.md: Unified metadata and documentation standards
-relatedEvolutions:
-  - "Enhanced Django/OpenAI CI/CD pipeline patterns"
-  - "Azure Container Apps deployment automation"
-  - "AI service testing and validation workflows"
-containerRequirements:
-  baseImage: ubuntu-latest
-  description: "GitHub Actions runner environment for Django/OpenAI CI/CD pipelines"
-  services:
-    - "postgres:15 for database testing"
-    - "redis:alpine for caching tests"
-  environment:
-    DJANGO_SETTINGS_MODULE: barodybroject.settings.testing
-    DATABASE_URL: postgresql://test_user:test_password@postgres:5432/test_db
-    OPENAI_API_KEY: mock-key-for-ci-testing
-    AZURE_CLIENT_ID: required-for-deployment
-    AZURE_TENANT_ID: required-for-deployment
-    AZURE_SUBSCRIPTION_ID: required-for-deployment
-paths:
-  ci_cd_workflow_path:
-    - code_quality_validation
-    - automated_testing
-    - security_scanning
-    - container_building
-    - azure_deployment
-    - monitoring_and_alerting
-changelog:
-  - date: "2025-10-28"
-    description: "Enhanced with VS Code Copilot optimization and comprehensive Django/OpenAI CI/CD patterns"
-    author: "Barodybroject Team"
-  - date: "2025-10-11"
-    description: "Initial creation with core GitHub Actions workflow standards"
-    author: "Barodybroject Team"
-usage: "Reference for all GitHub Actions workflows, CI/CD automation, and deployment pipelines for Django/OpenAI applications"
-notes: "Emphasizes Django testing automation, OpenAI service validation, Azure deployment patterns, and container-first CI/CD"
+applyTo: '.github/workflows/*.yml,.github/workflows/*.yaml'
 ---
 
 # GitHub Actions Workflow Standards
+
+VS Code Copilot-optimized GitHub Actions workflow standards for Django/OpenAI CI/CD automation.
 
 ## Workflow Structure and Organization
 
@@ -921,3 +877,15 @@ Add debug steps in workflows:
     ls -la
 ```
 
+---
+
+**Version:** 1.1.0 | **Last Modified:** 2025-10-28 | **Author:** Barodybroject Team
+
+**Related Files:**
+- `copilot-instructions.md`: Core principles and VS Code Copilot integration
+- `languages.instructions.md`: Script execution standards and automation patterns
+- `test.instructions.md`: Testing automation and validation workflows
+- `features.instructions.md`: Feature development pipeline integration
+- `frontmatter.standards.md`: Unified metadata and documentation standards
+
+**Usage:** Reference for all GitHub Actions workflows, CI/CD automation, and deployment pipelines for Django/OpenAI applications. Emphasizes Django testing automation, OpenAI service validation, Azure deployment patterns, and container-first CI/CD.

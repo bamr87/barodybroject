@@ -1,0 +1,15 @@
+features:
+  - id: BARC-001
+    title: "OpenAI service integration"
+    description: "OpenAI API service layer with retry handling and caching"
+    implemented: true
+    link: "/src/services/openai_service.py"
+    tags: [openai, api]
+    date: 2025-10-28
+  - id: BARC-002
+    title: "Django feature testing and CI"
+    description: "Feature test workflow with GitHub Actions for Django features"
+    implemented: true
+    link: "/.github/workflows/feature-test.yml"
+    tags: [ci, django, testing]
+    date: 2025-10-28

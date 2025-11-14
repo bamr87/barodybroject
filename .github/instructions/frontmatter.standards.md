@@ -1,22 +1,12 @@
 ---
-file: frontmatter.standards.md
-description: Unified frontmatter standards and metadata structures for instruction files across all repositories
-author: Barodybroject Team
-created: 2025-10-28
-lastModified: 2025-10-28
-version: 1.0.0
-applyTo: "**/*.md"
-dependencies:
-  - copilot-instructions.md: Core principles and VS Code Copilot integration
-relatedEvolutions:
-  - "Harmonized frontmatter standards across IT-Journey ecosystem"
-  - "VS Code Copilot optimization for instruction file metadata"
-  - "Unified documentation structure and cross-referencing"
+applyTo: '**/*.md'
 ---
 
 # Unified Frontmatter Standards
 
-This document defines the standardized frontmatter structure and metadata requirements for instruction files across all repositories in the ecosystem (IT-Journey, Barodybroject, Zer0-Mistakes).
+Unified frontmatter standards and metadata structures for instruction files across all repositories. This document defines the standardized frontmatter structure and metadata requirements for instruction files across all repositories in the ecosystem (IT-Journey, Barodybroject, Zer0-Mistakes).
+
+**Note:** This document describes extended frontmatter patterns used in this repository. For GitHub Copilot path-specific instructions, only the `applyTo` field is required in frontmatter. Additional metadata should be placed in the document body.
 
 ## 🎯 Frontmatter Philosophy
 
@@ -285,5 +275,12 @@ Every instruction file frontmatter MUST:
 5. **Document Relationships**: Clearly define how repositories relate
 
 ---
+
+**Version:** 1.0.0 | **Last Modified:** 2025-10-28 | **Author:** Barodybroject Team
+
+**Related Files:**
+- `copilot-instructions.md`: Core principles and VS Code Copilot integration
+
+**Note:** This document describes extended frontmatter patterns. For GitHub Copilot path-specific instructions, only the `applyTo` field is required in frontmatter per the [official documentation](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions).
 
 *These frontmatter standards ensure consistency, maintainability, and AI-optimization across all instruction files in the ecosystem while supporting the unique needs of each repository.*
