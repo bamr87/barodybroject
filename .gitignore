@@ -190,3 +190,11 @@ package.json
 .azure
 src/parodynews/migrations/0*
 src/.installation
+
+# Documentation cleanup temporary files
+*.md.bak
+docs/temp/
+*.backup
+
+# Script execution logs
+organize_docs.log

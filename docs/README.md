@@ -96,3 +96,25 @@ This documentation follows the **README-First, README-Last** principle:
 **Version**: 1.0.0
 
 *This documentation is designed to support both human developers and AI assistants in understanding and contributing to the Barodybroject Django/OpenAI application.*
+
+# Project Documentation
+
+## Migration & Infrastructure
+- [v0.2.0 Migration Guide](./migration/v0.2.0-guide.md) - Comprehensive database and template migration guide
+- [Infrastructure Changes](./infrastructure/v0.2.0-changes.md) - Azure Container Apps deployment details
+- [CMS Removal Guide](./migration/cms-removal.md) - Django CMS removal documentation
+
+## Deployment
+- [Deployment Success Report](./reports/v0.2.0-deployment-success.md) - Validation of successful Azure deployment
+- [Minimal Deployment Guide](./deployment/minimal-guide.md) - Quick start deployment instructions
+
+## Troubleshooting
+- [Azure Quota Solutions](./troubleshooting/azure-quota.md) - Solutions for Azure subscription limitations
+
+## Reports
+- [Workflow Review (Oct 2025)](./reports/workflow-review-2025-10.md) - GitHub Actions workflow fixes and improvements
+
+## Quick Links
+- [Main README](../README.md) - Project overview
+- [CHANGELOG](../CHANGELOG.md) - Version history
+- [Docker Documentation](../docker/README.md) - Container setup guides
