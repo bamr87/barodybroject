@@ -402,7 +402,7 @@ This approach demonstrates a pragmatic balance between immediate deployment need
 ---
 
 **Related Documentation:**
-- [DEPLOYMENT-SUCCESS.md](DEPLOYMENT-SUCCESS.md) - Results of successful deployment
-- [DEPLOYMENT-GUIDE-MINIMAL.md](DEPLOYMENT-GUIDE-MINIMAL.md) - Deployment instructions
+- [DEPLOYMENT-SUCCESS.md](../deployment/DEPLOYMENT-SUCCESS.md) - Results of successful deployment
+- [DEPLOYMENT-GUIDE-MINIMAL.md](../deployment/DEPLOYMENT-GUIDE-MINIMAL.md) - Deployment instructions
 - [CHANGELOG.md](CHANGELOG.md) - Complete version history
 - [README.md](README.md) - Updated project overview

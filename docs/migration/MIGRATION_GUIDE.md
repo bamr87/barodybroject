@@ -705,7 +705,7 @@ This migration sets the foundation for future development with a streamlined, co
 
 **Related Documentation:**
 - [CHANGELOG.md](CHANGELOG.md) - Complete version history
-- [CMS_REMOVAL_GUIDE.md](CMS_REMOVAL_GUIDE.md) - Detailed CMS removal documentation
-- [INFRASTRUCTURE_CHANGES.md](INFRASTRUCTURE_CHANGES.md) - Infrastructure evolution details
-- [DEPLOYMENT-SUCCESS.md](DEPLOYMENT-SUCCESS.md) - Deployment validation results
-- [DEPLOYMENT-GUIDE-MINIMAL.md](DEPLOYMENT-GUIDE-MINIMAL.md) - Deployment instructions
+- [CMS_REMOVAL_GUIDE.md](./CMS_REMOVAL_GUIDE.md) - Detailed CMS removal documentation
+- [INFRASTRUCTURE_CHANGES.md](../deployment/INFRASTRUCTURE_CHANGES.md) - Infrastructure evolution details
+- [DEPLOYMENT-SUCCESS.md](../deployment/DEPLOYMENT-SUCCESS.md) - Deployment validation results
+- [DEPLOYMENT-GUIDE-MINIMAL.md](../deployment/DEPLOYMENT-GUIDE-MINIMAL.md) - Deployment instructions

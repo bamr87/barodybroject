@@ -481,8 +481,8 @@ This infrastructure foundation provides a solid base for future application deve
 ---
 
 **Related Documentation:**
-- [DEPLOYMENT-SUCCESS.md](DEPLOYMENT-SUCCESS.md) - Deployment results and validation
-- [DEPLOYMENT-GUIDE-MINIMAL.md](DEPLOYMENT-GUIDE-MINIMAL.md) - Step-by-step deployment instructions
-- [QUOTA_ISSUE_SOLUTIONS.md](QUOTA_ISSUE_SOLUTIONS.md) - Troubleshooting guide
-- [CMS_REMOVAL_GUIDE.md](CMS_REMOVAL_GUIDE.md) - CMS removal documentation
+- [DEPLOYMENT-SUCCESS.md](./DEPLOYMENT-SUCCESS.md) - Deployment results and validation
+- [DEPLOYMENT-GUIDE-MINIMAL.md](./DEPLOYMENT-GUIDE-MINIMAL.md) - Step-by-step deployment instructions
+- [QUOTA_ISSUE_SOLUTIONS.md](./QUOTA_ISSUE_SOLUTIONS.md) - Troubleshooting guide
+- [CMS_REMOVAL_GUIDE.md](../migration/CMS_REMOVAL_GUIDE.md) - CMS removal documentation
 - [CHANGELOG.md](CHANGELOG.md) - Complete version history

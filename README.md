@@ -809,7 +809,7 @@ For configuration options, see the comprehensive **[.env.example](.env.example)*
 
 ### Deployment Success
 
-This project has been successfully deployed to Azure Container Apps using a minimal cost infrastructure approach. See [DEPLOYMENT-SUCCESS.md](DEPLOYMENT-SUCCESS.md) for detailed deployment results and [DEPLOYMENT-GUIDE-MINIMAL.md](DEPLOYMENT-GUIDE-MINIMAL.md) for step-by-step instructions.
+This project has been successfully deployed to Azure Container Apps using a minimal cost infrastructure approach. See [DEPLOYMENT-SUCCESS.md](docs/deployment/DEPLOYMENT-SUCCESS.md) for detailed deployment results and [DEPLOYMENT-GUIDE-MINIMAL.md](docs/deployment/DEPLOYMENT-GUIDE-MINIMAL.md) for step-by-step instructions.
 
 **Key Achievements:**
 - ✅ Live production application running on Azure Container Apps
@@ -846,7 +846,7 @@ Choose your deployment approach based on needs:
 ### Troubleshooting
 
 If you encounter quota issues or deployment problems:
-- See [QUOTA_ISSUE_SOLUTIONS.md](QUOTA_ISSUE_SOLUTIONS.md) for comprehensive troubleshooting
+- See [QUOTA_ISSUE_SOLUTIONS.md](docs/deployment/QUOTA_ISSUE_SOLUTIONS.md) for comprehensive troubleshooting
 - Use Container Apps as alternative to App Service quota limitations
 - Reference minimal cost Bicep templates for budget-conscious deployments
 
@@ -859,9 +859,9 @@ The successful deployment uses:
 - **Azure Developer CLI**: Streamlined deployment and management
 
 For complete deployment documentation, see:
-- [DEPLOYMENT-SUCCESS.md](DEPLOYMENT-SUCCESS.md) - Deployment results and validation
-- [DEPLOYMENT-GUIDE-MINIMAL.md](DEPLOYMENT-GUIDE-MINIMAL.md) - Step-by-step instructions
-- [QUOTA_ISSUE_SOLUTIONS.md](QUOTA_ISSUE_SOLUTIONS.md) - Troubleshooting guide
+- [DEPLOYMENT-SUCCESS.md](docs/deployment/DEPLOYMENT-SUCCESS.md) - Deployment results and validation
+- [DEPLOYMENT-GUIDE-MINIMAL.md](docs/deployment/DEPLOYMENT-GUIDE-MINIMAL.md) - Step-by-step instructions
+- [QUOTA_ISSUE_SOLUTIONS.md](docs/deployment/QUOTA_ISSUE_SOLUTIONS.md) - Troubleshooting guide
 
 ## Deployment Success
 
@@ -895,7 +895,7 @@ The deployment process overcame initial quota limitations through:
 3. **Systematic Debugging**: Comprehensive troubleshooting documentation
 4. **CMS Simplification**: Streamlined Django architecture
 
-For complete deployment details, see [DEPLOYMENT-SUCCESS.md](DEPLOYMENT-SUCCESS.md).
+For complete deployment details, see [DEPLOYMENT-SUCCESS.md](docs/deployment/DEPLOYMENT-SUCCESS.md).
 
 ## Cost Optimization
 
@@ -930,7 +930,7 @@ This project implements a cost-conscious approach to Azure deployment, targeting
 - Environment-specific resource sizing
 - Optional premium features for scaling up
 
-For detailed cost analysis and optimization strategies, see [QUOTA_ISSUE_SOLUTIONS.md](QUOTA_ISSUE_SOLUTIONS.md).
+For detailed cost analysis and optimization strategies, see [QUOTA_ISSUE_SOLUTIONS.md](docs/deployment/QUOTA_ISSUE_SOLUTIONS.md).
 
 ## Testing
 
