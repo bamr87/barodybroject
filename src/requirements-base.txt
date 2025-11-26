@@ -1,7 +1,7 @@
-# Production requirements with pinned versions
+# requirements-base.txt
+# Core production dependencies with pinned versions
 # Last updated: 2025-11-24
 # Python: >=3.10 (required for Django 5.1)
-# For base dependencies only, see requirements-base.txt
 
 # Web Server
 gunicorn==23.0.0
@@ -43,19 +43,3 @@ pygithub==2.5.0
 
 # AI Integration
 openai==1.57.2
-
-# django-cms requirements - Temporarily disabled for CI
-# TODO: Re-enable CMS functionality after resolving dependency issues
-# django-cms>=4.1.0
-# django-sekizai>=4.1.0
-# django-treebeard>=4.7.1
-# django-filer>=3.2.0
-# django-polymorphic>=3.1.0
-# easy-thumbnails>=2.9.0
-# Pillow>=11.0.0
-# djangocms-text-ckeditor>=5.1.6
-# djangocms-link>=3.1.1
-# djangocms-frontend>=1.3.5
-# djangocms-versioning>=2.0.2
-# djangocms-alias>=2.0.1
-# djangocms-admin-style>=3.3.2

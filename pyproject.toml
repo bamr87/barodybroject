@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "barodybroject"
-version = "0.2.0"
+version = "0.3.0"
 description = "A Django-based parody news generator with AI integration - Successfully deployed on Azure Container Apps"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "GPL-3.0-or-later" }
 authors = [
   { name = "bamr87", email = "bamr87@users.noreply.github.com" }
@@ -18,75 +18,56 @@ classifiers = [
   "Development Status :: 4 - Beta",
   "Environment :: Web Environment",
   "Framework :: Django",
+  "Framework :: Django :: 5.1",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
 ]
-# Dependencies - let pip resolve versions automatically
+# Dependencies with version constraints for compatibility
 dependencies = [
   # Web server
-  "gunicorn",
+  "gunicorn>=23.0.0,<24.0.0",
   
-  # Django framework
-  "Django",
-  "djangorestframework",
-  "django-environ",
-  
-  # Django CMS Core
-  "django-cms",
-  "djangocms-admin-style",
-  
-  # Django CMS Content Plugins
-  "djangocms-text-ckeditor",
-  "djangocms-link",
-  "djangocms-frontend",
-  
-  # Django CMS Advanced Features
-  "djangocms-versioning",
-  "djangocms-alias",
-  
-  # Django CMS Dependencies
-  "django-sekizai",
-  "django-treebeard",
-  "pillow",
-  "django-filer",
-  "easy-thumbnails",
+  # Django framework (5.1)
+  "Django>=5.1.4,<5.2",
+  "djangorestframework>=3.15.0,<4.0",
+  "django-environ>=0.11.0,<1.0",
   
   # Django utilities
-  "django-import-export",
-  "django-json-widget",
-  "django-markdownify",
-  "django-filer",
-  "django-allauth[mfa,saml,socialaccount,steam]",
-  "django-ses",
-  
-  # MFA dependencies
-  "fido2",
+  "django-import-export>=4.0.0,<5.0",
+  "django-json-widget>=2.0.0,<3.0",
+  "django-markdownify>=0.9.0,<1.0",
+  "django-filer>=3.4.0,<4.0",
+  "django-allauth[mfa,saml,socialaccount,steam]>=65.0.0,<66.0",
+  "django-ses>=4.0.0,<5.0",
   
   # Database
-  "psycopg2-binary",
+  "psycopg2-binary>=2.9.0,<3.0",
   
   # Data processing
-  "jsonref",
-  "jsonschema",
-  "jsonschema-specifications",
-  "Markdown",
-  "PyYAML",
-  "martor",
+  "jsonref>=1.1.0,<2.0",
+  "jsonschema>=4.20.0,<5.0",
+  "jsonschema-specifications>=2024.10.0,<2025.0",
+  "Markdown>=3.5.0,<3.6",
+  "PyYAML>=6.0,<7.0",
+  "martor>=1.6.0,<2.0",
   
   # Email
-  "aiosmtpd",
-  "dkimpy",
+  "aiosmtpd>=1.4.0,<2.0",
+  "dkimpy>=1.1.0,<2.0",
   
   # Cloud services
-  "azure-monitor-opentelemetry",
-  "boto3",
-  "pygithub",
+  "azure-monitor-opentelemetry>=1.6.0,<2.0",
+  "boto3>=1.35.0,<2.0",
+  "pygithub>=2.5.0,<3.0",
   
   # AI
-  "openai",
+  "openai>=1.57.0,<2.0",
 ]
 
 [project.urls]
@@ -96,46 +77,70 @@ Repository = "https://github.com/bamr87/barodybroject"
 [project.optional-dependencies]
 dev = [
   # Development tools
-  "cruft",
-  "pip-tools",
+  "cruft>=2.15.0,<3.0",
+  "pip-tools>=7.4.0,<8.0",
   
   # Testing
-  "pytest",
-  "pytest-django",
-  "pytest-playwright",
-  "pytest-cov",
-  "coverage[toml]",
+  "pytest>=8.3.0,<9.0",
+  "pytest-django>=4.9.0,<5.0",
+  "pytest-playwright>=0.6.0,<1.0",
+  "pytest-cov>=6.0.0,<7.0",
+  "coverage[toml]>=7.6.0,<8.0",
   
   # Web testing
-  "selenium",
-  "beautifulsoup4",
-  "requests",
-  "axe-playwright-python",
+  "selenium>=4.27.0,<5.0",
+  "beautifulsoup4>=4.12.0,<5.0",
+  "requests>=2.32.0,<3.0",
+  "axe-playwright-python>=0.1.5,<1.0",
   
   # Code quality
-  "black",
-  "ruff",
-  "pre-commit",
-  "mypy",
-  "django-stubs",
+  "black>=24.10.0,<25.0",
+  "ruff>=0.8.0,<1.0",
+  "pre-commit>=4.0.0,<5.0",
+  "mypy>=1.13.0,<2.0",
+  "django-stubs>=5.1.0,<6.0",
   
   # Documentation
-  "sphinx",
-  "sphinx-autodoc-typehints",
-  "sphinx-rtd-theme",
-  "myst-parser",
+  "sphinx>=8.1.0,<9.0",
+  "sphinx-autodoc-typehints>=2.5.0,<3.0",
+  "sphinx-rtd-theme>=3.0.0,<4.0",
+  "myst-parser>=4.0.0,<5.0",
 ]
 
 security = [
-  "django-security",
-  "django-csp",
-  "django-ratelimit",
+  "django-security>=0.18.0,<1.0",
+  "django-csp>=3.8,<4.0",
+  "django-ratelimit>=4.1.0,<5.0",
 ]
 
 monitoring = [
-  "django-debug-toolbar",
-  "django-extensions",
-  "sentry-sdk[django]",
+  "django-debug-toolbar>=4.4.0,<5.0",
+  "django-extensions>=3.2.0,<4.0",
+  "sentry-sdk[django]>=2.18.0,<3.0",
+]
+
+cms = [
+  # Django CMS Core (disabled by default, uncomment to enable)
+  "django-cms>=4.1.0,<5.0",
+  "djangocms-admin-style>=3.3.0,<4.0",
+  
+  # Django CMS Content Plugins
+  "djangocms-text-ckeditor>=5.1.0,<6.0",
+  "djangocms-link>=3.1.0,<4.0",
+  "djangocms-frontend>=1.3.0,<2.0",
+  
+  # Django CMS Advanced Features
+  "djangocms-versioning>=2.0.0,<3.0",
+  "djangocms-alias>=2.0.0,<3.0",
+  
+  # Django CMS Dependencies
+  "django-sekizai>=4.1.0,<5.0",
+  "django-treebeard>=4.7.0,<5.0",
+  "pillow>=11.0.0,<12.0",
+  "easy-thumbnails>=2.9.0,<3.0",
+  
+  # MFA dependencies
+  "fido2>=1.2.0,<2.0",
 ]
 
 [tool.setuptools]

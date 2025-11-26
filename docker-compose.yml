@@ -28,11 +28,12 @@ services:
 
   # Django Web Application - Production Mode
   web-prod:
-    image: python:3.11-slim
+    build:
+      context: ./src
+      dockerfile: Dockerfile
     container_name: barody-web-prod
     working_dir: /app
     volumes:
-      - ./src:/app
       - setup-data:/app/setup_data  # Persist installation wizard state
       - app-logs:/app/logs          # Persist application logs
     environment:
@@ -53,31 +54,6 @@ services:
     networks:
       - barody-network
     restart: unless-stopped
-    command:
-      - /bin/bash
-      - -c
-      - |
-        apt-get update && apt-get install -y postgresql-client
-        pip install -r requirements.txt gunicorn
-        
-        # Create necessary directories
-        mkdir -p /app/setup_data /app/logs
-        
-        # Run database migrations
-        python manage.py migrate
-        
-        # Collect static files
-        python manage.py collectstatic --noinput
-        
-        # Check if installation is needed and handle accordingly
-        if [ "${SKIP_INSTALLATION_CHECK:-false}" = "true" ]; then
-          echo "Skipping installation wizard check"
-        else
-          echo "Starting application with installation wizard support"
-        fi
-        
-        # Start the application
-        exec gunicorn barodybroject.wsgi:application --bind 0.0.0.0:8000 --workers 3
 
   # Jekyll Static Site Generator (optional service)
   jekyll:

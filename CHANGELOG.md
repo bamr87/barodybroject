@@ -5,6 +5,87 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-11-24
+
+### Changed
+- **Django Major Version Upgrade**: Django 4.2.17 → 5.1.4
+  - ⚠️ **BREAKING CHANGE**: Django 5.1 requires Python 3.10 or higher
+  - Updated to latest Django stable release with new features and improvements
+  - Removed support for Python 3.9 (now requires Python 3.10+)
+  - Django 5.1 includes performance improvements and modern async support
+  - See [Django 5.1 release notes](https://docs.djangoproject.com/en/5.1/releases/5.1/) for details
+
+- **Python Version Requirement**: Increased minimum from Python 3.11 to Python 3.10
+  - Supports Python 3.10, 3.11, and 3.12
+  - Maintains compatibility with Django 5.1 requirements
+  - Production container remains on Python 3.11
+
+- **Dependency Management**: Upgraded all dependencies to latest stable versions with explicit version pinning
+  - **Django**: 4.2.20 → 4.2.17 → 5.1.4 (Major version upgrade)
+  - **djangorestframework**: Unpinned → 3.15.2
+  - **django-environ**: Unpinned → 0.11.2
+  - **django-allauth**: Unpinned → 65.3.0 (with MFA, SAML, socialaccount, steam extras)
+  - **django-import-export**: Unpinned → 4.3.3
+  - **django-json-widget**: Unpinned → 2.0.1
+  - **django-markdownify**: Unpinned → 0.9.5
+  - **django-filer**: Unpinned → 3.2.0
+  - **django-ses**: Unpinned → 4.2.0
+  - **psycopg2-binary**: Unpinned → 2.9.10
+  - **openai**: Unpinned → 1.57.2
+  - **boto3**: Unpinned → 1.35.75
+  - **pygithub**: Unpinned → 2.5.0
+  - **azure-monitor-opentelemetry**: Unpinned → 1.6.4
+  - **Markdown**: 3.7 → 3.5.2 (compatibility with martor 1.6.44)
+  - **PyYAML**: Unpinned → 6.0.2
+  - **jsonschema**: Unpinned → 4.23.0
+  - **martor**: Unpinned → 1.6.44
+  
+- **Development Dependencies**: Upgraded all development tools to latest versions
+  - **pytest**: Unpinned → 8.3.4
+  - **pytest-django**: Unpinned → 4.9.0
+  - **pytest-playwright**: Unpinned → 0.6.2
+  - **pytest-cov**: Unpinned → 6.0.0
+  - **coverage**: Unpinned → 7.6.9
+  - **selenium**: Unpinned → 4.27.1
+  - **ruff**: Unpinned → 0.8.2
+  - **black**: Added → 24.10.0 (code formatter)
+  - **mypy**: Added → 1.13.0 (type checker)
+  - **django-stubs**: Added → 5.1.1 (Django type stubs)
+  - **sphinx**: Unpinned → 8.1.3
+  - **sphinx-rtd-theme**: Unpinned → 3.0.2
+  - **django-debug-toolbar**: Added → 4.4.6
+  - **django-extensions**: Added → 3.2.3
+
+- **Python Version**: Updated minimum requirement from >=3.9 to >=3.11
+  - Ensures compatibility with all upgraded dependencies
+  - Maintains production Python 3.11 baseline
+  - Supports Python 3.11 and 3.12
+
+- **Project Version**: Bumped from 0.2.0 to 0.3.0 to reflect dependency upgrades
+
+### Added
+- **requirements-base.txt**: New file with core production dependencies and explicit versions
+- **Version Constraints**: Added semantic versioning constraints in pyproject.toml
+  - Django pinned to 4.2.x LTS series (>=4.2.17,<5.0)
+  - All packages now have explicit version ranges for reproducibility
+  - Separate optional dependency groups: dev, security, monitoring, cms
+
+### Fixed
+- **Docker Configuration**: Updated docker-compose.yml to use proper Dockerfile build
+  - Ensures gcc and build tools are available for packages requiring compilation
+  - Fixes pycairo build issues for SVG support in easy-thumbnails
+  - Proper multi-stage builds with caching
+
+- **Dependency Conflicts**: Resolved Markdown version conflict
+  - martor 1.6.44 requires Markdown<3.6
+  - Fixed by downgrading Markdown from 3.7 to 3.5.2
+
+### Security
+- **Version Pinning**: All dependencies now have explicit versions
+  - Enables security scanning and vulnerability tracking
+  - Prevents unexpected breaking changes from automatic upgrades
+  - Maintains reproducible builds across environments
+
 ## [0.2.0] - 2025-01-27
 
 ### Added
