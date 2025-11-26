@@ -28,7 +28,7 @@ jsonschema-specifications==2024.10.1
 Markdown==3.5.2
 PyYAML==6.0.2
 martor==1.6.44
-setuptools==75.6.0
+setuptools==78.1.1
 
 # Database
 psycopg2-binary==2.9.10
