@@ -1,0 +1,43 @@
+/* Custom CSS for Parodynews Documentation */
+
+/* Improve code block readability */
+.highlight {
+    background: #f8f9fa;
+    border-left: 3px solid #2980b9;
+    padding: 10px;
+    margin: 20px 0;
+}
+
+/* Add spacing to tables */
+.rst-content table.docutils td,
+.rst-content table.docutils th {
+    padding: 8px 12px;
+}
+
+/* Improve admonition styling */
+.admonition {
+    margin: 20px 0;
+    padding: 15px;
+}
+
+.admonition-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* Better spacing for sections */
+.section {
+    margin-bottom: 30px;
+}
+
+/* Improve navigation */
+.wy-menu-vertical li.current {
+    background: #e3e3e3;
+}
+
+/* Code inline styling */
+code.literal {
+    background-color: #f0f0f0;
+    padding: 2px 5px;
+    border-radius: 3px;
+}

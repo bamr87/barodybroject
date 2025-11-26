@@ -71,6 +71,23 @@ services:
     networks:
       - barody-network
 
+  # Sphinx Documentation Server
+  docs:
+    build:
+      context: ./src
+      dockerfile: parodynews/docs/Dockerfile
+    container_name: barody-docs
+    ports:
+      - "${DOCS_PORT:-8080}:80"
+    networks:
+      - barody-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
 volumes:
   postgres-data:
     name: barodybroject-postgres-data

@@ -1,72 +1,76 @@
+# Parodynews Documentation
 
-# docs Directory
+Comprehensive Sphinx documentation for the Parodynews Django application.
 
-## Purpose
-This directory contains Sphinx documentation system for generating comprehensive API documentation, developer guides, and technical documentation for the parodynews Django application. It provides automated documentation generation from Python docstrings and manually authored documentation files.
+## Quick Start
 
-## Contents
-- `index.rst`: Main documentation index file serving as the entry point for Sphinx documentation
-- `Makefile`: Unix/Linux makefile for building documentation with various output formats
-- `make.bat`: Windows batch file for building documentation on Windows systems
-- `README.rst`: ReStructuredText README file with Sphinx-specific documentation instructions
-- `source/`: Subdirectory containing RST source files and Sphinx configuration (has its own README)
-- `build/`: Subdirectory containing generated documentation output in various formats (HTML, PDF, etc.)
+### 🐳 Docker Deployment (Recommended)
 
-## Usage
-Documentation is built using Sphinx with support for multiple output formats:
-
+**Development Mode** (with live reload):
 ```bash
-# Build HTML documentation
-make html
+# Start documentation server with auto-rebuild
+docker-compose -f .devcontainer/docker-compose_dev.yml up docs
 
-# Build PDF documentation  
-make latexpdf
-
-# Clean previous builds
-make clean
-
-# Serve documentation locally
-python -m http.server 8000 --directory build/html
-
-# Example index.rst structure
-Welcome to Parody News Generator Documentation
-=============================================
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   installation
-   configuration
-   api-reference
-   examples
-   troubleshooting
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex` 
-* :ref:`search`
+# Access at http://localhost:8080
+# Changes auto-rebuild and reload in browser
 ```
 
-Documentation features:
-- **API Documentation**: Auto-generated from Python docstrings using Sphinx autodoc
-- **User Guides**: Manually authored tutorials and how-to guides
-- **Code Examples**: Interactive code samples with syntax highlighting
-- **Cross-References**: Internal linking between documentation sections
-- **Multiple Formats**: HTML, PDF, and other output formats
-- **Search Integration**: Full-text search functionality
-- **Version Control**: Documentation versioning aligned with code releases
+**Production Mode** (static build):
+```bash
+# Build and serve static documentation with nginx
+docker-compose up -d docs
 
-## Container Configuration
-Sphinx documentation building in containerized environment:
-- Sphinx and dependencies installed in development container
-- Documentation built during CI/CD pipeline
-- HTML output served through static web servers
-- PDF generation using LaTeX for comprehensive documentation
-- Integration with ReadTheDocs or similar hosting platforms
+# Access at http://localhost:8080
+```
 
-## Related Paths
-- Incoming: Generates documentation from Python source code docstrings and RST files
-- Outgoing: Produces HTML, PDF, and other documentation formats for developers and users
+📖 **See [DEPLOYMENT.md](DEPLOYMENT.md) for comprehensive container deployment guide**
+
+### 📦 Manual Build (Without Docker)
+
+Build documentation locally in development container:
+
+```bash
+# In development container
+docker-compose -f .devcontainer/docker-compose_dev.yml exec python bash
+cd /workspace/src/parodynews/docs
+pip install -r requirements.txt
+make clean && make html
+```
+
+Documentation will be in `build/html/index.html`
+
+## Documentation Structure
+
+- **getting-started/** - Installation and quickstart guides
+- **user-guide/** - User documentation
+- **developer-guide/** - Developer documentation  
+- **api-reference/** - Auto-generated API docs
+- **integrations/** - External service integration guides
+- **tutorials/** - Step-by-step tutorials
+- **how-to/** - Task-oriented guides
+- **reference/** - Technical reference
+
+## Implementation Status
+
+✅ **Phase 1 Complete**: Foundation and structure implemented
+- 60+ documentation files created
+- Enhanced Sphinx configuration
+- Auto-documentation working
+- Successfully builds
+
+See `IMPLEMENTATION_SUMMARY.md` for details.
+
+## Building
+
+```bash
+make html       # Build HTML
+make clean      # Clean build
+make linkcheck  # Check links
+make doctest    # Test examples
+```
+
+## Resources
+
+- [SPHINX_REDESIGN_PLAN.md](SPHINX_REDESIGN_PLAN.md) - Complete redesign plan
+- [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - Implementation status
+- [Sphinx Documentation](https://www.sphinx-doc.org/)

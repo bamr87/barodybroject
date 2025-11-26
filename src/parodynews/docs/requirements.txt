@@ -1,0 +1,15 @@
+# Sphinx Documentation Dependencies
+# For Parodynews Django Application
+
+# Sphinx core
+sphinx>=7.0.0
+sphinx-rtd-theme>=2.0.0
+
+# Sphinx extensions
+sphinx-autobuild>=2024.0.0
+
+# Django support (match project requirements)
+django>=4.0.0
+
+# Documentation build requirements
+docutils>=0.18.0
