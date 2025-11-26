@@ -339,10 +339,15 @@ TODO: Add embeddings functionality [https://platform.openai.com/docs/guides/embe
         {% block extra_scripts %}
             <!-- Table sorting/filtering -->
             <script src="{% static 'js/table_utils.js' %}"></script>
+            <!-- UI enhancements (modals, loading states, validation) -->
+            <script src="{% static 'js/modules/ui.js' %}"></script>
         {% endblock %}
 
         {% endspaceless %}{% comment %} CMS render_block disabled {% endcomment %}{% spaceless %}
         {% block end_js %}{% endblock %}
         {% block bottom_css %}{% endblock %}
+        
+        <!-- Confirm Modal for destructive actions -->
+        {% include "includes/confirm_modal.html" %}
     </body>
 </html>{% endspaceless %}

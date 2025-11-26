@@ -1,0 +1,63 @@
+{% comment %}
+File: model_table.html
+Description: Reusable dynamic table for displaying model lists with sorting and filtering
+Author: Barodybroject Team
+Created: 2025-11-25
+Last Modified: 2025-11-25
+Version: 1.0.0
+
+Dependencies:
+- custom_filters template tag library
+- table_utils.js for sorting/filtering functionality
+
+Usage: {% include "includes/model_table.html" with objects=content_list fields=fields display_fields=display_fields detail_url='edit_content' %}
+{% endcomment %}
+
+{% load custom_filters %}
+
+<div class="table-responsive">
+    <table class="table table-hover" role="table" aria-label="{{ table_label|default:'Data table' }}">
+        <thead>
+            <tr>
+                {% for field in fields %}
+                    {% if field.name in display_fields %}
+                        <th scope="col">
+                            {{ field.verbose_name }}
+                            <input type="text" 
+                                   class="form-control form-control-sm filter" 
+                                   placeholder="Filter {{ field.verbose_name }}..."
+                                   aria-label="Filter {{ field.verbose_name }}"/>
+                        </th>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for object in objects %}
+            <tr>
+                {% for field in fields %}
+                    {% if field.name in display_fields %}
+                    <td>
+                        {% if forloop.first %}
+                            <a href="{% url detail_url object.id %}" 
+                               class="text-decoration-none"
+                               aria-label="View details for {{ object }}">
+                                {{ object|get_field_value:field.name }}
+                            </a>
+                        {% else %}
+                            {{ object|get_field_value:field.name }}
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="{{ display_fields|length }}" class="text-center text-muted">
+                    No items found
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

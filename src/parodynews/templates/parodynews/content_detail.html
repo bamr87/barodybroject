@@ -4,147 +4,109 @@
 {% load custom_filters %}
 {% load markdownify %}
 {% load django_bootstrap5 %}
+{% load static %}
 
 {% block content %}
 
 {% comment %} 
 TODO: Add button to create post directly (automating thread step)
-
 {% endcomment %}
 
 <!-- Content and Detail Form -->
 <div class="container" id="content-form">
-    <h2>Content Prompt and Detail</h2>
-    <form method="post" action="{% url 'manage_content' %}" class="needs-validation">
+    <h2><i class="bi bi-pencil-square"></i> Content Prompt and Detail</h2>
+    
+    <form method="post" action="{% url 'manage_content' %}" class="needs-validation" data-loading>
         {% csrf_token %}
         <div class="row">
             <!-- Content Form -->
             <div class="col-md-6">
-                <h3>Content Form</h3>
-                <div class="form-group">
-                    {% bootstrap_form content_form %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3 class="mb-0">Content Form</h3>
+                    </div>
+                    <div class="card-body">
+                        {% bootstrap_form content_form %}
+                    </div>
                 </div>
             </div>
+            
             <!-- Content Detail Form -->
             <div class="col-md-6">
-                <h3>Content Detail Form</h3>
-                <div class="form-group">
-                    {% bootstrap_form content_detail_form %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3 class="mb-0">Content Detail Form</h3>
+                    </div>
+                    <div class="card-body">
+                        {% bootstrap_form content_detail_form %}
+                    </div>
                 </div>
             </div>
-            <div class="d-grid gap-2">
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-grid gap-2">
             {% if content_detail_id %}
-                <!-- Save Button Form -->
-                <form action="{% url 'edit_content' content_detail_id %}" method="POST" class="save-form mr-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="content_detail_id" value="{{ content_detail_id }}">
-                    <input type="hidden" name="_method" value="save">
-                    <input type="hidden" name="action" value="save">
-                    <button type="submit" class="btn btn-primary" id="save-btn" disabled onclick="return confirm('Are you sure you want to save this content?');">Save</button>
-                </form>
-                <!-- Generate Content Button Form -->
-                <form action="{% url 'generate_content' content_detail_id %}" method="POST" class="generate-form mr-2 d-grid gap-2">
+                <!-- Save Button -->
+                <button type="submit" class="btn btn-primary" id="save-btn" 
+                        formaction="{% url 'edit_content' content_detail_id %}"
+                        name="_method" value="save" disabled data-loading-text="Saving...">
+                    <i class="bi bi-save"></i> Save Changes
+                </button>
+                
+                <!-- Generate Content Button -->
+                <form action="{% url 'generate_content' content_detail_id %}" method="POST" data-loading>
                     {% csrf_token %}
                     <input type="hidden" name="content_detail_id" value="{{ content_detail_id }}">
                     <input type="hidden" name="_method" value="generate_content">
-                    <input type="hidden" name="action" value="generate_content">
-                    <button type="submit" id="generate-btn" name="_method" value="generate_content" class="btn btn-primary" >Generate Content</button>
+                    <button type="submit" id="generate-btn" class="btn btn-success w-100" data-loading-text="Generating...">
+                        <i class="bi bi-stars"></i> Generate Content
+                    </button>
                 </form>
+                
                 <!-- New Thread Button -->
-                <form action="{% url 'create_thread' content_detail_id %}" method="POST" class="create-message mr-2 d-grid gap-2">
+                <form action="{% url 'create_thread' content_detail_id %}" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="content_detail_id" value="{{ content_detail_id }}">
                     <input type="hidden" name="_method" value="create_thread">
-                    <input type="hidden" name="action" value="create_thread">
-                    <button type="submit" class="btn btn-primary" id="thread-btn">New Thread</button>
+                    <button type="submit" class="btn btn-info w-100" id="thread-btn">
+                        <i class="bi bi-chat-dots"></i> Create Thread
+                    </button>
                 </form>
-                <!-- Delete Button Form -->
-                <form action="{% url 'delete_content' content_detail_id %}" method="POST" class="delete-form mr-2 d-grid gap-2">
+                
+                <!-- Delete Button -->
+                <form action="{% url 'delete_content' content_detail_id %}" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="content_detail_id" value="{{ content_detail_id }}">
                     <input type="hidden" name="_method" value="delete">
-                    <input type="hidden" name="action" value="delete">
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this content?');">Delete</button>
+                    <button type="button" class="btn btn-danger w-100 delete-btn"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmModal"
+                            data-confirm-message="Are you sure you want to delete this content?">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
                 </form>
+                
                 <!-- Create New Record Button -->
-                <form action="/content/" method="get" class="mr-2 d-grid gap-2">
-                    <button type="submit" class="btn btn-success">Create New Record</button>
-                </form>
-                {% else %}
-                <!-- Create Button Form -->
-                <form id="create-new-content" action="{% url 'manage_content' %}" method="POST" class="save-form mr-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="_method" value="save">
-                    <input type="hidden" name="action" value="save">
-                    <button id="create-button" type="submit" class="btn btn-secondary" onclick="return confirm('Are you sure you want to save this content?');">Create</button>
-                </form>
-                {% endif %}
-            </div>
+                <a href="{% url 'manage_content' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-file-plus"></i> Create New Record
+                </a>
+            {% else %}
+                <!-- Create Button -->
+                <button type="submit" class="btn btn-primary" name="_method" value="save">
+                    <i class="bi bi-plus-circle"></i> Create Content
+                </button>
+            {% endif %}
         </div>
     </form>
 </div>
+
 <!-- Content List -->
 <div class="container mt-5">
-
-    <h2>Content List</h2>
-    <table class="table table-hover" id="content-table">
-        <thead>
-            <tr>
-                {% for field in fields %}
-                    {% if field.name in display_fields %}
-                        <th>{{ field.verbose_name }} <input type="text" class="filter" placeholder="Filter..." /></th>
-                    {% endif %}
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for content_detail in content_detail_info %}
-            <tr onclick="window.location.href='{% url 'content_detail' content_detail.id %}'" style="cursor: pointer;">
-                {% for field in fields %}
-                    {% if field.name in display_fields %}
-                    <td>{{ content_detail|get_field_value:field.name }}</td>
-                    {% endif %}
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <h2><i class="bi bi-list-ul"></i> Content List</h2>
+    {% render_model_table content_detail_info fields display_fields 'content_detail' 'Content Listing' %}
 </div>
 
-
-{% load static %}
 <script src="{% static 'js/content_detail.js' %}"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('#content-form form');
-        if (!form) return;
-    
-        // This selects all relevant form inputs
-        const inputs = form.querySelectorAll('input, textarea, select');
-    
-        const saveBtn = document.getElementById('save-btn');
-        const generateBtn = document.getElementById('generate-btn');
-        const threadBtn = document.getElementById('thread-btn');
-    
-        function setModifiedState() {
-            saveBtn.disabled = false;
-            generateBtn.disabled = true;
-            threadBtn.disabled = true;
-        }
-    
-        // Initially set buttons for unmodified form
-        saveBtn.disabled = true;
-        generateBtn.disabled = false;
-        threadBtn.disabled = false;
-    
-        // Listen for changes
-        inputs.forEach((input) => {
-            input.addEventListener('change', setModifiedState);
-            input.addEventListener('input', setModifiedState);
-        });
-    });
-    </script>
-
 
 {% endblock %}

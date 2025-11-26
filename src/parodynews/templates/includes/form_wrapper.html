@@ -1,0 +1,55 @@
+{% comment %}
+File: form_wrapper.html
+Description: Bootstrap 5 form wrapper with error handling and consistent styling
+Author: Barodybroject Team
+Created: 2025-11-25
+Last Modified: 2025-11-25
+Version: 1.0.0
+
+Dependencies:
+- django-bootstrap5
+
+Usage: {% include "includes/form_wrapper.html" with form=content_form form_id='content-form' %}
+{% endcomment %}
+
+{% load django_bootstrap5 %}
+
+<div class="form-container">
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Error:</strong>
+            {{ form.non_field_errors }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    
+    {% if form.errors %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Please correct the following errors:</strong>
+            <ul class="mb-0">{% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}</ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    
+    <form method="POST" 
+          id="{{ form_id|default:'generic-form' }}" 
+          class="needs-validation" 
+          novalidate
+          {% if form_action %}action="{{ form_action }}"{% endif %}>
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        
+        {% if show_buttons|default:True %}
+        <div class="form-actions mt-3">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Submit
+            </button>
+            {% if cancel_url %}
+            <a href="{{ cancel_url }}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </form>
+</div>

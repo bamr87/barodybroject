@@ -1,0 +1,46 @@
+{% comment %}
+File: crud_buttons.html
+Description: Reusable CRUD button group for Save/Delete/Create actions
+Author: Barodybroject Team
+Created: 2025-11-25
+Last Modified: 2025-11-25
+Version: 1.0.0
+
+Usage: {% include "includes/crud_buttons.html" with object_id=content_detail.id save_url='edit_content' delete_url='delete_content' create_url='manage_content' %}
+{% endcomment %}
+
+<div class="d-grid gap-2">
+    {% if object_id %}
+        {# Save Button Form #}
+        <form action="{% url save_url object_id %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="object_id" value="{{ object_id }}">
+            <input type="hidden" name="_method" value="save">
+            <button type="submit" class="btn btn-primary w-100" aria-label="Save changes">
+                <i class="bi bi-save"></i> Save
+            </button>
+        </form>
+        
+        {# Delete Button Form #}
+        <form action="{% url delete_url object_id %}" method="POST" class="delete-form">
+            {% csrf_token %}
+            <input type="hidden" name="_method" value="delete">
+            <button type="button" class="btn btn-danger w-100 delete-btn" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#confirmModal"
+                    data-action="delete"
+                    aria-label="Delete item">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </form>
+    {% else %}
+        {# Create Button Form #}
+        <form action="{% url create_url %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="_method" value="save">
+            <button type="submit" class="btn btn-primary w-100" aria-label="Create new item">
+                <i class="bi bi-plus-circle"></i> Create
+            </button>
+        </form>
+    {% endif %}
+</div>

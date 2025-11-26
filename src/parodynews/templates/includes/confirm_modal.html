@@ -1,0 +1,40 @@
+{% comment %}
+File: confirm_modal.html
+Description: Bootstrap modal for confirming destructive actions (delete, etc.)
+Author: Barodybroject Team
+Created: 2025-11-25
+Last Modified: 2025-11-25
+Version: 1.0.0
+
+Dependencies:
+- Bootstrap 5
+- ui.js module for modal interaction
+
+Usage: Include once in base.html, triggered by buttons with data-bs-toggle="modal" data-bs-target="#confirmModal"
+{% endcomment %}
+
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmModalLabel">
+                    <i class="bi bi-exclamation-triangle"></i> Confirm Action
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage" class="mb-0">
+                    Are you sure you want to perform this action? This cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmButton">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

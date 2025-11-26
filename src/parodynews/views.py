@@ -44,9 +44,6 @@ import json
 from datetime import datetime
 
 import yaml
-# CMS imports temporarily disabled - uncomment when CMS is re-enabled
-# from cms.apphook_pool import apphook_pool
-# from cms.utils import get_language_from_request
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -2201,8 +2198,7 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
         Supported Operations:
             - delete: Remove a post from the system
             - save: Save post changes without publishing
-            - publish: Publish post to the blog
-            - publish_to_cms: Publish post to CMS system
+            - publish: Publish post to GitHub Pages via pull request
 
         Example:
             .. code-block:: html
@@ -2222,9 +2218,6 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
 
         if request.POST.get("_method") == "publish":
             return self.publish(request)
-
-        if request.POST.get("_method") == "publish_to_cms":
-            return self.publish_to_cms(request)
 
         return redirect("manage_post")
 
@@ -2426,114 +2419,6 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
 
         # Redirect to the GitHub PR URL
         return redirect(github_url)
-
-    def publish_to_cms(self, request, post_id=None):
-        """
-        Publish post as a page in Django CMS.
-
-        Converts the blog post into a CMS page with proper formatting
-        and structure. Creates a new page in the CMS hierarchy with
-        the post content as the main text plugin.
-
-        Args:
-            request (HttpRequest): The HTTP request object
-            post_id (int, optional): ID from URL parameter (unused, gets from POST)
-
-        Returns:
-            HttpResponseRedirect: Redirect to CMS page or error page
-
-        Process:
-            1. Retrieves post and frontmatter data
-            2. Creates new CMS page with post title and slug
-            3. Adds text plugin with post content
-            4. Publishes the page to make it live
-            5. Redirects to the published CMS page
-
-        CMS Integration:
-            - Uses django-cms API for page creation
-            - Integrates with djangocms-text-ckeditor for content
-            - Handles proper slug generation and URL structure
-            - Manages page publishing workflow
-
-        Dependencies:
-            - cms.api: For page creation and publishing
-            - djangocms_text_ckeditor: For text content plugins
-            - django.contrib.sites: For site management
-
-        Side Effects:
-            - Creates new CMS page
-            - Publishes page to live site
-            - Displays success/error messages
-
-        Example:
-            Creates CMS page at /cms/post-title/ with full content
-        """
-        try:
-            from cms.api import add_plugin, create_page, publish_page
-            from cms.models import Placeholder
-            from djangocms_text_ckeditor.cms_plugins import TextPlugin
-        except ImportError:
-            # CMS not available - create stub functions
-            def add_plugin(*args, **kwargs):
-                pass
-            def create_page(*args, **kwargs):
-                return None
-            def publish_page(*args, **kwargs):
-                pass
-            class Placeholder:
-                pass
-            class TextPlugin:
-                pass
-        
-        from django.contrib.sites.models import Site
-        from django.utils.text import slugify
-
-        post_id = request.POST.get("post_id")
-        post = Post.objects.get(id=post_id)
-        post_frontmatter = PostFrontMatter.objects.get(post_id=post.id)
-
-        # Map post fields to CMS page fields
-        title = post_frontmatter.title
-        slug = slugify(post_frontmatter.slug)
-        language = "en"
-        site = Site.objects.get_current()
-        content = post.post_content
-
-        try:
-            # Create the CMS page as draft
-            page = create_page(
-                title=title,
-                template="INHERIT",
-                language=language,
-                slug=slug,
-                site=site,
-                published=False,
-                created_by=request.user.username,
-            )
-
-            # Create a placeholder directly
-            placeholder = Placeholder.objects.create(slot="content")
-            placeholder.save()
-
-            # Add the post content as a TextPlugin to the placeholder
-            add_plugin(placeholder, TextPlugin, language=language, body=content)
-
-            # Get the content for the page
-            page_content = page.get_content_obj(language=language)
-
-            # Add the placeholder to the page content
-            if hasattr(page_content, "placeholders"):
-                page_content.placeholders.add(placeholder)
-                page_content.save()
-
-            # Publish the page
-            publish_page(page, user=request.user, language=language)
-
-            messages.success(request, "Post published to CMS successfully!")
-            return redirect("post_detail", post_id=post.id)
-        except Exception as e:
-            messages.error(request, f"Failed to publish to CMS: {e}")
-            return redirect("post_detail", post_id=post.id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

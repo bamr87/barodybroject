@@ -1,0 +1,36 @@
+{% comment %}
+File: status_badge.html
+Description: Status badge component with appropriate styling for different states
+Author: Barodybroject Team
+Created: 2025-11-25
+Last Modified: 2025-11-25
+Version: 1.0.0
+
+Usage: {% include "includes/status_badge.html" with status='completed' label='Processing Complete' %}
+{% endcomment %}
+
+{% if status == 'draft' or status == 'queued' %}
+    <span class="badge bg-secondary" role="status" aria-label="Status: {{ label|default:status }}">
+        <i class="bi bi-clock"></i> {{ label|default:status|title }}
+    </span>
+{% elif status == 'processing' or status == 'in_progress' or status == 'running' %}
+    <span class="badge bg-warning text-dark" role="status" aria-label="Status: {{ label|default:status }}">
+        <i class="bi bi-arrow-repeat"></i> {{ label|default:status|title }}
+    </span>
+{% elif status == 'completed' or status == 'success' or status == 'published' %}
+    <span class="badge bg-success" role="status" aria-label="Status: {{ label|default:status }}">
+        <i class="bi bi-check-circle"></i> {{ label|default:status|title }}
+    </span>
+{% elif status == 'failed' or status == 'error' %}
+    <span class="badge bg-danger" role="status" aria-label="Status: {{ label|default:status }}">
+        <i class="bi bi-x-circle"></i> {{ label|default:status|title }}
+    </span>
+{% elif status == 'cancelled' or status == 'expired' %}
+    <span class="badge bg-dark" role="status" aria-label="Status: {{ label|default:status }}">
+        <i class="bi bi-dash-circle"></i> {{ label|default:status|title }}
+    </span>
+{% else %}
+    <span class="badge bg-info" role="status" aria-label="Status: {{ label|default:status }}">
+        {{ label|default:status|title }}
+    </span>
+{% endif %}

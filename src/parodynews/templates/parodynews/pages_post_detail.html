@@ -1,9 +1,7 @@
 {% extends "base.html" %}
 {% load custom_filters %}
-{% load cms_tags menu_tags sekizai_tags %}
 {% load martortags %}
 {% load django_bootstrap5 %}
-{% cms_toolbar %}
 {% load static %}
 
 {% block css %}
@@ -32,36 +30,37 @@ TODO: Update the assistant field with last assistant to produce output
         <!-- Rest of your form -->
         <div class="d-grid gap-2">
             <!-- Save Button Form -->
-            <form action="{% url 'edit_post' post.id %}" method="POST" class="save-form mr-2 d-grid gap-2">
+            <form action="{% url 'edit_post' post.id %}" method="POST" class="save-form d-grid gap-2">
                 {% csrf_token %}
                 <input type="hidden" name="post_id" value="{{ post.id }}">
                 <input type="hidden" name="_method" value="save">
                 <input type="hidden" name="action" value="save">
-                <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this content?');">Save</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Save
+                </button>
             </form>
             <!-- Delete Button Form -->
-            <form action="{% url 'delete_post' post.id %}" method="POST" class="delete-form mr-2 d-grid gap-2">
+            <form action="{% url 'delete_post' post.id %}" method="POST" class="delete-form d-grid gap-2">
                 {% csrf_token %}
                 <input type="hidden" name="post_id" value="{{ post.id }}">
                 <input type="hidden" name="_method" value="delete">
                 <input type="hidden" name="action" value="delete">
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this content?');">Delete</button>
+                <button type="button" class="btn btn-danger delete-btn"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#confirmModal"
+                        data-confirm-message="Are you sure you want to delete this post? This action cannot be undone.">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
             </form>
             <!-- Publish Button Form -->
-            <form action="{% url 'publish_post' post.id %}" method="POST" class="publish-form mr-2 d-grid gap-2">
+            <form action="{% url 'publish_post' post.id %}" method="POST" class="publish-form d-grid gap-2" data-loading>
                 {% csrf_token %}
                 <input type="hidden" name="post_id" value="{{ post.id }}">
                 <input type="hidden" name="_method" value="publish">
                 <input type="hidden" name="action" value="publish">
-                <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to publish this content and create a pull request on GitHub?');">Publish</button>
-            </form>
-            <!-- Publish to CMS Button Form -->
-            <form action="{% url 'publish_post_to_cms' post.id %}" method="POST" class="publish-cms-form mr-2 d-grid gap-2">
-                {% csrf_token %}
-                <input type="hidden" name="post_id" value="{{ post.id }}">
-                <input type="hidden" name="_method" value="publish_to_cms">
-                <input type="hidden" name="action" value="publish_to_cms">
-                <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to publish this post to the Django CMS?');">Publish to CMS</button>
+                <button type="submit" class="btn btn-primary" data-loading-text="Publishing...">
+                    <i class="bi bi-cloud-upload"></i> Publish to GitHub
+                </button>
             </form>
         </div>
     </form>
@@ -69,49 +68,34 @@ TODO: Update the assistant field with last assistant to produce output
 {% endif %}
 
 {% if github_url %}
-    <p>Your post has been published. Review it on GitHub: <a href="{{ github_url }}">{{ github_url }}</a></p>
+    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert" data-auto-dismiss="10000">
+        <strong>Success!</strong> Your post has been published. 
+        <a href="{{ github_url }}" class="alert-link" target="_blank" rel="noopener noreferrer">
+            Review it on GitHub <i class="bi bi-box-arrow-up-right"></i>
+        </a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 {% endif %}
 
-            <!-- Editable content section -->
-    <div class="post-content">
-        {% comment %} Pass a single Placeholder instance {% endcomment %}
-        <p>
-            {% render_placeholder post.post_content.first "post_content"%}
-        </p>
-        
-
+    <!-- Post Content Preview -->
+    <div class="post-content mt-4">
+        <h3>Post Preview</h3>
+        <div class="card">
+            <div class="card-body">
+                {% if post.post_content %}
+                    {{ post.post_content|markdownify|safe }}
+                {% else %}
+                    <p class="text-muted">No content available</p>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
-</div>
 
 <!-- Post List -->
-<div class="container">
+<div class="container mt-5">
     <h2>Post List</h2>
-    <table class="table" id="post-table">
-        <thead>
-            <tr>
-                {% for field in fields %}
-                    {% if field.name in display_fields %}
-                        <th>{{ field.verbose_name }}</th>
-                    {% endif %}
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for post in post_list %}
-            <tr onclick="window.location.href='{% url 'post_detail' post.id %}'" style="cursor: pointer;">
-
-                {% for field in fields %}
-                    {% if field.name in display_fields %}
-                    <td>{{ post|get_field_value:field.name }}</td>
-                    {% endif %}
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% render_model_table post_list fields display_fields 'post_detail' 'Published Posts' %}
 </div>
     
 {% endblock content %}
-
-
