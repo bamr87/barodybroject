@@ -2,6 +2,7 @@
 {% load custom_filters %}
 {% load cms_tags menu_tags sekizai_tags %}
 {% load martortags %}
+{% load django_bootstrap5 %}
 {% cms_toolbar %}
 {% load static %}
 
@@ -25,8 +26,8 @@ TODO: Update the assistant field with last assistant to produce output
     <h2>Editing: {{ post.id }}</h2>
     <form method="post" action="{% url 'manage_post' %}" class="needs-validation" novalidate>
         {% csrf_token %}
-        {{ form_post_frontmatter.as_p }}
-        {{ form_post.as_p}}
+        {% bootstrap_form form_post_frontmatter %}
+        {% bootstrap_form form_post %}
 
         <!-- Rest of your form -->
         <div class="d-grid gap-2">

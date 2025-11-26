@@ -3,6 +3,7 @@
 {% block title %}{{ content_detail.title|default:"Content Detail" }}{% endblock %}
 {% load custom_filters %}
 {% load markdownify %}
+{% load django_bootstrap5 %}
 
 {% block content %}
 
@@ -21,14 +22,14 @@ TODO: Add button to create post directly (automating thread step)
             <div class="col-md-6">
                 <h3>Content Form</h3>
                 <div class="form-group">
-                    {{ content_form.as_p }}
+                    {% bootstrap_form content_form %}
                 </div>
             </div>
             <!-- Content Detail Form -->
             <div class="col-md-6">
                 <h3>Content Detail Form</h3>
                 <div class="form-group">
-                    {{ content_detail_form.as_p }}
+                    {% bootstrap_form content_detail_form %}
                 </div>
             </div>
             <div class="d-grid gap-2">

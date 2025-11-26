@@ -2,6 +2,7 @@
 
 {% load custom_filters %}
 {% load markdownify %}
+{% load django_bootstrap5 %}
 
 {% block content %}
 
@@ -40,7 +41,7 @@ TODO: after assigning assistant, return to assigned message.
                 <!-- Save Button Form -->
                 <form method="post" action="{% url 'save_thread' current_thread.id %}" class="save-form mr-2 d-grid gap-2">
                     {% csrf_token %}
-                    {{ thread_form.as_p }}
+                    {% bootstrap_form thread_form %}
                     <button type="submit" class="btn btn-primary" onclick="return confirm('Are you sure you want to save this thread?');">Save</button>
                     <input type="hidden" name="thread_id" value="{{ current_thread.id }}">
                     <input type="hidden" name="_method" value="save">

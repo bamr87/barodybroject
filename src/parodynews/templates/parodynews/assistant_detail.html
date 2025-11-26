@@ -1,6 +1,7 @@
 <!-- assistant_detail.html -->
 {% extends "base.html" %}
 {% load custom_filters %}
+{% load django_bootstrap5 %}
 
 {% block content %}
 
@@ -23,7 +24,7 @@ TODO: Add truncated assistant id. Last 4 characters
                 {% csrf_token %}
                     <!-- Assistant Form -->
                 <div class="form-group">
-                    {{ assistant_form.as_p }}
+                    {% bootstrap_form assistant_form %}
                 </div>
 
                 <div class="d-grid gap-2">

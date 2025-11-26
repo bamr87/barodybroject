@@ -1,6 +1,7 @@
 <!-- assistant_group_detail.html -->
 {% extends "base.html" %}
 {% load custom_filters %}
+{% load django_bootstrap5 %}
 
 {% block content %}
 <div class="container">
@@ -11,38 +12,10 @@
         <form method="post" action="{% url 'manage_assistant_groups' %}">
     {% endif %}
         {% csrf_token %}
-        <div class="mb-3">
-            {{ assistant_group_form.name.label_tag }}
-            {{ assistant_group_form.name }}
-        </div>
-        <div class="mb-3">
-            {{ assistant_group_form.group_type.label_tag }}
-            {{ assistant_group_form.group_type }}
-        </div>
+        {% bootstrap_form assistant_group_form %}
 
         <h3>Assistant Group Members</h3>
-        {{ assistant_group_formset.management_form }}
-        <table class="table" id="formset">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Assistant</th>
-                    <th>Position</th>
-                    <th>Delete?</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for form in assistant_group_formset.forms %}
-                    <tr class="formset-row">
-                        <td>{{ form.id }}</td>
-                        <td>{{ form.assistants }}</td>
-                        <td>{{ form.position }}</td>
-                        <td>{{ form.DELETE }}</td>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        {% bootstrap_formset assistant_group_formset %}
         <div class="d-grid gap-2">
         {% if assistant_group_id %}
             <!-- Save Button Form -->

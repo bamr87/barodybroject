@@ -32,14 +32,6 @@ class ContentDetailForm(DefaultFormFieldsMixin, forms.ModelForm):
     class Meta:
         model = ContentDetail
         fields = ["id", "title", "description", "author", "published_at", "slug"]
-        widgets = {
-            "id": forms.TextInput(attrs={"class": "form-control"}),
-            "title": forms.TextInput(attrs={"class": "form-control"}),
-            "description": forms.Textarea(attrs={"class": "form-control"}),
-            "author": forms.TextInput(attrs={"class": "form-control"}),
-            "published_at": forms.DateInput(attrs={"class": "form-control"}),
-            "slug": forms.TextInput(attrs={"class": "form-control"}),
-        }
 
 
 # Content item form that contains the main content details and metadata. Converted to post form for the blog
@@ -51,12 +43,11 @@ class ContentItemForm(DefaultFormFieldsMixin, forms.ModelForm):
     assistant = forms.ModelChoiceField(
         queryset=Assistant.objects.all(),
         label="Assistant Name",
-        widget=forms.Select(attrs={"class": "form-select"}),
     )
 
     # Define the form field for the instructions to be displayed in the form
     instructions = forms.CharField(
-        widget=forms.Textarea(attrs={"class": "form-control", "readonly": "readonly"}),
+        widget=forms.Textarea(attrs={"readonly": "readonly"}),
         required=False,
     )
 
@@ -64,10 +55,6 @@ class ContentItemForm(DefaultFormFieldsMixin, forms.ModelForm):
     class Meta:
         model = ContentItem
         fields = ["assistant", "instructions", "prompt", "content_text"]
-        widgets = {
-            "prompt": forms.Textarea(attrs={"class": "form-control"}),
-            "content_text": forms.Textarea(attrs={"class": "form-control"}),
-        }
         labels = {
             "prompt": "Prompt",
         }
@@ -113,24 +100,6 @@ class AssistantForm(forms.ModelForm):
             "json_schema",
             "assistant_group_memberships",
         ]
-        widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control", "id": "id_name"}),
-            "description": forms.TextInput(
-                attrs={"class": "form-control", "id": "id_assist_description"}
-            ),
-            "instructions": forms.Textarea(
-                attrs={"class": "form-control", "id": "id_instructions"}
-            ),
-            "model": forms.Select(
-                attrs={"class": "form-select", "id": "id_model", "required": "required"}
-            ),
-            "json_schema": forms.Select(
-                attrs={"class": "form-control", "id": "id_json_schema"}
-            ),
-            "assistant_group_memberships": forms.SelectMultiple(
-                attrs={"class": "form-control", "id": "id_assistant_group_memberships"}
-            ),
-        }
 
     # Set the assistant field choices to the names of all Assistant objects. Needed for AJAX request
     def __init__(self, *args, **kwargs):
@@ -155,10 +124,6 @@ class AssistantGroupMembershipForm(forms.ModelForm):
     class Meta:
         model = AssistantGroupMembership
         fields = ["assistants", "position"]  # Updated field name
-        widgets = {
-            "assistants": forms.Select(attrs={"class": "form-control"}),
-            "position": forms.NumberInput(attrs={"class": "form-control", "min": 1}),
-        }
 
 
 AssistantGroupMembershipFormSet = inlineformset_factory(
@@ -174,10 +139,6 @@ class AssistantGroupForm(forms.ModelForm):
     class Meta:
         model = AssistantGroup
         fields = ["name", "group_type"]
-        widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control"}),
-            "group_type": forms.TextInput(attrs={"class": "form-control"}),
-        }
 
 
 class ThreadForm(forms.ModelForm):
@@ -188,11 +149,6 @@ class ThreadForm(forms.ModelForm):
             "description",
             "assistant_group",
         ]
-        widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control"}),
-            "description": forms.Textarea(attrs={"class": "form-control"}),
-            "assistant_group": forms.Select(attrs={"class": "form-control"}),
-        }
 
 
 # class ThreadRunQueueFrom(forms.ModelForm):
@@ -221,16 +177,6 @@ class PostForm(forms.ModelForm):
             "status",
             "post_content",  # Added 'status' field
         ]
-        widgets = {
-            "content_detail": forms.Select(attrs={"class": "form-control"}),
-            "thread": forms.Select(attrs={"class": "form-control"}),
-            "message": forms.Select(attrs={"class": "form-control"}),
-            "assistant": forms.Select(attrs={"class": "form-control"}),
-            "created_at": forms.DateTimeInput(attrs={"class": "form-control"}),
-            "filename": forms.TextInput(attrs={"class": "form-control"}),
-            "status": forms.TextInput(attrs={"class": "form-control"}),
-            "post_content": forms.Textarea(attrs={"class": "form-control"}),
-        }
         exclude = ["updated_at"]
 
 
@@ -238,13 +184,6 @@ class PostFrontMatterForm(forms.ModelForm):
     class Meta:
         model = PostFrontMatter
         fields = ["id", "title", "description", "author", "published_at", "slug"]
-        widgets = {
-            "title": forms.TextInput(attrs={"class": "form-control"}),
-            "description": forms.Textarea(attrs={"class": "form-control"}),
-            "author": forms.TextInput(attrs={"class": "form-control"}),
-            "published_at": forms.DateTimeInput(attrs={"class": "form-control"}),
-            "slug": forms.TextInput(attrs={"class": "form-control"}),
-        }
 
 
 class MyObjectForm(forms.ModelForm):
