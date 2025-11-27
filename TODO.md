@@ -515,10 +515,8 @@ The following infrastructure was added by `azd init`:
     - Add to .gitignore
   - **Location**: `src/src_env/`
 
-- [ ] **Unclear Events Directory** - `/events/` with single event.json file
-  - **Impact**: Purpose unclear
-  - **Action**: Document purpose or remove if unused
-  - **Location**: `/events/`
+- [x] **Unclear Events Directory** - `/events/` with single event.json file ✅ RESOLVED
+  - **Resolution**: Removed unused AWS Lambda sample data directory (2025-11-26)
 
 ### 🟢 Low Priority
 

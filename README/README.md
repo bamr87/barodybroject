@@ -24,8 +24,6 @@ This mystical library contains every README.md file, organized by location and p
 
 ## 📖 By Directory
 
-- **[events/](events/README.md)**
-  - Purpose
 - **[.vscode/](.vscode/README.md)**
   - Purpose
 - **[scripts/](scripts/README.md)**
@@ -159,8 +157,6 @@ This mystical library contains every README.md file, organized by location and p
 - **[src/](src/README.md)**
   - Purpose
   - **[src/docs/](src/docs/README.md)**
-    - Purpose
-  - **[README/events/](README/events/README.md)**
     - Purpose
   - **[README/.vscode/](README/.vscode/README.md)**
     - Purpose

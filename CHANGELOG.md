@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2025-11-26
+
+### Removed
+- **Unused Events Directory**: Removed `/events/` directory containing AWS Lambda sample data
+  - Deleted `events/event.json` (unused AWS API Gateway sample payload)
+  - Deleted `events/README.md` documentation for the removed directory
+  - Deleted `README/events/README.md` from documentation index
+
+### Changed
+- **Documentation Updates**: Updated documentation to reflect directory removal
+  - Updated `README/README.md` master index to remove events directory references
+  - Updated `TODO.md` to mark events directory cleanup issue as resolved
+
 ## [0.3.1] - 2025-11-26
 
 ### Changed
