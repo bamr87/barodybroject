@@ -186,7 +186,7 @@ class OpenAIModel(models.Model):
 
 
 class Assistant(models.Model):
-    \"\"\"AI assistant configuration for content generation.
+    """AI assistant configuration for content generation.
     
     Represents an OpenAI assistant with custom instructions, tools, and behavior
     settings. Assistants can be organized into groups and used for generating
@@ -211,11 +211,11 @@ class Assistant(models.Model):
     
     Examples:
         >>> from parodynews.models import Assistant, OpenAIModel
-        >>> model = OpenAIModel.objects.get(model_id=\"gpt-4\")
+        >>> model = OpenAIModel.objects.get(model_id="gpt-4")
         >>> assistant = Assistant.objects.create(
-        ...     name=\"News Writer\",
-        ...     description=\"Writes satirical news articles\",
-        ...     instructions=\"You are a witty news writer who creates satirical content.\",
+        ...     name="News Writer",
+        ...     description="Writes satirical news articles",
+        ...     instructions="You are a witty news writer who creates satirical content.",
         ...     model=model,
         ...     temperature=0.7
         ... )
@@ -231,19 +231,19 @@ class Assistant(models.Model):
     
     See Also:
         https://platform.openai.com/docs/api-reference/assistants for API details
-    \"\"\"
+    """
     id = models.CharField(max_length=225, blank=True, primary_key=True)
     name = models.CharField(
-        max_length=256, null=True, blank=True, default=\"system default\"
+        max_length=256, null=True, blank=True, default="system default"
     )
     description = models.CharField(
-        max_length=512, null=True, blank=True, default=\"Describe the assistant.\"
+        max_length=512, null=True, blank=True, default="Describe the assistant."
     )
     instructions = models.TextField(
-        max_length=256000, default=\"you are a helpful assistant.\"
+        max_length=256000, default="you are a helpful assistant."
     )
-    prompt = models.TextField(max_length=256000, default=\"you are a helpful assistant.\")
-    object = models.CharField(max_length=50, default=\"assistant\")
+    prompt = models.TextField(max_length=256000, default="you are a helpful assistant.")
+    object = models.CharField(max_length=50, default="assistant")
     model = models.ForeignKey(
         OpenAIModel, on_delete=models.SET_NULL, null=True, blank=False
     )
@@ -261,23 +261,23 @@ class Assistant(models.Model):
         JSONSchema, on_delete=models.SET_NULL, null=True, blank=True
     )
     assistant_group_memberships = models.ManyToManyField(
-        \"AssistantGroupMembership\", related_name=\"assistant\", blank=True
+        "AssistantGroupMembership", related_name="assistant", blank=True
     )
 
     def get_display_fields(self):
-        \"\"\"Return list of fields to display in admin and list views.
+        """Return list of fields to display in admin and list views.
         
         Returns:
             list: Field names to display ['name', 'description', 'model', 'json_schema']
-        \"\"\"
-        return [\"name\", \"description\", \"model\", \"json_schema\"]
+        """
+        return ["name", "description", "model", "json_schema"]
 
     def __str__(self):
-        \"\"\"Return the assistant name.
+        """Return the assistant name.
         
         Returns:
             str: The name field value
-        \"\"\"
+        """
         return self.name
 
 

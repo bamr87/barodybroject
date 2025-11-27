@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2025-11-26
+
+### Changed
+- **Template UI/UX Improvements**: Enhanced all major templates with Bootstrap 5 icons and improved styling
+  - Added Bootstrap Icons to headings, buttons, and navigation elements
+  - Improved table styling with `table-hover` class and proper `scope` attributes
+  - Enhanced filter inputs with consistent styling and ARIA labels
+  - Fixed nested form issues by moving action buttons outside main forms
+  - Added empty state messages for tables when no data is available
+  - Updated index page to use Django URL template tags instead of hardcoded paths
+
+### Fixed
+- **Template Accessibility**: Added comprehensive accessibility improvements
+  - Added `aria-label` attributes to filter inputs and buttons
+  - Added keyboard navigation support with `onkeydown` handlers
+  - Added `tabindex` and `role="link"` for clickable table rows
+  - Added proper `scope="col"` to table headers
+  
+- **Form Structure**: Fixed HTML validation issues
+  - Removed nested forms by separating action buttons from main forms
+  - Improved button styling with consistent `w-100` class
+  - Standardized confirmation modal usage across templates
+
+- **Python Docstrings**: Normalized docstring quotes in `models.py`
+  - Fixed escaped quote characters in Assistant model docstring
+
+### Added
+- **Workflow Documentation**: Added `commit-publish.prompt.md`
+  - Comprehensive release pipeline workflow guide
+  - Semantic versioning and changelog update instructions
+  - Test execution and documentation requirements
+
 ## [0.3.0] - 2025-11-24
 
 ### Changed

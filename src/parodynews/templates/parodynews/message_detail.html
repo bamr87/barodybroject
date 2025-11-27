@@ -8,32 +8,30 @@
 
 <!-- Message List and Assistants -->
 <div class="container" id="message-list">
-    <h2>Messages</h2>
+    <h2><i class="bi bi-envelope"></i> Messages</h2>
 
     <!-- Message List -->
     <div class="mb-3">
-        <table class="table" id="messages-table">
+        <table class="table table-hover" id="messages-table">
             <thead>
                 <tr>
-                    <th>
+                    <th scope="col">
                         ID
                         <span class="sort-indicator"></span>
-                        <input type="text" class="form-control form-control-sm" placeholder="Filter">
+                        <input type="text" class="filter form-control form-control-sm" placeholder="Filter" aria-label="Filter ID">
                     </th>
-                    <th>
+                    <th scope="col">
                         Content Detail Title
                         <span class="sort-indicator"></span>
-                        <input type="text" class="form-control form-control-sm" placeholder="Filter">
+                        <input type="text" class="filter form-control form-control-sm" placeholder="Filter" aria-label="Filter Title">
                     </th>
-                    <th>
+                    <th scope="col">
                         Assistant Assignment
                         <span class="sort-indicator"></span>
-                        <input type="text" class="form-control form-control-sm" placeholder="Filter">
+                        <input type="text" class="filter form-control form-control-sm" placeholder="Filter" aria-label="Filter Assistant">
                     </th>
-                    <th>
+                    <th scope="col">
                         Actions
-                        <span class="sort-indicator"></span>
-                        <input type="text" class="form-control form-control-sm" placeholder="Filter">
                     </th>
                 </tr>
             </thead>
@@ -47,11 +45,11 @@
                         {{ message.contentitem.detail.title }}
                     </td>
                     <td>
-                        <form action="{% url 'assign_assistant_to_message' message.id  %}" method="POST">
+                        <form action="{% url 'assign_assistant_to_message' message.id %}" method="POST">
                             {% csrf_token %}
                             <div class="input-group">
                                 <!-- Assign Assistant Form -->
-                                <select name="assigned_assistant_id" class="form-select">
+                                <select name="assigned_assistant_id" class="form-select" aria-label="Assign assistant to message">
                                     <option value="">Select Assistant</option>
                                     {% for assistant in assistants %}
                                         <option value="{{ assistant.id }}" {% if message.assistant_id == assistant.id %}selected{% endif %}>{{ assistant.name }}</option>
@@ -61,23 +59,35 @@
                                 <input type="hidden" name="test" value="{{ message.assistant_id }}">
                                 <input type="hidden" name="_method" value="assign_assistant_to_message">
                                 <input type="hidden" name="action" value="assign_assistant_to_message">
-                                <button class="btn btn-outline-secondary" type="submit">Assign</button>
+                                <button class="btn btn-outline-secondary" type="submit" aria-label="Assign assistant">
+                                    <i class="bi bi-check"></i> Assign
+                                </button>
                             </div>
                         </form>
                     </td>
                     <td>
                         <div class="d-flex justify-content-end">
                             <!-- Delete Button Form -->
-                            <form action="{% url 'delete_message' message.id message.thread_id %}" method="POST" class="mr-2">
+                            <form action="{% url 'delete_message' message.id message.thread_id %}" method="POST" class="delete-form">
                                 {% csrf_token %}
                                 <input type="hidden" name="message_id" value="{{ message.id }}">
                                 <input type="hidden" name="thread_id" value="{{ message.thread_id }}">
                                 <input type="hidden" name="_method" value="delete_message">
                                 <input type="hidden" name="action" value="delete_message">
-                                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this message?');">Delete</button>
+                                <button type="button" class="btn btn-danger delete-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#confirmModal"
+                                        data-confirm-message="Are you sure you want to delete this message?">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
                             </form>
-
                         </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">
+                        <i class="bi bi-inbox"></i> No messages found
                     </td>
                 </tr>
                 {% endfor %}

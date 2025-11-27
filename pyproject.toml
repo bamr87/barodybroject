@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "barodybroject"
-version = "0.3.0"
+version = "0.3.1"
 description = "A Django-based parody news generator with AI integration - Successfully deployed on Azure Container Apps"
 readme = "README.md"
 requires-python = ">=3.10"

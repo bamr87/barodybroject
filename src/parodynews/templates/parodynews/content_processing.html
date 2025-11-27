@@ -11,9 +11,6 @@ TODO: Need to add processing overlay with status of each assistant run.
 TODO: after assigning assistant, return to assigned message.
 {% endcomment %}
 
-<!-- Confirm Modal -->
-{% include "includes/confirm_modal.html" %}
-
 <!-- content_processing.html -->
 <div class="container">
     <h1>Content Processing</h1>
@@ -53,34 +50,37 @@ TODO: after assigning assistant, return to assigned message.
                     <button type="submit" class="btn btn-primary" data-loading-text="Saving...">
                         <i class="bi bi-save"></i> Save Thread
                     </button>
-                    
-                    <!-- Delete Thread -->
-                    <form action="{% url 'delete_thread' current_thread.id %}" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="thread_id" value="{{ current_thread.id }}">
-                        <input type="hidden" name="_method" value="delete">
-                        <button type="button" class="btn btn-danger w-100 delete-btn"
-                                data-bs-toggle="modal"
-                                data-bs-target="#confirmModal"
-                                data-confirm-message="Are you sure you want to delete this thread and all its messages?">
-                            <i class="bi bi-trash"></i> Delete Thread
-                        </button>
-                    </form>
-                    
-                    <!-- Run Assistant Group -->
-                    {% if current_thread.assistant_group_id %}
-                    <form method="post" action="{% url 'run_assistant_group' thread_id=current_thread.id assistant_group_id=current_thread.assistant_group_id %}" data-loading>
-                        {% csrf_token %}
-                        <input type="hidden" name="_method" value="run_assistant_group">
-                        <input type="hidden" name="thread_id" value="{{ current_thread.id }}">
-                        <input type="hidden" name="assistant_group_id" value="{{ current_thread.assistant_group_id }}">
-                        <button type="submit" class="btn btn-success w-100" data-loading-text="Running assistants...">
-                            <i class="bi bi-play-circle"></i> Run Assistant Group
-                        </button>
-                    </form>
-                    {% endif %}
                 </div>
             </form>
+            
+            <!-- Action buttons (outside main form to avoid nesting) -->
+            <div class="d-grid gap-2 mt-2">
+                <!-- Delete Thread -->
+                <form action="{% url 'delete_thread' current_thread.id %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="thread_id" value="{{ current_thread.id }}">
+                    <input type="hidden" name="_method" value="delete">
+                    <button type="button" class="btn btn-danger w-100 delete-btn"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmModal"
+                            data-confirm-message="Are you sure you want to delete this thread and all its messages?">
+                        <i class="bi bi-trash"></i> Delete Thread
+                    </button>
+                </form>
+                
+                <!-- Run Assistant Group -->
+                {% if current_thread.assistant_group_id %}
+                <form method="post" action="{% url 'run_assistant_group' thread_id=current_thread.id assistant_group_id=current_thread.assistant_group_id %}" data-loading>
+                    {% csrf_token %}
+                    <input type="hidden" name="_method" value="run_assistant_group">
+                    <input type="hidden" name="thread_id" value="{{ current_thread.id }}">
+                    <input type="hidden" name="assistant_group_id" value="{{ current_thread.assistant_group_id }}">
+                    <button type="submit" class="btn btn-success w-100" data-loading-text="Running assistants...">
+                        <i class="bi bi-play-circle"></i> Run Assistant Group
+                    </button>
+                </form>
+                {% endif %}
+            </div>
         </div>
     </div>
 

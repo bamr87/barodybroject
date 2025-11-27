@@ -2,17 +2,30 @@
 {% block content %}
 
     <div class="container">
-        <h1>Welcome to the Content Generator</h1>
-        <p>This is the root index page. Use the links below to navigate through the application.</p>
+        <h1><i class="bi bi-lightning-charge"></i> Welcome to the Content Generator</h1>
+        <p class="lead">This is the root index page. Use the links below to navigate through the application.</p>
         <div class="list-group">
-            <a href="/content/" class="list-group-item list-group-item-action">Create/View Content</a>
-            <a href="/threads/" class="list-group-item list-group-item-action">View Threads</a>
-            <a href="/messages/" class="list-group-item list-group-item-action">View Messages</a>
-            <a href="/assistants/" class="list-group-item list-group-item-action">Manage/View Assistants</a>
-            <a href="/assistant-groups/" class="list-group-item list-group-item-action">Manage/View Asst. Groups</a>
-            <a href="/schemas/" class="list-group-item list-group-item-action">Schemas</a>
-            <a href="/admin/" class="list-group-item list-group-item-action">Admin</a>
-            <!-- Add more links as needed -->
+            <a href="{% url 'manage_content' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                <i class="bi bi-file-earmark-text me-2"></i> Create/View Content
+            </a>
+            <a href="{% url 'process_content' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                <i class="bi bi-chat-left-text me-2"></i> View Threads
+            </a>
+            <a href="{% url 'manage_message' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                <i class="bi bi-envelope me-2"></i> View Messages
+            </a>
+            <a href="{% url 'manage_assistants' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                <i class="bi bi-robot me-2"></i> Manage/View Assistants
+            </a>
+            <a href="{% url 'manage_assistant_groups' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                <i class="bi bi-people me-2"></i> Manage/View Asst. Groups
+            </a>
+            <a href="{% url 'list_schemas' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                <i class="bi bi-diagram-3 me-2"></i> Schemas
+            </a>
+            <a href="{% url 'admin:index' %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                <i class="bi bi-gear me-2"></i> Admin
+            </a>
         </div>
     </div>
 

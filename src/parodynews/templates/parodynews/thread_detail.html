@@ -3,33 +3,46 @@
 
 {% block content %}
 <div class="container">
-    <h2>Threads</h2>
+    <h2><i class="bi bi-chat-left-text"></i> Threads</h2>
 
     <!-- Thread list -->
-     <div class="mb-3">
-         <ul class="list-group" id="threads-list">
-             {% for thread in threads %}
-             <li class="list-group-item d-flex justify-content-between align-items-center">
-                 <a href="{% url 'thread_detail' thread.thread_id %}">{{ thread.thread_id }}</a>
-                 <form action="{% url 'delete_thread' thread.thread_id %}" method="post">
-                     {% csrf_token %}
-                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+    <div class="mb-3">
+        <ul class="list-group" id="threads-list">
+            {% for thread in threads %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <a href="{% url 'thread_detail' thread.thread_id %}">{{ thread.thread_id }}</a>
+                <form action="{% url 'delete_thread' thread.thread_id %}" method="post" class="delete-form">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-danger btn-sm delete-btn"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmModal"
+                            data-confirm-message="Are you sure you want to delete this thread?">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
                 </form>
+            </li>
+            {% empty %}
+            <li class="list-group-item text-center text-muted">
+                <i class="bi bi-inbox"></i> No threads found
             </li>
             {% endfor %}
         </ul>
     </div>
 
     {% if current_thread %}
-    <h2>Selected Thread</h2>
+    <h2><i class="bi bi-envelope"></i> Selected Thread</h2>
     <div class="list-group" id="messages-list">
         <h3>Thread ID: {{ current_thread.thread_id }}</h3>
-        <table class="table">
+        <table class="table table-hover">
             <thead>
                 <tr>
                     {% for field in fields %}
                         {% if field.name in display_fields %}
-                            <th>{{ field.verbose_name }} <input type="text" class="filter" placeholder="Filter..." /></th>
+                            <th scope="col">
+                                {{ field.verbose_name }}
+                                <span class="sort-indicator"></span>
+                                <input type="text" class="filter form-control form-control-sm" placeholder="Filter" aria-label="Filter {{ field.verbose_name }}">
+                            </th>
                         {% endif %}
                     {% endfor %}
                 </tr>
@@ -41,24 +54,28 @@
                     <td>{{ message.contentitem.content_text|markdownify|linebreaksbr }}</td>
                     <td>
                         <!-- Form to add message to database -->
-                        <form action="{% url 'add_message_to_db' %}" method="post">
+                        <form action="{% url 'create_message' %}" method="post">
                             {% csrf_token %}
                             <input type="hidden" name="thread_id" value="{{ current_thread.thread_id }}">
                             <input type="hidden" name="assistant_id" value="{{ message.assistant_id }}">
                             <input type="hidden" name="message_id" value="{{ message.id }}">
                             <input type="hidden" name="message_content" value="{{ message.text }}">
-                            <button type="submit" class="btn btn-primary btn-sm">Add to Database</button>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-database-add"></i> Add to Database
+                            </button>
                         </form>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="{{ display_fields|length }}">No messages found for this thread.</td>
+                    <td colspan="{{ display_fields|length }}" class="text-center text-muted">
+                        <i class="bi bi-inbox"></i> No messages found for this thread.
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        {% endif %}
+    {% endif %}
     </div>
 </div>
 {% endblock %}
