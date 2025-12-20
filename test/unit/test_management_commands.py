@@ -21,7 +21,6 @@ Usage: pytest test/unit/test_management_commands.py
 
 import os
 # Import the command and service we're testing
-import sys
 import tempfile
 from io import StringIO
 from unittest.mock import MagicMock, patch
@@ -31,8 +30,6 @@ from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
-
-sys.path.append('/workspace/src')
 from setup.management.commands.setup_wizard import Command
 from setup.services import InstallationService
 
@@ -534,8 +531,3 @@ class TestSetupWizardCommandPytest:
         with patch('django.db.connection.ensure_connection', side_effect=Exception('DB Error')):
             with pytest.raises(CommandError):
                 call_command('setup_wizard')
-
-
-if __name__ == '__main__':
-    # Run with pytest
-    pytest.main([__file__, '-v'])

@@ -1,15 +1,19 @@
+"""
+Forms for parodynews application.
+
+Organized by model category matching the new models package structure.
+"""
+
 import re
 
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models import Count
-
-# from martor.fields import MartorFormField
 from django.forms import inlineformset_factory
 from django_json_widget.widgets import JSONEditorWidget
 
 from .mixins import DefaultFormFieldsMixin
-from .models import (
+from .models import (  # AI models; Content models; Deprecated models; Publishing models; Conversation models
     Assistant,
     AssistantGroup,
     AssistantGroupMembership,
@@ -22,12 +26,14 @@ from .models import (
     Thread,
 )
 
-print("Loading forms...")
-
 # TODO: Add additional fields to Post frontmatter to handle dynamic fields (i.e., based on JSON schema)
 
 
-# Content detail form that contains the main content details and metadata. Converted to post front matter form for the blog
+# =============================================================================
+# CONTENT FORMS
+# =============================================================================
+
+
 class ContentDetailForm(DefaultFormFieldsMixin, forms.ModelForm):
     class Meta:
         model = ContentDetail
@@ -38,7 +44,6 @@ class ContentDetailForm(DefaultFormFieldsMixin, forms.ModelForm):
 
 
 class ContentItemForm(DefaultFormFieldsMixin, forms.ModelForm):
-
     # Define the form fields for the assistant to be displayed in the form
     assistant = forms.ModelChoiceField(
         queryset=Assistant.objects.all(),
@@ -87,7 +92,11 @@ class ContentItemForm(DefaultFormFieldsMixin, forms.ModelForm):
                 self.fields["instructions"].initial = ""
 
 
-# Assistant form that contains the main assistant details and metadata
+# =============================================================================
+# AI FORMS
+# =============================================================================
+
+
 class AssistantForm(forms.ModelForm):
     # Define the form fields for the assistant to be displayed in the form
     class Meta:
@@ -106,20 +115,19 @@ class AssistantForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             # self.fields['assistant_group_memberships'].queryset = memberships
-            self.fields["assistant_group_memberships"].queryset = (
-                AssistantGroup.objects.filter(
-                    assistantgroupmembership__assistants=self.instance
-                )
+            self.fields[
+                "assistant_group_memberships"
+            ].queryset = AssistantGroup.objects.filter(
+                assistantgroupmembership__assistants=self.instance
             )
 
         else:
             # No memberships for new assistants
-            self.fields["assistant_group_memberships"].queryset = (
-                AssistantGroup.objects.all()
-            )
+            self.fields[
+                "assistant_group_memberships"
+            ].queryset = AssistantGroup.objects.all()
 
 
-# Assistant group form that contains the main assistant group details and metadata. Used to group assistants into a workflow.
 class AssistantGroupMembershipForm(forms.ModelForm):
     class Meta:
         model = AssistantGroupMembership
@@ -141,6 +149,11 @@ class AssistantGroupForm(forms.ModelForm):
         fields = ["name", "group_type"]
 
 
+# =============================================================================
+# CONVERSATION FORMS
+# =============================================================================
+
+
 class ThreadForm(forms.ModelForm):
     class Meta:
         model = Thread
@@ -151,19 +164,12 @@ class ThreadForm(forms.ModelForm):
         ]
 
 
-# class ThreadRunQueueFrom(forms.ModelForm):
-#     class Meta:
-#         model = ThreadRunQueue
-#         fields = ['thread', 'run_id']
-#         widgets = {
-#             'thread': forms.Select(attrs={'class': 'form-control'}),
-#             'run_id': forms.DateTimeInput(attrs={'class': 'form-control'}),
-#         }
+# =============================================================================
+# PUBLISHING FORMS
+# =============================================================================
 
 
-# Post form
 class PostForm(forms.ModelForm):
-
     class Meta:
         model = Post
         fields = [
@@ -186,15 +192,6 @@ class PostFrontMatterForm(forms.ModelForm):
         fields = ["id", "title", "description", "author", "published_at", "slug"]
 
 
-class MyObjectForm(forms.ModelForm):
-    class Meta:
-        model = MyObject
-        fields = ["name", "description"]
-
-
-# JSON Schema model form
-
-
 class JSONSchemaForm(forms.ModelForm):
     class Meta:
         model = JSONSchema
@@ -208,3 +205,16 @@ class JSONSchemaForm(forms.ModelForm):
                 "Name can only contain letters, numbers, underscores, and hyphens."
             )
         return name
+
+
+# =============================================================================
+# DEPRECATED FORMS
+# =============================================================================
+
+
+class MyObjectForm(forms.ModelForm):
+    """DEPRECATED: Form for the deprecated MyObject model."""
+
+    class Meta:
+        model = MyObject
+        fields = ["name", "description"]

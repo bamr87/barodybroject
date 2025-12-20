@@ -21,7 +21,6 @@ Usage: pytest test/unit/test_views.py
 
 import json
 import os
-import sys
 import tempfile
 from unittest.mock import MagicMock, Mock, patch
 
@@ -32,8 +31,6 @@ from django.http import HttpResponse, JsonResponse
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
-
-sys.path.append('/workspace/src')
 from setup.forms import AdminUserForm
 from setup.services import InstallationService
 from setup.views import CreateAdminView, SetupStatusView, SetupWizardView
@@ -376,59 +373,3 @@ class TestSetupViewsIntegration(TestCase):
         response = self.client.post(url, invalid_data)
         # Should handle gracefully, not crash
         self.assertIn(response.status_code, [200, 302])
-
-
-if __name__ == '__main__':
-    import django
-    from django.conf import settings
-    from django.test.utils import get_runner
-
-    # Configure Django for testing
-    if not settings.configured:
-        settings.configure(
-            DEBUG=True,
-            DATABASES={
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': ':memory:',
-                }
-            },
-            INSTALLED_APPS=[
-                'django.contrib.auth',
-                'django.contrib.contenttypes',
-                'django.contrib.sessions',
-                'django.contrib.messages',
-                'setup',
-            ],
-            MIDDLEWARE=[
-                'django.middleware.security.SecurityMiddleware',
-                'django.contrib.sessions.middleware.SessionMiddleware',
-                'django.middleware.common.CommonMiddleware',
-                'django.middleware.csrf.CsrfViewMiddleware',
-                'django.contrib.auth.middleware.AuthenticationMiddleware',
-                'django.contrib.messages.middleware.MessageMiddleware',
-            ],
-            ROOT_URLCONF='setup.urls',
-            SECRET_KEY='test-secret-key-for-testing-only',
-            TEMPLATES=[
-                {
-                    'BACKEND': 'django.template.backends.django.DjangoTemplates',
-                    'DIRS': [],
-                    'APP_DIRS': True,
-                    'OPTIONS': {
-                        'context_processors': [
-                            'django.template.context_processors.debug',
-                            'django.template.context_processors.request',
-                            'django.contrib.auth.context_processors.auth',
-                            'django.contrib.messages.context_processors.messages',
-                        ],
-                    },
-                },
-            ]
-        )
-    
-    django.setup()
-    
-    # Run tests
-    import pytest
-    pytest.main([__file__, '-v'])

@@ -138,7 +138,12 @@ jobs:
         env:
           SECRET_KEY: "test-key-for-environment-validation"
           DEBUG: "True"
-          DATABASE_URL: "sqlite:///test.db"
+          DB_CHOICE: postgres
+          DB_HOST: localhost
+          DB_NAME: env_validation_db
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_SCHEMA: public
 
       - name: Test imports
         working-directory: src
@@ -287,7 +292,12 @@ jobs:
         env:
           SECRET_KEY: "test-key-for-dependency-update"
           DEBUG: "True"
-          DATABASE_URL: "sqlite:///test.db"
+          DB_CHOICE: postgres
+          DB_HOST: localhost
+          DB_NAME: env_validation_db
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_SCHEMA: public
 
       - name: Create pull request for dependency updates
         uses: peter-evans/create-pull-request@v5

@@ -8,7 +8,6 @@ token generation, validation, and web-based completion workflow.
 import json
 import os
 import shutil
-import sys
 import tempfile
 import time
 from io import StringIO
@@ -18,8 +17,6 @@ from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.test import Client, TestCase
 from django.urls import reverse
-
-sys.path.append('/workspace/src')
 from setup.services import InstallationService
 
 
@@ -394,59 +391,3 @@ class TestHeadlessTokenSecurity(TestCase):
             # (should be hashed or encrypted)
             # Note: This is implementation dependent
             pass
-
-
-if __name__ == '__main__':
-    import django
-    from django.conf import settings
-    from django.test.utils import get_runner
-
-    # Configure Django for testing
-    if not settings.configured:
-        settings.configure(
-            DEBUG=True,
-            DATABASES={
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': ':memory:',
-                }
-            },
-            INSTALLED_APPS=[
-                'django.contrib.auth',
-                'django.contrib.contenttypes',
-                'django.contrib.sessions',
-                'django.contrib.messages',
-                'setup',
-            ],
-            MIDDLEWARE=[
-                'django.middleware.security.SecurityMiddleware',
-                'django.contrib.sessions.middleware.SessionMiddleware',
-                'django.middleware.common.CommonMiddleware',
-                'django.middleware.csrf.CsrfViewMiddleware',
-                'django.contrib.auth.middleware.AuthenticationMiddleware',
-                'django.contrib.messages.middleware.MessageMiddleware',
-            ],
-            ROOT_URLCONF='setup.urls',
-            SECRET_KEY='test-secret-key-for-testing-only',
-            TEMPLATES=[
-                {
-                    'BACKEND': 'django.template.backends.django.DjangoTemplates',
-                    'DIRS': [],
-                    'APP_DIRS': True,
-                    'OPTIONS': {
-                        'context_processors': [
-                            'django.template.context_processors.debug',
-                            'django.template.context_processors.request',
-                            'django.contrib.auth.context_processors.auth',
-                            'django.contrib.messages.context_processors.messages',
-                        ],
-                    },
-                },
-            ]
-        )
-    
-    django.setup()
-    
-    # Run tests
-    import pytest
-    pytest.main([__file__, '-v'])

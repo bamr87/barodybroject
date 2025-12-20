@@ -478,4 +478,5 @@ sitemap_exclude: ["secret.html", "private"]
 
 # Build settings
 source: .
+data_dir: pages/_data
 # destination: /_site

@@ -139,12 +139,39 @@ TODO: Add embeddings functionality [https://platform.openai.com/docs/guides/embe
                         </li>
                     </ul>
         
-                    {% if user.is_authenticated %}
-                        {% url 'account_email' as email_url_ %}
-                        {% url 'socialaccount_connections' as socialaccount_url_ %}
-                        
-                        <!-- User Settings and Theme Dropdowns -->
-                        <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Theme Toggle Dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" id="bd-theme" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle theme">
+                                <i class="bi bi-circle-half theme-icon-active"></i>
+                                <span class="d-none d-lg-inline ms-1" id="bd-theme-text">{% translate "Theme" %}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme">
+                                <li>
+                                    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+                                        <i class="bi bi-sun-fill me-2"></i>
+                                        {% translate "Light" %}
+                                    </button>
+                                </li>
+                                <li>
+                                    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
+                                        <i class="bi bi-moon-stars-fill me-2"></i>
+                                        {% translate "Dark" %}
+                                    </button>
+                                </li>
+                                <li>
+                                    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="auto" aria-pressed="false">
+                                        <i class="bi bi-circle-half me-2"></i>
+                                        {% translate "Auto" %}
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+
+                        {% if user.is_authenticated %}
+                            {% url 'account_email' as email_url_ %}
+                            {% url 'socialaccount_connections' as socialaccount_url_ %}
+
                             <!-- User Settings Dropdown -->
                             <div class="dropdown">
                                 <button class="btn btn-outline-secondary dropdown-toggle" id="user-settings" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -167,34 +194,6 @@ TODO: Add embeddings functionality [https://platform.openai.com/docs/guides/embe
                                 </ul>
                             </div>
 
-                            <!-- Theme Toggle Dropdown -->
-                            <div class="dropdown">
-                                <button class="btn btn-outline-secondary dropdown-toggle" id="bd-theme" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle theme">
-                                    <i class="bi bi-circle-half theme-icon-active"></i>
-                                    <span class="d-none d-lg-inline ms-1" id="bd-theme-text">{% translate "Theme" %}</span>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme">
-                                    <li>
-                                        <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
-                                            <i class="bi bi-sun-fill me-2"></i>
-                                            {% translate "Light" %}
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
-                                            <i class="bi bi-moon-stars-fill me-2"></i>
-                                            {% translate "Dark" %}
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="auto" aria-pressed="false">
-                                            <i class="bi bi-circle-half me-2"></i>
-                                            {% translate "Auto" %}
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
-                            
                             <!-- Issue Submission Dropdown -->
                             <div class="dropdown">
                                 <button class="btn btn-outline-secondary dropdown-toggle" id="issueMenu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -215,13 +214,13 @@ TODO: Add embeddings functionality [https://platform.openai.com/docs/guides/embe
                                     {% endif %}
                                 </ul>
                             </div>
-                        </div>
-                    {% else %}
-                        <a href="{% url 'account_login' %}" class="btn btn-primary">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>
-                            {% translate "Sign In" %}
-                        </a>
-                    {% endif %}
+                        {% else %}
+                            <a href="{% url 'account_login' %}" class="btn btn-primary">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>
+                                {% translate "Sign In" %}
+                            </a>
+                        {% endif %}
+                    </div>
                     </div>
                 </div>
             </div>

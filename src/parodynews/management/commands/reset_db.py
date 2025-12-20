@@ -1,50 +1,39 @@
+"""
+File: reset_db.py
+Description: Reset the database to an empty state (PostgreSQL-only) for development/testing.
+Author: Barodybroject Team <team@example.com>
+Created: 2025-10-30
+Last Modified: 2025-12-19
+Version: 1.1.0
+
+Dependencies:
+- django: management commands
+
+Usage: python manage.py reset_db
+"""
+
 import os
-import glob
+
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = "Deletes the database and migration files to start fresh"
+    help = "Reset the database to an empty state (PostgreSQL-only)."
 
     def handle(self, *args, **kwargs):
-        # Define the path to the database file
-        db_path = (
-            "db.sqlite3"  # Adjust this path if your database file is located elsewhere
-        )
-
-        # Define the paths to the migrations directories
-        migrations_dirs = [
-            "parodynews/migrations",  # Replace 'your_app' with the actual name of your app
-            # Add more paths if you have multiple apps
-        ]
-
-        # Delete the database file if it exists
-        if os.path.exists(db_path):
-            os.remove(db_path)
-            self.stdout.write(self.style.SUCCESS(f"Deleted database file: {db_path}"))
-        else:
-            self.stdout.write(self.style.WARNING(f"Database file not found: {db_path}"))
-
-        # Delete all migration files in the migrations directories
-        for migrations_dir in migrations_dirs:
-            migration_files = glob.glob(os.path.join(migrations_dir, "*.py"))
-            for migration_file in migration_files:
-                if os.path.basename(migration_file) != "__init__.py":
-                    os.remove(migration_file)
-                    self.stdout.write(
-                        self.style.SUCCESS(f"Deleted migration file: {migration_file}")
-                    )
-
-            # Also delete the compiled Python files
-            migration_pyc_files = glob.glob(
-                os.path.join(migrations_dir, "__pycache__", "*.pyc")
+        db_choice = os.environ.get("DB_CHOICE", "postgres")
+        if db_choice == "sqlite":
+            raise SystemExit(
+                "SQLite is not supported in this project. Configure PostgreSQL via DB_HOST/DB_NAME/DB_USERNAME/DB_PASSWORD."
             )
-            for migration_pyc_file in migration_pyc_files:
-                os.remove(migration_pyc_file)
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f"Deleted compiled migration file: {migration_pyc_file}"
-                    )
-                )
 
-        self.stdout.write(self.style.SUCCESS("Database and migrations reset complete."))
+        # Keep this command intentionally safe: do not delete migration files.
+        # Instead, migrate to the latest schema, then flush all data.
+        self.stdout.write("Applying migrations...")
+        call_command("migrate", interactive=False, verbosity=kwargs.get("verbosity", 1))
+
+        self.stdout.write("Flushing all data (this is destructive)...")
+        call_command("flush", interactive=False, verbosity=kwargs.get("verbosity", 1))
+
+        self.stdout.write(self.style.SUCCESS("Database reset complete (schema preserved, data cleared)."))

@@ -1,42 +1,42 @@
 import os
-import time
 
-import pytest  # noqa: F401
-from playwright.sync_api import sync_playwright
+import pytest
+from playwright.sync_api import Page
 
-from parodynews.tests.scripts.functions.user_create import create_new_account
 from parodynews.tests.scripts.functions.user_login import login_user
-
-# Set the DJANGO_SETTINGS_MODULE environment variable
-os.environ["DJANGO_SETTINGS_MODULE"] = "barodybroject.settings"
 
 
 @pytest.fixture(scope="session")
-def browser_context():
-    with sync_playwright() as p:
-        browser = p.firefox.launch(headless=False)
-        context = browser.new_context()
-        yield context
-        context.close()
+def e2e_base_url() -> str:
+    return os.environ.get("E2E_BASE_URL", "http://localhost:8000").rstrip("/")
+
+
+@pytest.fixture(scope="session")
+def e2e_credentials() -> dict[str, str]:
+    username = os.environ.get("E2E_USERNAME", "e2e_user")
+    password = os.environ.get("E2E_PASSWORD", "e2e_password")
+    email = os.environ.get("E2E_EMAIL", f"{username}@example.com")
+    return {"username": username, "password": password, "email": email}
+
+
+@pytest.fixture(scope="session")
+def browser_name() -> str:
+    # Enforce Chromium-only for CI determinism.
+    return "chromium"
+
+
+@pytest.fixture(scope="session")
+def browser_context_args(e2e_base_url: str) -> dict:
+    # pytest-playwright will pass these args to `browser.new_context()`.
+    return {"base_url": e2e_base_url}
 
 
 @pytest.fixture
-def page(browser_context):
-    page = browser_context.new_page()
-    yield page
-    page.close()
-
-
-@pytest.fixture(scope="session")
-def ensure_logged_in(browser_context):
-    page = browser_context.new_page()
-    username = "bamr87"
-    password = "amr123"
-    email = username + "@barodybroject.com"
-    if not login_user(page, username, password):
-        create_new_account(page, username, email, password)
-        time.sleep(5)  # wait for account creation
-        assert login_user(
-            page, username, password
-        ), "Login failed after account creation"
+def logged_in_page(page: Page, e2e_base_url: str, e2e_credentials: dict[str, str]) -> Page:
+    # Allauth is configured for email-based authentication.
+    ok = login_user(page, e2e_credentials["email"], e2e_credentials["password"], base_url=e2e_base_url)
+    assert ok, (
+        "E2E login failed. Ensure the user exists (recommended: run "
+        "`python src/manage.py ensure_e2e_user`)."
+    )
     return page

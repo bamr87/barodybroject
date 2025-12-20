@@ -1,18 +1,25 @@
 # serializers.py
+"""
+Django REST Framework serializers for parodynews application.
+
+Organized by model category matching the new models package structure.
+"""
+
 from rest_framework import serializers
-from .models import (
+
+from .models import (  # AI models; Content models; Deprecated models; Conversation models; Publishing models; Config models
     Assistant,
     AssistantGroup,
-    ContentItem,
     ContentDetail,
-    Thread,
+    ContentItem,
+    GeneralizedCodes,
+    JSONSchema,
     Message,
+    MyObject,
     Post,
     PostFrontMatter,
-    JSONSchema,
     PoweredBy,
-    MyObject,
-    GeneralizedCodes,
+    Thread,
 )
 
 
@@ -76,13 +83,18 @@ class PoweredBySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class MyObjectSerializer(serializers.ModelSerializer):
+# Deprecated models
+class GeneralizedCodesSerializer(serializers.ModelSerializer):
+    """DEPRECATED: This serializer is for a deprecated model."""
+
     class Meta:
-        model = MyObject
+        model = GeneralizedCodes
         fields = "__all__"
 
 
-class GeneralizedCodesSerializer(serializers.ModelSerializer):
+class MyObjectSerializer(serializers.ModelSerializer):
+    """DEPRECATED: This serializer is for a deprecated model."""
+
     class Meta:
-        model = GeneralizedCodes
+        model = MyObject
         fields = "__all__"

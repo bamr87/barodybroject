@@ -5,8 +5,8 @@
 # Description: Comprehensive test runner for installation wizard and infrastructure
 # Author: Barodybroject Team <team@example.com>
 # Created: 2025-10-30
-# Last Modified: 2025-10-30
-# Version: 1.0.0
+# Last Modified: 2025-12-19
+# Version: 1.0.1
 #
 # Dependencies:
 # - pytest: Python testing framework
@@ -28,7 +28,9 @@ LOG_DIR="$TEST_DIR/logs"
 DJANGO_SETTINGS_MODULE="barodybroject.settings"
 PYTHONPATH="$SRC_DIR:${PYTHONPATH:-}"
 COVERAGE_THRESHOLD=80
-TEST_DATABASE_URL="sqlite:///test_installation_wizard.db"
+# PostgreSQL-only project: default to a local Postgres database.
+# Override via env if needed.
+TEST_DATABASE_URL="${TEST_DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/test_installation_wizard}"
 
 # Colors for output
 RED='\\033[0;31m'
@@ -84,7 +86,7 @@ EXAMPLES:
 
 ENVIRONMENT VARIABLES:
     COVERAGE_THRESHOLD    Coverage percentage threshold (default: 80)
-    TEST_DATABASE_URL     Test database URL (default: SQLite)
+    TEST_DATABASE_URL     Test database URL (default: PostgreSQL)
     DJANGO_SETTINGS_MODULE Test Django settings module
 
 EOF
@@ -167,6 +169,12 @@ setup_environment() {
     export DJANGO_SETTINGS_MODULE="$DJANGO_SETTINGS_MODULE"
     export PYTHONPATH="$PYTHONPATH"
     export TEST_DATABASE_URL="$TEST_DATABASE_URL"
+
+    # Enforce Postgres-only.
+    if [[ "$TEST_DATABASE_URL" == sqlite:* ]]; then
+        log_error "SQLite is not supported. Set TEST_DATABASE_URL to a PostgreSQL URL."
+        exit 1
+    fi
     
     # Clean up if requested
     if [ "$CLEAN_MODE" = true ]; then

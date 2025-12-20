@@ -719,9 +719,8 @@ sudo apt-get install python3 python3-pip git docker.io
    docker-compose up -d
    python manage.py migrate
    
-   # For local SQLite
-   rm db.sqlite3
-   python manage.py migrate
+   # For local PostgreSQL (PostgreSQL-only project)
+   python manage.py reset_db
    ```
 
 #### **Issue**: Permission and authentication errors

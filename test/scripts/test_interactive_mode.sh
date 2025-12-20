@@ -58,7 +58,7 @@ setup_test_environment() {
     cd "$PROJECT_ROOT"
     
     # Set up Django environment
-    export DJANGO_SETTINGS_MODULE="barodybroject.settings.testing"
+    export DJANGO_SETTINGS_MODULE="barodybroject.settings"
     export PYTHONPATH="$SRC_DIR:$PYTHONPATH"
     
     # Clean up any existing setup state
@@ -66,10 +66,7 @@ setup_test_environment() {
         rm -rf "/app/setup_data"
     fi
     
-    # Ensure clean database state
-    if [[ -f "$SRC_DIR/db.sqlite3" ]]; then
-        rm -f "$SRC_DIR/db.sqlite3"
-    fi
+    # PostgreSQL-only project: do not manage local database files here.
     
     log_success "Test environment setup complete"
 }
@@ -357,9 +354,7 @@ cleanup_test_environment() {
     fi
     
     # Clean up database
-    if [[ -f "$SRC_DIR/db.sqlite3" ]]; then
-        rm -f "$SRC_DIR/db.sqlite3"
-    fi
+    # PostgreSQL-only project: do not manage local database files here.
     
     log_success "Cleanup complete"
 }

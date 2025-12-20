@@ -63,17 +63,12 @@ setup_test_environment() {
     cd "$PROJECT_ROOT"
     
     # Set up Django environment
-    export DJANGO_SETTINGS_MODULE="barodybroject.settings.testing"
+    export DJANGO_SETTINGS_MODULE="barodybroject.settings"
     export PYTHONPATH="$SRC_DIR:$PYTHONPATH"
     
     # Clean up any existing setup state
     if [[ -d "/app/setup_data" ]]; then
         rm -rf "/app/setup_data"
-    fi
-    
-    # Ensure clean database state
-    if [[ -f "$SRC_DIR/db.sqlite3" ]]; then
-        rm -f "$SRC_DIR/db.sqlite3"
     fi
     
     # Run initial migrations
@@ -402,11 +397,6 @@ cleanup_test_environment() {
     # Clean up setup state
     if [[ -d "/app/setup_data" ]]; then
         rm -rf "/app/setup_data"
-    fi
-    
-    # Clean up database
-    if [[ -f "$SRC_DIR/db.sqlite3" ]]; then
-        rm -f "$SRC_DIR/db.sqlite3"
     fi
     
     log_success "Cleanup complete"

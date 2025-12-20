@@ -40,7 +40,7 @@ Migrations are executed within the Django application environment:
 - Applied automatically during container startup in production
 - Can be run manually in development containers
 - Database connection configured through Django settings
-- Support for PostgreSQL, SQLite, and other Django-supported databases
+- PostgreSQL-only (this project does not support SQLite)
 
 ## Related Paths
 - Incoming: Generated from Django model definitions and schema changes

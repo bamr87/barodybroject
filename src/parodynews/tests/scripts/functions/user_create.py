@@ -1,7 +1,14 @@
 from playwright.sync_api import Page
 
 
-def create_new_account(page: Page, username, email, password):
+def create_new_account(
+    page: Page,
+    username: str,
+    email: str,
+    password: str,
+    *,
+    base_url: str = "http://localhost:8000",
+):
     """
     Navigates to the signup page, fills out the form fields, and submits the form.
 
@@ -11,7 +18,8 @@ def create_new_account(page: Page, username, email, password):
     :param password: The user's password (used for both password fields).
     """
     # Open the signup page
-    page.goto("https://barodybroject.com/accounts/signup/")
+    signup_url = f"{base_url.rstrip('/')}/accounts/signup/"
+    page.goto(signup_url)
 
     # Wait until the signup form loads (assuming the username field has id 'id_username')
     page.wait_for_selector("#id_username")

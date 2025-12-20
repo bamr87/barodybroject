@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-12-20
+
+### Added
+- **Playwright E2E via pytest**: Added `e2e`-marked Playwright tests (Chromium) runnable via `pytest -m e2e`
+- **Deterministic E2E user**: Added `manage.py ensure_e2e_user` for CI/local E2E login seeding
+- **Modular parodynews layout**: Split large modules into packages (`parodynews/models/`, `parodynews/views/`, `parodynews/utils/`)
+
+### Changed
+- **CI test strategy**: CI now runs unit/integration and Playwright E2E separately, with E2E running on every push and PR
+- **PostgreSQL-only**: Removed SQLite support across tests/scripts and aligned configuration and management commands to Postgres
+- **Playwright install docs**: Documented `python -m playwright install --with-deps chromium` for container environments
+
+### Removed
+- **Legacy monolithic modules**: Replaced `parodynews/models.py`, `parodynews/views.py`, and `parodynews/utils.py` with the new package structure
+- **Old Jekyll data location**: Removed legacy `src/_data` data files in favor of `src/pages/_data`
+
+### Fixed
+- **Allauth email login in E2E**: Updated E2E login flow to authenticate via email when configured
+
 ## [0.3.2] - 2025-11-26
 
 ### Removed

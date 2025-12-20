@@ -1,6 +1,10 @@
 # parodynews/admin.py
-# CMS admin import temporarily disabled - uncomment when CMS is re-enabled
-# from cms.admin.placeholderadmin import FrontendEditableAdminMixin
+"""
+Django admin configuration for parodynews application.
+
+Organized by model category matching the new models package structure.
+"""
+
 from django import forms
 from django.contrib import admin, messages
 from django.core.management import call_command
@@ -9,25 +13,40 @@ from django_json_widget.widgets import JSONEditorWidget
 from import_export.admin import ImportExportModelAdmin
 from martor.widgets import AdminMartorWidget
 
-# myapp/admin.py
-from .models import (  # Entry,  # Temporarily disabled - depends on CMS
-    AppConfig, Assistant, AssistantGroup, AssistantGroupMembership,
-    FieldDefaults, GeneralizedCodes, JSONSchema, OpenAIModel, Post,
-    PostFrontMatter, PostPageConfigModel, PostVersion, PoweredBy)
-from .resources import (AssistantResource, JSONSchemaResource,
-                        OpenAIModelResource, PostResource)
+from .models import (
+    AppConfig,
+    Assistant,
+    AssistantGroup,
+    AssistantGroupMembership,
+    FieldDefaults,
+    GeneralizedCodes,
+    JSONSchema,
+    OpenAIModel,
+    Post,
+    PostFrontMatter,
+    PostPageConfigModel,
+    PostVersion,
+    PoweredBy,
+)
+from .resources import (
+    AssistantResource,
+    JSONSchemaResource,
+    OpenAIModelResource,
+    PostResource,
+)
 from .utils import delete_assistant, get_openai_client
 
-print("Registering AppConfig model")
+# =============================================================================
+# CONFIGURATION MODELS
+# =============================================================================
 
-# Register your models here.
 admin.site.register(AppConfig)
 admin.site.register(PoweredBy)
-admin.site.register(GeneralizedCodes)
 
-admin.site.register(PostFrontMatter)
-# admin.site.register(Entry)  # Temporarily disabled - depends on CMS
-admin.site.register(PostPageConfigModel)
+# =============================================================================
+# AI MODELS
+# =============================================================================
+
 # JSON Schema model
 
 
@@ -91,9 +110,7 @@ class AssistantAdmin(ImportExportModelAdmin):
             # Fetch assistants from OpenAI API
             response = client.beta.assistants.list(limit="100")
 
-            for (
-                assistant_data
-            ) in (
+            for assistant_data in (
                 response.data
             ):  # Changed from response.get('data', []) to response.data
                 assistant_id = (
@@ -201,9 +218,12 @@ class OpenAIModelAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 admin.site.register(OpenAIModel, OpenAIModelAdmin)
 
 
-# Removed FrontendEditableAdminMixin - CMS temporarily disabled
+# =============================================================================
+# PUBLISHING MODELS
+# =============================================================================
+
+
 class PostAdmin(ImportExportModelAdmin, admin.ModelAdmin):
-    # frontend_editable_fields = ("post_content",)
     resource_class = PostResource
     list_display = (
         "content_detail",
@@ -224,32 +244,32 @@ class PostAdmin(ImportExportModelAdmin, admin.ModelAdmin):
 
 admin.site.register(Post, PostAdmin)
 
-
-# Removed FrontendEditableAdminMixin - CMS temporarily disabled
-class PostFrontMatterAdmin(admin.ModelAdmin):
-    # frontend_editable_fields = ("title", "description", "author", "date", "tags")
-    pass  # Placeholder to maintain admin registration
+admin.site.register(PostFrontMatter)
+admin.site.register(PostPageConfigModel)
+admin.site.register(PostVersion)
 
 
-# EntryAdmin temporarily disabled - Entry model depends on CMS
-# class EntryAdmin(admin.ModelAdmin):
-#     list_display = (
-#         "title",
-#         "content_text",
-#         "app_config",
-#     )
-#     list_filter = ("app_config",)
+# =============================================================================
+# DEPRECATED MODELS
+# =============================================================================
+
+# Note: GeneralizedCodes is deprecated and will be removed in version 3.0.0
+admin.site.register(GeneralizedCodes)
 
 
-class FaqConfigAdmin(admin.ModelAdmin):
-    pass
+# =============================================================================
+# INLINE ADMINS
+# =============================================================================
 
 
 class AssistantGroupMembershipInline(admin.TabularInline):
     model = AssistantGroupMembership
     extra = 1
     ordering = ["position"]
-    fields = ["assistant", "position"]
+    fields = [
+        "assistants",
+        "position",
+    ]  # Note: 'assistants' field will be renamed in migration
 
 
 class AssistantGroupAdmin(admin.ModelAdmin):
@@ -258,4 +278,3 @@ class AssistantGroupAdmin(admin.ModelAdmin):
 
 
 admin.site.register(AssistantGroup, AssistantGroupAdmin)
-admin.site.register(PostVersion)

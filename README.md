@@ -79,8 +79,7 @@ A Django-based web application integrated with OpenAI to generate AI-powered par
 
 ### Databases
 
-- **PostgreSQL**: Production database (powerful object-relational database system)
-- **SQLite**: Development and testing database
+- **PostgreSQL**: Database for development, testing, and production
 
 ### Infrastructure & Deployment
 
@@ -185,7 +184,7 @@ Barodybroject features a completely optimized Django configuration system design
 ### Environment Profiles
 
 #### Development Environment
-- **Database**: PostgreSQL (Docker) or SQLite fallback
+- **Database**: PostgreSQL
 - **Caching**: Local memory cache for fast development
 - **Security**: Relaxed settings for easy debugging
 - **Email**: Console backend for testing
@@ -218,7 +217,7 @@ cp .env.example .env
 # Edit environment variables for development
 RUNNING_IN_PRODUCTION=False
 DEBUG=True
-DB_CHOICE=postgres  # or sqlite for simple setup
+DB_CHOICE=postgres
 ```
 
 #### Production Deployment
@@ -392,9 +391,7 @@ DEBUG=True
 SECRET_KEY=your-secret-key-here-change-in-production
 
 # Database Configuration (local development)
-DATABASE_URL=sqlite:///db.sqlite3
-
-# For PostgreSQL (optional, used with Docker)
+# PostgreSQL
 DB_HOST=localhost
 DB_NAME=barodydb
 DB_USERNAME=postgres

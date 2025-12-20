@@ -21,7 +21,6 @@ Usage: pytest test/integration/test_installation_wizard_integration.py
 
 import json
 import os
-import sys
 import tempfile
 import time
 from io import StringIO
@@ -33,8 +32,6 @@ from django.db import transaction
 from django.test import (Client, TestCase, TransactionTestCase,
                          override_settings)
 from django.urls import reverse
-
-sys.path.append('/workspace/src')
 from setup.forms import AdminUserForm
 from setup.services import InstallationService
 from setup.views import CreateAdminView, SetupStatusView, SetupWizardView
@@ -470,8 +467,3 @@ class TestInstallationWizardPerformance(TestCase):
         # Should complete within reasonable time (2 seconds for 10 concurrent requests)
         total_time = end_time - start_time
         self.assertLess(total_time, 2.0)
-
-
-if __name__ == '__main__':
-    import pytest
-    pytest.main([__file__, '-v'])

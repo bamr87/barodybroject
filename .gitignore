@@ -178,6 +178,7 @@ _site
 _algolia_api_key
 Gemfile.lock
 .obsidian
+.cursor/
 pages/_notes/.DS_Store
 *.DS_Store
 .env

@@ -1,18 +1,28 @@
-from cms.plugin_base import CMSPluginBase
-from cms.plugin_pool import plugin_pool
-from django.utils.translation import gettext_lazy as _
-from .models import PostPluginModel
+"""
+DEPRECATED: Django CMS plugins for parodynews.
 
+Django CMS integration has been removed as of 2025-11-25.
+This file is kept for reference but should not be used.
 
-@plugin_pool.register_plugin
-class PostPlugin(CMSPluginBase):
-    model = PostPluginModel
-    name = _("Post Plugin")
-    render_template = "parodynews/pages_post_detail.html"
-    cache = False
-    text_enabled = True
+TODO: Remove this file once CMS migration is complete.
+"""
 
-    def render(self, context, instance, placeholder):
-        context = super().render(context, instance, placeholder)
-        context["post"] = instance.post
-        return context
+# Commented out - CMS integration deprecated
+# from cms.plugin_base import CMSPluginBase
+# from cms.plugin_pool import plugin_pool
+# from django.utils.translation import gettext_lazy as _
+# from .models import PostPluginModel  # Note: PostPluginModel no longer exists
+#
+#
+# @plugin_pool.register_plugin
+# class PostPlugin(CMSPluginBase):
+#     model = PostPluginModel
+#     name = _("Post Plugin")
+#     render_template = "parodynews/pages_post_detail.html"
+#     cache = False
+#     text_enabled = True
+#
+#     def render(self, context, instance, placeholder):
+#         context = super().render(context, instance, placeholder)
+#         context["post"] = instance.post
+#         return context

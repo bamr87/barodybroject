@@ -52,8 +52,8 @@ This mystical library contains every README.md file, organized by location and p
     - Purpose
   - **[infra/modules/](infra/modules/README.md)**
     - Purpose
-  - **[src/_data/](src/_data/README.md)**
-    - **[src/_data/navigation/](src/_data/navigation/README.md)**
+  - **[src/pages/_data/](src/pages/_data/README.md)**
+    - **[src/pages/_data/navigation/](src/pages/_data/navigation/README.md)**
       - Purpose
   - **[src/setup/](src/setup/README.md)**
     - **[src/parodynews/schema/](src/parodynews/schema/README.md)**
@@ -187,8 +187,8 @@ This mystical library contains every README.md file, organized by location and p
       - Purpose
     - **[README/infra/modules/](README/infra/modules/README.md)**
       - Purpose
-    - **[README/src/_data/](README/src/_data/README.md)**
-      - **[README/src/_data/navigation/](README/src/_data/navigation/README.md)**
+    - **[README/src/pages/_data/](README/src/pages/_data/README.md)**
+      - **[README/src/pages/_data/navigation/](README/src/pages/_data/navigation/README.md)**
         - Purpose
     - **[README/src/setup/](README/src/setup/README.md)**
       - **[README/src/parodynews/schema/](README/src/parodynews/schema/README.md)**

@@ -4,7 +4,7 @@
 **Description**: Comprehensive environment variable reference and configuration management  
 **Author**: Barodybroject Team <team@barodybroject.com>  
 **Created**: 2025-10-27  
-**Last Modified**: 2025-10-27  
+**Last Modified**: 2025-12-19  
 **Version**: 1.0.0  
 
 ## Table of Contents
@@ -45,14 +45,14 @@ This guide provides comprehensive documentation for all environment variables us
 
 | Variable | Type | Default | Description | Required |
 |----------|------|---------|-------------|----------|
-| `DB_CHOICE` | string | postgres | Database backend (postgres, sqlite) | No |
+| `DB_CHOICE` | string | postgres | Database backend (postgres) | No |
 | `DB_HOST` | string | localhost | Database host | No |
 | `DB_PORT` | int | 5432 | Database port | No |
 | `DB_NAME` | string | barodydb | Database name | No |
 | `DB_USER` | string | postgres | Database username | No |
 | `DB_PASSWORD` | string | (empty) | Database password | Production |
 | `DB_SSL_MODE` | string | prefer | SSL mode for PostgreSQL | No |
-| `USE_SQLITE` | bool | False | Force SQLite usage (development) | No |
+
 
 ### AWS Configuration
 
@@ -123,15 +123,13 @@ DEBUG=True
 LOG_LEVEL=DEBUG
 ENVIRONMENT=development
 
-# Database - Local PostgreSQL or SQLite
+# Database - Local PostgreSQL
 DB_CHOICE=postgres
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=barodydb
 DB_USER=postgres
 DB_PASSWORD=postgres
-# Alternative: Use SQLite for simpler setup
-# USE_SQLITE=True
 
 # Email - Console backend for development
 EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend

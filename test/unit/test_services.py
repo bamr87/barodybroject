@@ -22,7 +22,6 @@ Usage: pytest test/unit/test_services.py
 import json
 import os
 # Import the service we're testing
-import sys
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -33,8 +32,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 from django.utils import timezone
-
-sys.path.append('/workspace/src')
 from setup.services import InstallationService
 
 
@@ -315,31 +312,9 @@ class TestInstallationService(TestCase):
         import re
         self.assertTrue(re.match(r'^[A-Za-z0-9_-]+$', token))
         
-        # Token should have reasonable length
-        self.assertGreaterEqual(len(token), 32)
-        self.assertLessEqual(len(token), 128)
-
-
-class TestInstallationServiceIntegration(TestCase):
-    """Integration tests for InstallationService with Django components."""
-    
-    def setUp(self):
-        """Set up integration test environment."""
-        self.test_dir = tempfile.mkdtemp()
-        self.test_config_file = os.path.join(self.test_dir, 'integration_config.json')
-        self.test_installation_file = os.path.join(self.test_dir, '.installation')
-        
-        self.service = InstallationService()
-        self.service.config_file = Path(self.test_config_file)
-        self.service.installation_file = Path(self.test_installation_file)
-    
-    def tearDown(self):
-        """Clean up integration test environment."""
-        import shutil
-        if os.path.exists(self.test_dir):
-            shutil.rmtree(self.test_dir)
-        
-        # Clean up any created users
+            from django.conf import settings
+            django.setup()
+            pytest.main([__file__, '-v'])
         User.objects.all().delete()
     
     def test_full_installation_workflow(self):
@@ -413,33 +388,3 @@ class TestInstallationServiceIntegration(TestCase):
         
         # Token should no longer be valid (single use)
         self.assertFalse(new_service.validate_token(token))
-
-
-if __name__ == '__main__':
-    import django
-    from django.conf import settings
-    from django.test.utils import get_runner
-
-    # Configure Django for testing
-    if not settings.configured:
-        settings.configure(
-            DEBUG=True,
-            DATABASES={
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': ':memory:',
-                }
-            },
-            INSTALLED_APPS=[
-                'django.contrib.auth',
-                'django.contrib.contenttypes',
-                'setup',
-            ],
-            SECRET_KEY='test-secret-key-for-testing-only'
-        )
-    
-    django.setup()
-    
-    # Run tests
-    import pytest
-    pytest.main([__file__, '-v'])

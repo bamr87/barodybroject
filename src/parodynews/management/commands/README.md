@@ -9,7 +9,7 @@ This directory contains Django management commands that provide administrative a
 - `fetch_models.py`: Django command to fetch and update OpenAI model choices from the OpenAI API
 - `generate_field_defaults.py`: Django command to generate FieldDefaults records with base templates of model defaults
 - `refreshmigrations.py`: Django command for refreshing database migrations
-- `reset_db.py`: Django command to reset the database by deleting db.sqlite3 and migration files for a fresh start
+- `reset_db.py`: Django command to reset the database to an empty state (PostgreSQL-only)
 
 ## Usage
 These commands are executed using Django's management system:

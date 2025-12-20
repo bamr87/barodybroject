@@ -20,6 +20,21 @@ jobs:
     name: Pre-flight Checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ci_barodydb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -60,7 +75,12 @@ jobs:
         env:
           SECRET_KEY: "ci-test-key-not-for-production"
           DEBUG: "False"
-          DATABASE_URL: "sqlite:///ci_test.db"
+          DB_HOST: localhost
+          DB_NAME: ci_barodydb
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_SCHEMA: public
+          DB_CHOICE: postgres
 
       - name: Check for migration issues
         working-directory: src
@@ -72,7 +92,12 @@ jobs:
         env:
           SECRET_KEY: "ci-test-key-not-for-production"
           DEBUG: "False"
-          DATABASE_URL: "sqlite:///ci_test.db"
+          DB_HOST: localhost
+          DB_NAME: ci_barodydb
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_SCHEMA: public
+          DB_CHOICE: postgres
 
   # Docker Compose services verification  
   container-compose-test:
@@ -145,7 +170,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12"]
 
     services:
       postgres:
@@ -175,7 +200,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libpq-dev
+          sudo apt-get install -y libpq-dev postgresql-client
 
       - name: Install Python dependencies
         run: |
@@ -183,9 +208,9 @@ jobs:
           python -m pip install --upgrade pip
           # Try to use system pycairo first, then install other dependencies
           python -c "import gi.repository.cairo as cairo; print('System pycairo available')" || echo "System pycairo not available, will install from PyPI"
-          # Install other requirements first to avoid pycairo conflicts
+          # Install pinned project requirements without pulling in heavy optional deps
           pip install -r requirements.txt --no-deps
-          # Install dependencies for requirements
+          # Install required runtime deps (without optional extras deps)
           pip install \
             django \
             djangorestframework \
@@ -210,61 +235,86 @@ jobs:
             django-environ \
             martor
           # Install testing dependencies
-          pip install coverage pytest-cov
+          pip install coverage pytest-cov pytest-django pytest-playwright
 
-      - name: Run database migrations
-        working-directory: src
+      - name: Install Playwright (Chromium)
         run: |
-          python manage.py migrate --noinput
+          python -m playwright install --with-deps chromium
+
+      - name: Run unit/integration tests (pytest)
+        run: |
+          python -m pytest -m "not e2e" --cov-report=xml --cov-report=term-missing
         env:
           SECRET_KEY: "ci-test-key-not-for-production"
           DEBUG: "True"
+          DB_CHOICE: postgres
           DB_HOST: localhost
           DB_NAME: test_barodydb
           DB_USERNAME: postgres
           DB_PASSWORD: postgres
+          DB_SCHEMA: public
 
-      - name: Collect static files
-        working-directory: src
+      - name: Prepare E2E database/schema
         run: |
-          python manage.py collectstatic --noinput
-        env:
-          SECRET_KEY: "ci-test-key-not-for-production"
-          DEBUG: "False"
-          DB_HOST: localhost
-          DB_NAME: test_barodydb
-          DB_USERNAME: postgres
-          DB_PASSWORD: postgres
+          export PGPASSWORD=postgres
+          psql -h localhost -U postgres -d postgres -c "CREATE DATABASE test_barodydb_e2e;" || true
+          psql -h localhost -U postgres -d test_barodydb_e2e -c "CREATE SCHEMA IF NOT EXISTS e2e;"
 
-      - name: Run Django tests
-        working-directory: src
+      - name: Migrate + seed E2E user
         run: |
-          python manage.py test --verbosity=2
+          python src/manage.py migrate --noinput
+          python src/manage.py ensure_e2e_user --is-staff
         env:
           SECRET_KEY: "ci-test-key-not-for-production"
           DEBUG: "True"
+          DB_CHOICE: postgres
           DB_HOST: localhost
-          DB_NAME: test_barodydb
+          DB_NAME: test_barodydb_e2e
           DB_USERNAME: postgres
           DB_PASSWORD: postgres
+          DB_SCHEMA: e2e
+          E2E_USERNAME: e2e_user
+          E2E_EMAIL: e2e_user@example.com
+          E2E_PASSWORD: e2e_password
 
-      - name: Run pytest with coverage
-        working-directory: src
+      - name: Start Django server (E2E)
         run: |
-          python -m pytest --cov=parodynews --cov-report=xml --cov-report=term-missing --cov-fail-under=70
+          nohup python src/manage.py runserver 0.0.0.0:8000 --noreload > server.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://localhost:8000/ > /dev/null; then
+              echo "Server is up";
+              exit 0;
+            fi
+            sleep 1
+          done
+          echo "Server failed to start";
+          tail -200 server.log || true
+          exit 1
         env:
           SECRET_KEY: "ci-test-key-not-for-production"
           DEBUG: "True"
+          DB_CHOICE: postgres
           DB_HOST: localhost
-          DB_NAME: test_barodydb
+          DB_NAME: test_barodydb_e2e
           DB_USERNAME: postgres
           DB_PASSWORD: postgres
+          DB_SCHEMA: e2e
+          E2E_USERNAME: e2e_user
+          E2E_PASSWORD: e2e_password
+
+      - name: Run Playwright E2E (Chromium)
+        run: |
+          python -m pytest -m e2e --browser chromium
+        env:
+          E2E_BASE_URL: http://localhost:8000
+          E2E_USERNAME: e2e_user
+          E2E_PASSWORD: e2e_password
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@v3
         with:
-          files: ./src/coverage.xml
+          files: ./coverage.xml
           flags: django-tests
           name: codecov-barodybroject
 

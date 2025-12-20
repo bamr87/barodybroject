@@ -1,9 +1,9 @@
-import pytest  # noqa: F401
-from selenium.webdriver.common.by import By
+import pytest
 
 
-def test_login_or_create(ensure_logged_in):
-    driver = ensure_logged_in
-    # Navigate to a post‑login page (adjust URL and condition as needed)
-    alerts = driver.find_elements(By.CSS_SELECTOR, ".alert.alert-success")
-    assert alerts, "Login or account creation failed"
+@pytest.mark.e2e
+def test_login_smoke(logged_in_page):
+    page = logged_in_page
+    page.goto("/")
+    page.wait_for_timeout(250)
+    assert "Barody" in page.content()

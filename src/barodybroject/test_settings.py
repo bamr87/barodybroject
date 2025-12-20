@@ -17,13 +17,16 @@ Container Requirements:
 Usage: Django test settings for installation wizard testing
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Basic Django settings for testing
-SECRET_KEY = 'test-secret-key-for-installation-wizard-testing-only'
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY", "test-secret-key-for-installation-wizard-testing-only"
+)
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
@@ -69,11 +72,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'barodybroject.wsgi.application'
 
-# Database - use SQLite for testing
+# Database - PostgreSQL only (CI and local Docker)
+DB_SCHEMA = os.environ.get("DB_SCHEMA", "public").strip() or "public"
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '/tmp/test_installation_wizard.db',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'barodydb'),
+        'USER': os.environ.get('DB_USERNAME', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': int(os.environ.get('DB_PORT', '5432')),
+        'OPTIONS': {
+            'options': f'-c search_path={DB_SCHEMA}',
+        },
     }
 }
 

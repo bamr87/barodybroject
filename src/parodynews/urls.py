@@ -4,7 +4,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import include, path
 from rest_framework import routers
 
-from .views import (  # PostPageView,  # Commented out - CMS-specific view disabled
+from .views import (
     AssistantGroupViewSet, AssistantViewSet, ContentDetailViewSet,
     ContentItemViewSet, FooterView, GeneralizedCodesViewSet, JSONSchemaViewSet,
     ManageAssistantGroupsView, ManageAssistantsView, ManageContentView,
@@ -12,8 +12,6 @@ from .views import (  # PostPageView,  # Commented out - CMS-specific view disab
     MyObjectViewSet, PostFrontMatterViewSet, PostViewSet, PoweredByViewSet,
     ProcessContentView, ThreadViewSet, create_schema, delete_schema,
     edit_schema, export_schema, get_assistant_details, list_schemas)
-
-print("Registering parodynews urls")
 
 router = routers.DefaultRouter()
 # Register the viewsets
@@ -60,13 +58,11 @@ urlpatterns = [
         ManageContentView.as_view(),
         name="generate_content",
     ),
-    path("content/generate/", ManageContentView.as_view(), name="generate_content"),
     path(
         "content/thread/create/<int:content_detail_id>/",
         ManageContentView.as_view(),
         name="create_thread",
     ),
-    path("content/thread/create/", ManageContentView.as_view(), name="manage_content"),
     # Sub routines for AJAX requests
     path(
         "get_assistant_details/<str:assistant_id>/",
@@ -127,7 +123,6 @@ urlpatterns = [
         name="delete_message",
     ),
     path("messages/delete/", ManageMessageView.as_view(), name="delete_message"),
-    path("messages/", ManageMessageView.as_view(), name="message_detail"),
     path(
         "messages/<str:message_id>/", ManageMessageView.as_view(), name="message_detail"
     ),
@@ -148,12 +143,8 @@ urlpatterns = [
     ),
     # Post Management
     path("posts/", ManagePostView.as_view(), name="manage_post"),
-    path("posts/<int:post_id>", ManagePostView.as_view(), name="post_detail"),
-    path("posts/edit/", ManagePostView.as_view(), name="edit_post"),
     path("posts/edit/<int:post_id>", ManagePostView.as_view(), name="edit_post"),
-    path("posts/delete/", ManagePostView.as_view(), name="delete_post"),
     path("posts/delete/<int:post_id>", ManagePostView.as_view(), name="delete_post"),
-    path("posts/delete/", ManagePostView.as_view(), name="delete_post"),
     path("posts/publish/<int:post_id>", ManagePostView.as_view(), name="publish_post"),
     path("posts/<int:post_id>/", ManagePostView.as_view(), name="post_detail"),
     # Assistant management

@@ -1,7 +1,11 @@
-import dkim
-from django.core.mail.backends.smtp import EmailBackend
-from django.conf import settings
 import base64
+import logging
+
+import dkim
+from django.conf import settings
+from django.core.mail.backends.smtp import EmailBackend
+
+logger = logging.getLogger(__name__)
 
 
 class DKIMEmailBackend(EmailBackend):
@@ -42,7 +46,5 @@ class DKIMEmailBackend(EmailBackend):
                 signature_value = "".join(signature_value.splitlines())
                 message.extra_headers["DKIM-Signature"] = signature_value
             except Exception as e:
-                # Log the error or handle it as needed
-                print(f"DKIM signing failed: {e}")
-                # Optionally, you can skip DKIM signing or re-raise the exception
+                logger.warning("DKIM signing failed: %s", e)
         return super().send_messages(email_messages)

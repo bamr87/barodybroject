@@ -1,3 +1,12 @@
+"""
+DEPRECATED: Django CMS configuration for parodynews.
+
+Django CMS integration has been removed as of 2025-11-25.
+This file is kept for reference but should not be used.
+
+TODO: Remove this file once CMS migration is complete.
+"""
+
 from cms.app_base import CMSApp, CMSAppConfig
 from cms.apphook_pool import apphook_pool
 

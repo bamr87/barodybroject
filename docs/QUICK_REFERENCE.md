@@ -32,7 +32,7 @@ Select your setup mode and follow the prompts!
 ./init_setup.sh
 # Select: 2) Local Development Setup
 ```
-**Requires**: Python 3.8+, PostgreSQL or SQLite
+**Requires**: Python 3.8+, PostgreSQL
 
 ### 3️⃣ Azure Deployment
 **Use when**: Deploying to cloud production

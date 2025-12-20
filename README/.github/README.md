@@ -7,7 +7,7 @@ AI-powered Django application for generating parody news content using OpenAI AP
 ## Tech Stack
 
 **Backend**: Django 4.2 • Python 3.8+ • Django CMS • DRF  
-**Database**: PostgreSQL (prod) • SQLite (dev)  
+**Database**: PostgreSQL  
 **Infrastructure**: Docker • Azure Container Apps • Azure Bicep  
 **AI**: OpenAI API • Custom Assistants  
 **Testing**: Pytest • Playwright • Selenium  
@@ -25,7 +25,11 @@ pip install -r requirements-dev.txt
 cat > .env << EOF
 DEBUG=True
 SECRET_KEY=dev-secret-key-change-in-production
-DATABASE_URL=sqlite:///db.sqlite3
+DB_CHOICE=postgres
+DB_HOST=localhost
+DB_NAME=barodydb
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
 OPENAI_API_KEY=your-key-here
 EOF
 
@@ -101,7 +105,7 @@ docker compose build                    # Rebuild images
 pytest                                  # Run all tests
 pytest --cov=parodynews                # With coverage
 pytest -v -k test_name                 # Specific test
-python -m playwright install chromium   # Setup browser
+python -m playwright install --with-deps chromium   # Setup browser
 ```
 
 ### Azure Deployment
@@ -156,7 +160,7 @@ Core Models:
 ## Development Workflow
 
 ### Local Development
-1. Use SQLite for speed
+1. Use PostgreSQL (required)
 2. DEBUG=True in .env
 3. Hot reload enabled by default
 4. Django Debug Toolbar recommended
@@ -243,9 +247,8 @@ python manage.py migrate
 
 ### Database Issues
 ```bash
-# Reset database
-rm db.sqlite3
-python manage.py migrate
+# Reset database (PostgreSQL-only)
+python manage.py reset_db
 python manage.py createsuperuser
 ```
 

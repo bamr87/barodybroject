@@ -384,19 +384,9 @@ if DB_CHOICE == 'postgres':
         })
 ```
 
-#### Development Database (SQLite Fallback)
-```python
-if DB_CHOICE == 'sqlite' or env.bool('USE_SQLITE', default=False):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-            'OPTIONS': {
-                'timeout': 20,
-            },
-        }
-    }
-```
+#### Development Database
+
+This project is PostgreSQL-only. Any older SQLite examples are deprecated.
 
 ### Database Performance Optimization
 

@@ -398,10 +398,17 @@ class PerformanceTests(TestCase):
         response = self.client.get("/")
         content = response.content.decode("utf-8")
 
-        # Check Bootstrap isn't loaded multiple times
-        bootstrap_count = content.count("bootstrap.min.css")
+        # Check Bootstrap (core) CSS isn't loaded multiple times.
+        # Note: this intentionally ignores similarly-named assets like
+        # `martor.bootstrap.min.css`.
+        bootstrap_links = re.findall(
+            r'href="https://cdn\.jsdelivr\.net/npm/bootstrap@[^\"]+/dist/css/bootstrap\.min\.css"',
+            content,
+        )
         self.assertEqual(
-            bootstrap_count, 1, f"Bootstrap CSS loaded {bootstrap_count} times"
+            len(bootstrap_links),
+            1,
+            f"Bootstrap CSS loaded {len(bootstrap_links)} times",
         )
 
 

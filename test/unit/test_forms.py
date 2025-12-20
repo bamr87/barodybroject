@@ -19,15 +19,12 @@ Container Requirements:
 Usage: pytest test/unit/test_forms.py
 """
 
-import sys
 import tempfile
 from unittest.mock import Mock, patch
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-
-sys.path.append('/workspace/src')
 from setup.forms import AdminUserForm
 
 
@@ -415,51 +412,3 @@ class TestFormIntegration(TestCase):
         # Django password validators should catch this
         if not form.is_valid():
             self.assertTrue('password1' in form.errors or 'password2' in form.errors)
-
-
-if __name__ == '__main__':
-    import django
-    from django.conf import settings
-    from django.test.utils import get_runner
-
-    # Configure Django for testing
-    if not settings.configured:
-        settings.configure(
-            DEBUG=True,
-            DATABASES={
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': ':memory:',
-                }
-            },
-            INSTALLED_APPS=[
-                'django.contrib.auth',
-                'django.contrib.contenttypes',
-                'django.contrib.sessions',
-                'setup',
-            ],
-            SECRET_KEY='test-secret-key-for-testing-only',
-            AUTH_PASSWORD_VALIDATORS=[
-                {
-                    'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-                },
-                {
-                    'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-                    'OPTIONS': {
-                        'min_length': 8,
-                    }
-                },
-                {
-                    'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-                },
-                {
-                    'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-                },
-            ]
-        )
-    
-    django.setup()
-    
-    # Run tests
-    import pytest
-    pytest.main([__file__, '-v'])

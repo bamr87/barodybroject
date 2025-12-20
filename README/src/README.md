@@ -4,13 +4,12 @@
 This is the main source code directory for the Django-based parody news generator application.
 
 ## Contents
-- `_data/`: Data files for the application (has its own README)
+- `pages/_data/`: Data files for the application (has its own README)
 - `404.html`: Custom 404 page
 - `apprunner.yaml`: AWS App Runner configuration
 - `assets/`: Static assets (images, js)
 - `azure.yaml`: Azure configuration
 - `barodybroject/`: Django project settings
-- `db.sqlite3`: Development database
 - `docker-compose.yml`: Docker composition
 - `Dockerfile`: Container definition
 - `docs/`: Documentation files

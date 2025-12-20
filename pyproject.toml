@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "barodybroject"
-version = "0.3.2"
+version = "0.4.0"
 description = "A Django-based parody news generator with AI integration - Successfully deployed on Azure Container Apps"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -164,8 +164,13 @@ ignore = ["E501"]
 # Pytest
 [tool.pytest.ini_options]
 addopts = ["--cov=parodynews", "--cov=barodybroject"]
-testpaths = ["tests"]
-DJANGO_SETTINGS_MODULE = "barodybroject.settings.test"
+testpaths = ["src/parodynews/tests", "test"]
+pythonpath = ["src"]
+DJANGO_SETTINGS_MODULE = "barodybroject.settings"
+norecursedirs = ["scripts"]
+markers = [
+  "e2e: end-to-end tests that require a running Django server and Playwright",
+]
 
 # Coverage
 [tool.coverage.run]

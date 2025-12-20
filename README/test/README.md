@@ -118,7 +118,12 @@ cp test/fixtures/test_config.json.example test/fixtures/test_config.json
 # Set test environment variables
 export DJANGO_SETTINGS_MODULE=barodybroject.settings
 export TESTING=true
-export DATABASE_URL=sqlite:///test_db.sqlite3
+export DB_CHOICE=postgres
+export DB_HOST=localhost
+export DB_NAME=test_barodydb
+export DB_USERNAME=postgres
+export DB_PASSWORD=postgres
+export DB_SCHEMA=public
 ```
 
 ### Database Setup

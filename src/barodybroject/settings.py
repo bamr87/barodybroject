@@ -507,55 +507,47 @@ LOGOUT_REDIRECT_URL = "/"
 # ==============================================================================
 
 # Database configuration with improved connection settings
-DB_CHOICE = env.str("DB_CHOICE", default="postgres")
-
+DB_CHOICE = env.str("DB_CHOICE", default="postgres").lower().strip()
 if DB_CHOICE == "sqlite":
-    # SQLite for local development
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-            "ATOMIC_REQUESTS": True,
-            "OPTIONS": {
-                "timeout": 20,
-            },
-        }
-    }
-else:
-    # PostgreSQL configuration with connection pooling and optimization
-    db_options = {
-        "options": "-c search_path=public",
-    }
+    raise ImproperlyConfigured(
+        "SQLite is not supported in this project. Configure PostgreSQL via DB_HOST/DB_NAME/DB_USERNAME/DB_PASSWORD."
+    )
 
-    # SSL configuration for production
-    ssl_mode = env.str("POSTGRES_SSL", default="")
-    if ssl_mode:
-        db_options["sslmode"] = ssl_mode
+# PostgreSQL configuration with connection pooling and optimization
+db_schema = env.str("DB_SCHEMA", default="public").strip() or "public"
+db_options = {
+    "options": f"-c search_path={db_schema}",
+}
 
-    # Connection pooling settings for production
-    if IS_PRODUCTION:
-        db_options.update(
-            {
-                "conn_max_age": 600,  # 10 minutes
-                "conn_health_checks": True,
-            }
-        )
+# SSL configuration (optional)
+ssl_mode = env.str("POSTGRES_SSL", default="").strip()
+if ssl_mode:
+    db_options["sslmode"] = ssl_mode
 
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": env.str("DB_NAME", default="barodydb"),
-            "USER": env.str("DB_USERNAME", default="postgres"),
-            "PASSWORD": env.str("DB_PASSWORD", default="postgres"),
-            "HOST": env.str("DB_HOST", default="localhost"),
-            "PORT": env.int("DB_PORT", default=5432),
-            "ATOMIC_REQUESTS": True,
-            "OPTIONS": db_options,
-            "TEST": {
-                "NAME": f"test_{env.str('DB_NAME', default='barodydb')}",
-            },
-        }
+# Connection pooling settings for production
+db_conn_max_age = 0
+db_conn_health_checks = False
+if IS_PRODUCTION:
+    db_conn_max_age = 600  # 10 minutes
+    db_conn_health_checks = True
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env.str("DB_NAME", default="barodydb"),
+        "USER": env.str("DB_USERNAME", default="postgres"),
+        "PASSWORD": env.str("DB_PASSWORD", default="postgres"),
+        "HOST": env.str("DB_HOST", default="localhost"),
+        "PORT": env.int("DB_PORT", default=5432),
+        "ATOMIC_REQUESTS": True,
+        "CONN_MAX_AGE": db_conn_max_age,
+        "CONN_HEALTH_CHECKS": db_conn_health_checks,
+        "OPTIONS": db_options,
+        "TEST": {
+            "NAME": f"test_{env.str('DB_NAME', default='barodydb')}",
+        },
     }
+}
 
 # Database connection timeout settings
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
