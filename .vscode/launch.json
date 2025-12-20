@@ -1,100 +1,255 @@
 {
   // ==================================================
-  // UPDATED VS CODE LAUNCH CONFIGURATION
+  // VS CODE LAUNCH CONFIGURATION - DOCKER FIRST
   // ==================================================
-  // Updated for simplified Docker Compose structure
+  // Docker-first development workflow with Python debugging support
+  // Updated: 2025-12-20
   
   "version": "0.2.0",
   "configurations": [
     
     // ==========================================
-    // DOCKER DEVELOPMENT CONFIGURATIONS
+    // 🐳 DOCKER DEVELOPMENT (PRIMARY)
     // ==========================================
     {
-      "name": "🐳 Debug Django App (Development)",
+      "name": "🐳 Django: Docker Debug",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5678
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/src",
+          "remoteRoot": "/workspace/src"
+        }
+      ],
+      "django": true,
+      "justMyCode": false,
+      "preLaunchTask": "🐍 Docker: Development Up",
+      "presentation": {
+        "group": "0_docker_primary",
+        "order": 1
+      }
+    },
+
+    {
+      "name": "🐳 Django: Docker + Browser",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5678
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/src",
+          "remoteRoot": "/workspace/src"
+        }
+      ],
+      "django": true,
+      "justMyCode": false,
+      "preLaunchTask": "🐍 Docker: Development Up",
+      "postDebugTask": "🌐 Open Browser: http://localhost:8000",
+      "presentation": {
+        "group": "0_docker_primary",
+        "order": 2
+      }
+    },
+
+    // ==========================================
+    // 🌐 BROWSER SHORTCUTS
+    // ==========================================
+    {
+      "name": "🌐 Open Django App (Port 8000)",
       "type": "msedge",
       "request": "launch",
       "url": "http://localhost:8000",
       "webRoot": "${workspaceFolder}",
-      "preLaunchTask": "🐍 Docker: Development Up",
-      "postDebugTask": "⛔ Docker: Stop Development"
+      "presentation": {
+        "group": "1_browser",
+        "order": 1
+      }
     },
 
     {
-      "name": "🚀 Debug Django App (Production)",
+      "name": "🌐 Open Django Admin (Port 8000)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:8000/admin",
+      "webRoot": "${workspaceFolder}",
+      "presentation": {
+        "group": "1_browser",
+        "order": 2
+      }
+    },
+
+    {
+      "name": "🌐 Open Documentation (Port 8080)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:8080",
+      "webRoot": "${workspaceFolder}/src/parodynews/docs",
+      "presentation": {
+        "group": "1_browser",
+        "order": 3
+      }
+    },
+
+    {
+      "name": "🌐 Open Production App (Port 80)",
       "type": "msedge",
       "request": "launch",
       "url": "http://localhost:80",
       "webRoot": "${workspaceFolder}",
-      "preLaunchTask": "🚀 Docker: Production Up",
-      "postDebugTask": "⛔ Docker: Stop Production"
+      "presentation": {
+        "group": "1_browser",
+        "order": 4
+      }
     },
 
     // ==========================================
-    // PYTHON/DJANGO CONFIGURATIONS
+    // 🧪 TESTING IN DOCKER
     // ==========================================
     {
-      "name": "🐍 Python/Django in Docker (Development)",
+      "name": "🧪 Django: Run All Tests (Docker)",
       "type": "debugpy",
       "request": "attach",
       "connect": {
         "host": "localhost",
         "port": 5678
       },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/src",
+          "remoteRoot": "/workspace/src"
+        }
+      ],
       "django": true,
       "justMyCode": false,
-      "preLaunchTask": "🐍 Docker: Development Up"
-    },
-
-    {
-      "name": "🧪 Python Tests in Docker (Development)",
-      "type": "debugpy",
-      "request": "attach",
-      "connect": {
-        "host": "localhost",
-        "port": 5678
-      },
-      "django": true,
-      "justMyCode": false,
-      "preLaunchTask": "🐍 Docker: Development Up"
+      "preLaunchTask": "🧪 Test: Run Django Tests",
+      "presentation": {
+        "group": "2_testing",
+        "order": 1
+      }
     },
 
     // ==========================================
-    // LOCAL DEVELOPMENT (WITHOUT DOCKER)
+    // 💻 LOCAL DEVELOPMENT (OPTIONAL FALLBACK)
     // ==========================================
     {
-      "name": "🐍 Python/Django (Local)",
+      "name": "💻 Django: Local (No Docker)",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/src/manage.py",
-      "args": ["runserver", "0.0.0.0:8001"],
+      "args": ["runserver", "0.0.0.0:8001", "--noreload"],
       "django": true,
       "autoStartBrowser": false,
       "console": "integratedTerminal",
       "justMyCode": false,
+      "cwd": "${workspaceFolder}/src",
       "env": {
         "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
         "DEBUG": "True",
         "RUNNING_IN_PRODUCTION": "False",
-        "DB_CHOICE": "sqlite"
+        "DB_HOST": "localhost",
+        "DB_NAME": "barodydb",
+        "DB_USERNAME": "postgres",
+        "DB_PASSWORD": "postgres",
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "presentation": {
+        "group": "9_local_optional",
+        "order": 1
       }
     },
 
     {
-      "name": "🧪 Python Tests (Local)",
+      "name": "💻 Django: Test Current File (Local)",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/src/manage.py",
-      "args": ["test"],
+      "args": ["test", "${relativeFileDirname}.${fileBasenameNoExtension}", "--verbosity=2"],
       "django": true,
       "console": "integratedTerminal",
       "justMyCode": false,
+      "cwd": "${workspaceFolder}/src",
       "env": {
         "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
         "DEBUG": "True",
         "RUNNING_IN_PRODUCTION": "False",
-        "DB_CHOICE": "sqlite"
+        "DB_HOST": "localhost",
+        "DB_NAME": "barodydb",
+        "DB_USERNAME": "postgres",
+        "DB_PASSWORD": "postgres",
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "presentation": {
+        "group": "9_local_optional",
+        "order": 2
       }
+    },
+
+    {
+      "name": "💻 Django: Shell (Local)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/manage.py",
+      "args": ["shell"],
+      "django": true,
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "cwd": "${workspaceFolder}/src",
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
+        "DEBUG": "True",
+        "RUNNING_IN_PRODUCTION": "False",
+        "DB_HOST": "localhost",
+        "DB_NAME": "barodydb",
+        "DB_USERNAME": "postgres",
+        "DB_PASSWORD": "postgres",
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "presentation": {
+        "group": "9_local_optional",
+        "order": 3
+      }
+    },
+
+    {
+      "name": "💻 Python: Current File (Local)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "cwd": "${fileDirname}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "presentation": {
+        "group": "9_local_optional",
+        "order": 4
+      }
+    }
+  ],
+
+  // ==========================================
+  // COMPOUND CONFIGURATIONS
+  // ==========================================
+  "compounds": [
+    {
+      "name": "🚀 Full Stack: Docker Django + Browser",
+      "configurations": [
+        "🐳 Django: Docker Debug",
+        "🌐 Open Django App (Port 8000)"
+      ],
+      "presentation": {
+        "group": "0_compounds",
+        "order": 1
+      },
+      "stopAll": true
     }
   ]
 }

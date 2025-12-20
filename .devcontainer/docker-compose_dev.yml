@@ -59,6 +59,8 @@ services:
         pip install --upgrade pip
         # Install dependencies with increased timeout and retries for CI/CD reliability
         pip install --timeout 180 --retries 5 -r requirements.txt
+        # Install debugpy for VS Code debugging
+        pip install debugpy
         
         # Create necessary directories
         mkdir -p /workspace/setup_data /workspace/logs
@@ -66,8 +68,10 @@ services:
         # Run database migrations
         python manage.py migrate
         
-        # Start development server
-        python manage.py runserver 0.0.0.0:8000
+        # Start development server with debugpy for VS Code debugging
+        echo "Starting Django with debugpy on port 5678..."
+        echo "Waiting for VS Code debugger to attach..."
+        python -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000 --noreload --nothreading
 
   jekyll:
     image: jekyll/jekyll:latest
