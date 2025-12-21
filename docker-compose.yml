@@ -49,6 +49,11 @@ services:
       SKIP_INSTALLATION_CHECK: ${SKIP_INSTALLATION_CHECK:-false}
       SETUP_TOKEN_EXPIRY_HOURS: ${SETUP_TOKEN_EXPIRY_HOURS:-1}
       SETUP_DATA_DIR: /app/setup_data
+      # Django admin credentials (set these in production!)
+      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
+      DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@localhost.local}
+      DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
+      ADMIN_CREDENTIALS_FILE: ${ADMIN_CREDENTIALS_FILE:-/app/setup_data/admin_credentials.txt}
     ports:
       - "${DJANGO_PROD_PORT:-80}:8000"
     networks:

@@ -199,3 +199,7 @@ docs/temp/
 
 # Script execution logs
 organize_docs.log
+
+# Admin credentials (auto-generated, contains sensitive information)
+setup_data/admin_credentials.txt
+**/admin_credentials.txt

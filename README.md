@@ -432,6 +432,8 @@ python manage.py createsuperuser
 
 Follow the prompts to create your admin account.
 
+**Note:** When using Docker, admin credentials are automatically created. See the [Docker Admin Credentials](#docker-admin-credentials) section below.
+
 8. **Run the Development Server**
 
 ```bash
@@ -502,21 +504,30 @@ The project uses a **unified Docker Compose configuration** that supports multip
 
 ```bash
 # Start development environment
-docker-compose up -d
+docker-compose -f .devcontainer/docker-compose_dev.yml up -d
 
 # View the application
 open http://localhost:8000
 ```
 
+**Admin Access:** Default credentials are automatically created:
+- **Username:** `admin`
+- **Password:** `admin`
+- **Admin URL:** http://localhost:8000/admin/
+
+See [Docker Admin Credentials](#docker-admin-credentials) for customization.
+
 #### Production Environment
 
 ```bash
 # Start production environment
-docker-compose --profile production up -d
+docker-compose up -d
 
 # View the application
 open http://localhost:80
 ```
+
+**⚠️ Security Warning:** Change default admin credentials before deploying to production! See [Docker Admin Credentials](#docker-admin-credentials).
 
 #### Development + Jekyll
 
@@ -621,10 +632,127 @@ POSTGRES_PORT=5432
 DB_PASSWORD=postgres
 POSTGRES_PASSWORD=postgres
 
+# Django admin credentials (auto-created on startup)
+DJANGO_SUPERUSER_USERNAME=admin
+DJANGO_SUPERUSER_EMAIL=admin@localhost.local
+DJANGO_SUPERUSER_PASSWORD=admin
+
 # Application settings
 DEBUG=True
 SECRET_KEY=your-secret-key-here
 OPENAI_API_KEY=your-openai-api-key
+```
+
+### Docker Admin Credentials
+
+#### 🔐 Automatic Admin User Creation
+
+When you start the Docker containers, an admin superuser is **automatically created** using environment variables. This eliminates the need to manually run `createsuperuser`.
+
+#### Default Credentials (Development)
+
+If no environment variables are set, these defaults are used:
+
+- **Username:** `admin`
+- **Password:** `admin`
+- **Email:** `admin@localhost.local`
+
+**Credentials are saved to:** `setup_data/admin_credentials.txt` (gitignored)
+
+#### Customizing Admin Credentials
+
+**Option 1: Environment Variables (Recommended)**
+
+Set these in your `.env` file:
+
+```bash
+DJANGO_SUPERUSER_USERNAME=myadmin
+DJANGO_SUPERUSER_EMAIL=admin@example.com
+DJANGO_SUPERUSER_PASSWORD=MySecurePassword123!
+```
+
+**Option 2: GitHub Secrets (CI/CD)**
+
+For automated deployments, set these as repository secrets:
+- `DJANGO_SUPERUSER_USERNAME`
+- `DJANGO_SUPERUSER_EMAIL`
+- `DJANGO_SUPERUSER_PASSWORD`
+
+**Option 3: Azure Key Vault (Production)**
+
+Store credentials in Azure Key Vault and reference them in your container app configuration.
+
+#### Viewing Saved Credentials
+
+After the first container startup, credentials are saved to:
+
+```bash
+# View saved credentials
+cat setup_data/admin_credentials.txt
+```
+
+This file contains:
+- Username, email, and password
+- Timestamp of creation
+- Admin URL for your environment
+- Security warnings and best practices
+
+#### Manual Admin Creation
+
+If you prefer to create admin users manually:
+
+```bash
+# Development
+docker-compose -f .devcontainer/docker-compose_dev.yml exec python \
+    python manage.py createsuperuser
+
+# Production
+docker-compose exec web-prod python manage.py createsuperuser
+```
+
+#### Security Best Practices
+
+**For Development:**
+✅ Default credentials are acceptable  
+✅ Credentials file is automatically gitignored  
+✅ Useful for quick testing and development
+
+**For Production:**
+⚠️ **NEVER use default credentials**  
+✅ Set strong passwords via environment variables  
+✅ Use secrets management (GitHub Secrets, Azure Key Vault)  
+✅ Rotate credentials regularly  
+✅ Delete credentials file after first login  
+✅ Use MFA/2FA when available
+
+#### Troubleshooting
+
+**Admin user not created?**
+
+Manually run the ensure_admin command:
+
+```bash
+# Development
+docker-compose -f .devcontainer/docker-compose_dev.yml exec python \
+    python manage.py ensure_admin
+
+# Production
+docker-compose exec web-prod python manage.py ensure_admin
+```
+
+**Forgot admin password?**
+
+Reset it by restarting containers (credentials are recreated from environment variables):
+
+```bash
+docker-compose down
+docker-compose up -d
+```
+
+Or manually reset:
+
+```bash
+docker-compose exec web-prod python manage.py changepassword admin
 ```
 
 ### VS Code Integration
