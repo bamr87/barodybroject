@@ -7,7 +7,7 @@
 gunicorn==23.0.0
 
 # Django Core Framework
-Django==5.1.4
+Django==5.1.15
 djangorestframework==3.15.2
 django-environ==0.11.2
 
