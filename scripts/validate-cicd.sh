@@ -77,16 +77,16 @@ echo ""
 # Check Docker Compose file
 echo "🐳 Validating Docker Compose configuration..."
 if [[ -f "$PROJECT_ROOT/.devcontainer/docker-compose_dev.yml" ]]; then
-    if command -v docker-compose >/dev/null 2>&1; then
+    if command -v docker compose >/dev/null 2>&1; then
         cd "$PROJECT_ROOT"
-        if docker-compose -f .devcontainer/docker-compose_dev.yml config >/dev/null 2>&1; then
+        if docker compose -f .devcontainer/docker-compose_dev.yml config >/dev/null 2>&1; then
             echo "✅ Docker Compose configuration valid"
         else
             echo "❌ Docker Compose configuration invalid"
             exit 1
         fi
     else
-        echo "⚠️ docker-compose not available, skipping validation"
+        echo "⚠️ docker compose not available, skipping validation"
     fi
 else
     echo "❌ Docker Compose file not found: .devcontainer/docker-compose_dev.yml"

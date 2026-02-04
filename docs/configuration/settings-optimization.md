@@ -765,7 +765,7 @@ python manage.py runserver
 cp .env.backup .env
 
 # Restart application
-# For Docker: docker-compose restart
+# For Docker: docker compose restart
 # For systemd: systemctl restart your-app
 ```
 

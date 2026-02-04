@@ -211,9 +211,9 @@ jobs:
       - name: Test production environment
         if: matrix.config == 'production'
         run: |
-          # Verify production docker-compose.yml exists
-          if [ ! -f docker-compose.yml ]; then
-            echo "⚠️ docker-compose.yml not found, skipping production test"
+          # Verify production docker compose.yml exists
+          if [ ! -f docker compose.yml ]; then
+            echo "⚠️ docker compose.yml not found, skipping production test"
             exit 0
           fi
           
@@ -233,7 +233,7 @@ jobs:
           EOL
           
           # Start production environment
-          docker compose -f docker-compose.yml up -d
+          docker compose -f docker compose.yml up -d
           
           # Wait for services
           sleep 30
@@ -246,10 +246,10 @@ jobs:
           
           # Get logs from all services (more reliable than specific service name)
           echo "=== Container Logs ==="
-          docker compose -f docker-compose.yml logs || echo "Failed to get container logs"
+          docker compose -f docker compose.yml logs || echo "Failed to get container logs"
           
           # Cleanup
-          docker compose -f docker-compose.yml down -v
+          docker compose -f docker compose.yml down -v
 
   # Update dependencies if requested
   update-dependencies:
@@ -358,10 +358,10 @@ jobs:
           echo "=== Environment File Validation ==="
           
           # Check Docker Compose files
-          echo "Validating docker-compose.yml..."
+          echo "Validating docker compose.yml..."
           docker compose config -q
           
-          echo "Validating development docker-compose..."
+          echo "Validating development docker compose..."
           docker compose -f .devcontainer/docker-compose_dev.yml config -q
           
           # Check for environment file templates

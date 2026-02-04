@@ -49,9 +49,9 @@ Development environment uses standard Python 3.11-slim image with:
 - **Eliminated custom Dockerfile**: Now uses standard `python:3.11-slim` image
 - **Inline dependency installation**: All setup commands are in docker-compose_dev.yml
 - **Simplified maintenance**: No separate Dockerfile_dev to maintain
-- **Consistent with production**: Similar approach as production docker-compose.yml
+- **Consistent with production**: Similar approach as production docker compose.yml
 
 ## Related Paths
 - Incoming: Used by VS Code when opening the project in dev containers
 - Outgoing: Provides containerized development environment for Django application
-- Parent: `/Users/bamr87/github/barodybroject/docker-compose.yml` for production configuration
+- Parent: `/Users/bamr87/github/barodybroject/docker compose.yml` for production configuration

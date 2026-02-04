@@ -101,38 +101,38 @@ First time takes 3-5 minutes to install all dependencies.
 
 ```bash
 # Start containers
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 
 # Stop containers
-docker-compose -f .devcontainer/docker-compose_dev.yml down
+docker compose -f .devcontainer/docker-compose_dev.yml down
 
 # View logs
-docker-compose -f .devcontainer/docker-compose_dev.yml logs -f python
+docker compose -f .devcontainer/docker-compose_dev.yml logs -f python
 
 # Restart Python container (after code changes without debugger)
-docker-compose -f .devcontainer/docker-compose_dev.yml restart python
+docker compose -f .devcontainer/docker-compose_dev.yml restart python
 
 # Rebuild (after requirements.txt changes)
-docker-compose -f .devcontainer/docker-compose_dev.yml up --build -d
+docker compose -f .devcontainer/docker-compose_dev.yml up --build -d
 ```
 
 ### Django Commands in Docker
 
 ```bash
 # Run migrations
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate
 
 # Create superuser
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py createsuperuser
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py createsuperuser
 
 # Django shell
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py shell
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py shell
 
 # Make migrations
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py makemigrations
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py makemigrations
 
 # Run tests
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py test
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py test
 ```
 
 ### Or Use VS Code Tasks
@@ -171,7 +171,7 @@ Starting Django with debugpy on port 5678...
 ### Test 3: Database Connection
 
 ```bash
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py check --database default
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py check --database default
 ```
 
 **Expected:**
@@ -198,9 +198,9 @@ System check identified no issues (0 silenced).
 ### Morning: Start Development
 
 ```bash
-# Option 1: Use docker-compose
+# Option 1: Use docker compose
 cd /Users/bamr87/github/barodybroject
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 
 # Option 2: Use VS Code
 # Press F5 → 🐳 Django: Docker Debug
@@ -214,14 +214,14 @@ docker-compose -f .devcontainer/docker-compose_dev.yml up -d
 3. **Debug** (F5)
 4. **Restart container** to see changes (without debugger):
    ```bash
-   docker-compose -f .devcontainer/docker-compose_dev.yml restart python
+   docker compose -f .devcontainer/docker-compose_dev.yml restart python
    ```
 
 ### Evening: Stop (Optional)
 
 ```bash
 # Stop containers (optional, can leave running)
-docker-compose -f .devcontainer/docker-compose_dev.yml down
+docker compose -f .devcontainer/docker-compose_dev.yml down
 ```
 
 ## 🐛 Common Issues & Solutions
@@ -236,11 +236,11 @@ docker logs devcontainer-python-1 --tail 50
 **Solution:**
 ```bash
 # Restart containers
-docker-compose -f .devcontainer/docker-compose_dev.yml restart python
+docker compose -f .devcontainer/docker-compose_dev.yml restart python
 
 # Or full restart
-docker-compose -f .devcontainer/docker-compose_dev.yml down
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml down
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 ```
 
 ### Issue: Code changes not reflected
@@ -250,7 +250,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml up -d
 **Solution:**
 ```bash
 # Restart Python container
-docker-compose -f .devcontainer/docker-compose_dev.yml restart python
+docker compose -f .devcontainer/docker-compose_dev.yml restart python
 
 # Then reattach debugger (F5)
 ```
@@ -283,12 +283,12 @@ brew services stop postgresql@14
 
 ```bash
 # Clean everything
-docker-compose -f .devcontainer/docker-compose_dev.yml down -v
+docker compose -f .devcontainer/docker-compose_dev.yml down -v
 docker system prune -f
 
 # Rebuild from scratch
-docker-compose -f .devcontainer/docker-compose_dev.yml build --no-cache
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml build --no-cache
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 ```
 
 ## 📚 Next Steps
@@ -302,7 +302,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml up -d
 ### 2. Create a Superuser
 
 ```bash
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py createsuperuser
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py createsuperuser
 ```
 
 Then visit: http://localhost:8000/admin
@@ -326,7 +326,7 @@ Then visit: http://localhost:8000/admin
 
 ```bash
 # All tests
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py test
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py test
 
 # With debugging
 # F5 → 🧪 Django: Run All Tests (Docker)
@@ -373,7 +373,7 @@ docker logs -f devcontainer-python-1
 docker logs -f devcontainer-barodydb-1
 
 # All logs
-docker-compose -f .devcontainer/docker-compose_dev.yml logs -f
+docker compose -f .devcontainer/docker-compose_dev.yml logs -f
 ```
 
 ### Verify Setup
@@ -382,10 +382,10 @@ docker-compose -f .devcontainer/docker-compose_dev.yml logs -f
 docker ps
 
 # Database connection
-docker-compose -f .devcontainer/docker-compose_dev.yml exec barodydb psql -U postgres -d barodydb
+docker compose -f .devcontainer/docker-compose_dev.yml exec barodydb psql -U postgres -d barodydb
 
 # Django check
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py check
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py check
 ```
 
 ### Read Documentation
@@ -418,5 +418,7 @@ Happy coding! 🚀
 **Created:** 2025-12-20
 **Status:** ✅ Ready for Development
 **Version:** 1.0
+
+
 
 

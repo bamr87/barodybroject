@@ -201,7 +201,7 @@ OLD_CONFIG_NAME → NEW_CONFIG_NAME
 # Emergency rollback steps
 1. git checkout previous-version-tag
 2. python manage.py migrate --fake-initial
-3. docker-compose up -d
+3. docker compose up -d
 4. Verify services are healthy
 ```
 

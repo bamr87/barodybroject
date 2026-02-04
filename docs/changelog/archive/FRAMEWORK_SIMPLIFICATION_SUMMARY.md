@@ -13,7 +13,7 @@ Successfully simplified the testing and development framework by removing redund
 
 ### 2. **Simplified Docker Configuration**
 - ❌ Removed `src/entrypoint-dev.sh` - Development-specific entrypoint script
-- ✅ Simplified `docker-compose.yml`:
+- ✅ Simplified `docker compose.yml`:
   - Removed debugpy port (5678) 
   - Removed debug-specific command override
   - Streamlined to use single entrypoint
@@ -43,14 +43,14 @@ Successfully simplified the testing and development framework by removing redund
 ## 📊 **Before vs After**
 
 ### **Before Simplification:**
-- **Docker Files**: 3 files (docker-compose.yml, Dockerfile, entrypoint.sh, entrypoint-dev.sh)
+- **Docker Files**: 3 files (docker compose.yml, Dockerfile, entrypoint.sh, entrypoint-dev.sh)
 - **Debug Files**: 3 files (debug_views.py, debug_validation.py, DOCKER_DEBUG_TEST.md)
 - **VS Code Config**: Complex with 5+ launch configs, 15+ tasks
 - **Dependencies**: Include debugpy for development debugging
 - **URL Routes**: 3 debug-specific routes
 
 ### **After Simplification:**
-- **Docker Files**: 3 files (docker-compose.yml, Dockerfile, entrypoint.sh)
+- **Docker Files**: 3 files (docker compose.yml, Dockerfile, entrypoint.sh)
 - **Debug Files**: 0 files  
 - **VS Code Config**: Simplified with 3 launch configs, 5 essential tasks
 - **Dependencies**: Production-ready without debug dependencies

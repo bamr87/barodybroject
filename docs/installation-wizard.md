@@ -296,7 +296,7 @@ rm setup_config.json
 python manage.py shell -c "from django.core.cache import cache; cache.clear()"
 
 # Restart application
-docker-compose restart
+docker compose restart
 ```
 
 **Manual admin creation**:
@@ -317,7 +317,7 @@ service.mark_installation_complete()
 ### Docker Compose
 
 ```yaml
-# docker-compose.yml
+# docker compose.yml
 version: '3.8'
 
 services:
@@ -345,7 +345,7 @@ services:
 # .github/workflows/deploy.yml
 - name: Run setup wizard
   run: |
-    docker-compose exec web python manage.py setup_wizard --headless
+    docker compose exec web python manage.py setup_wizard --headless
     echo "Setup token generated, check logs for details"
 ```
 

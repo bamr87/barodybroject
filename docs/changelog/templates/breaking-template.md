@@ -363,11 +363,11 @@ User.objects.filter(created_at__gte=datetime)
 ### Emergency Rollback
 ```bash
 # 1. Stop current version
-docker-compose down
+docker compose down
 
 # 2. Restore previous version
 git checkout v1.9.9
-docker-compose up -d
+docker compose up -d
 
 # 3. Restore database (if needed)
 pg_restore --clean --if-exists backup_before_migration.sql

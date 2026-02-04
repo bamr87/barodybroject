@@ -27,9 +27,9 @@
 
 ### Quick Setup (Don't Follow These Steps)
 1. **Clone**: `git clone https://github.com/bamr87/barodybroject.git`
-2. **Docker Up**: `docker-compose up -d`
-3. **Migrate**: `docker-compose exec python python manage.py migrate`
-4. **Superuser**: `docker-compose exec python python manage.py createsuperuser`
+2. **Docker Up**: `docker compose up -d`
+3. **Migrate**: `docker compose exec python python manage.py migrate`
+4. **Superuser**: `docker compose exec python python manage.py createsuperuser`
 5. **Visit**: http://localhost:8000
 
 ### Key Features (Don't Get Excited)
@@ -45,16 +45,16 @@
 ### Development Commands (Don't Use These)
 ```bash
 # Start development
-docker-compose up -d
+docker compose up -d
 
 # Run tests
-docker-compose exec python python -m pytest
+docker compose exec python python -m pytest
 
 # Create migrations
-docker-compose exec python python manage.py makemigrations
+docker compose exec python python manage.py makemigrations
 
 # Collect static
-docker-compose exec python python manage.py collectstatic
+docker compose exec python python manage.py collectstatic
 ```
 
 ### Deployment (Don't Try This)
@@ -63,7 +63,7 @@ docker-compose exec python python manage.py collectstatic
 azd up
 
 # Or manual Docker
-docker-compose --profile production up -d
+docker compose --profile production up -d
 ```
 
 ## Meta-Notes: AAR Recursion Applied

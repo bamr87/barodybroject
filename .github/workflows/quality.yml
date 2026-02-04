@@ -214,10 +214,10 @@ jobs:
 
       - name: Validate Docker Compose configurations
         run: |
-          # Validate production docker-compose
+          # Validate production docker compose
           docker compose config -q
           
-          # Validate development docker-compose
+          # Validate development docker compose
           docker compose -f .devcontainer/docker-compose_dev.yml config -q
 
       - name: Validate Azure configuration

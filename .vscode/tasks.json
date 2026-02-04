@@ -2,8 +2,8 @@
   // ==================================================
   // UPDATED DOCKER CONFIGURATION TASKS
   // ==================================================
-  // Updated for simplified docker-compose structure:
-  // - Production: docker-compose.yml (web-prod + barodydb)
+  // Updated for simplified docker compose structure:
+  // - Production: docker compose.yml (web-prod + barodydb)
   // - Development: .devcontainer/docker-compose_dev.yml (python + barodydb + jekyll)
   
   "version": "2.0.0",
@@ -486,7 +486,7 @@
         "panel": "shared"
       },
       "problemMatcher": [],
-      "detail": "Validate development docker-compose configuration"
+      "detail": "Validate development docker compose configuration"
     },
 
     {
@@ -503,7 +503,7 @@
         "panel": "shared"
       },
       "problemMatcher": [],
-      "detail": "Validate production docker-compose configuration"
+      "detail": "Validate production docker compose configuration"
     }
   ]
 }

@@ -42,11 +42,6 @@ services:
       SKIP_INSTALLATION_CHECK: ${SKIP_INSTALLATION_CHECK:-true}
       SETUP_TOKEN_EXPIRY_HOURS: ${SETUP_TOKEN_EXPIRY_HOURS:-2}
       SETUP_DATA_DIR: /workspace/setup_data
-      # Django admin credentials (auto-created on startup)
-      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
-      DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@localhost.local}
-      DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
-      ADMIN_CREDENTIALS_FILE: ${ADMIN_CREDENTIALS_FILE:-setup_data/admin_credentials.txt}
     ports:
       - "8000:8000"
       - "5678:5678"  # VS Code debugger
@@ -64,8 +59,6 @@ services:
         pip install --upgrade pip
         # Install dependencies with increased timeout and retries for CI/CD reliability
         pip install --timeout 180 --retries 5 -r requirements.txt
-        # Install debugpy for VS Code debugging
-        pip install debugpy
         
         # Create necessary directories
         mkdir -p /workspace/setup_data /workspace/logs
@@ -73,14 +66,8 @@ services:
         # Run database migrations
         python manage.py migrate
         
-        # Auto-create admin user with environment credentials
-        echo "Ensuring admin user exists..."
-        python manage.py ensure_admin
-        
-        # Start development server with debugpy for VS Code debugging
-        echo "Starting Django with debugpy on port 5678..."
-        echo "Waiting for VS Code debugger to attach..."
-        python -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000 --noreload --nothreading
+        # Start development server
+        python manage.py runserver 0.0.0.0:8000
 
   jekyll:
     image: jekyll/jekyll:latest

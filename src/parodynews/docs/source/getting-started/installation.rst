@@ -33,10 +33,10 @@ Start the development containers:
 .. code-block:: bash
 
    # Start development environment
-   docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+   docker compose -f .devcontainer/docker-compose_dev.yml up -d
    
    # Check container status
-   docker-compose -f .devcontainer/docker-compose_dev.yml ps
+   docker compose -f .devcontainer/docker-compose_dev.yml ps
 
 This will start:
 
@@ -52,15 +52,15 @@ After containers are running, set up the database:
 .. code-block:: bash
 
    # Run database migrations
-   docker-compose -f .devcontainer/docker-compose_dev.yml exec python \\
+   docker compose -f .devcontainer/docker-compose_dev.yml exec python \\
        python manage.py migrate
    
    # Create a superuser
-   docker-compose -f .devcontainer/docker-compose_dev.yml exec python \\
+   docker compose -f .devcontainer/docker-compose_dev.yml exec python \\
        python manage.py createsuperuser
    
    # Collect static files
-   docker-compose -f .devcontainer/docker-compose_dev.yml exec python \\
+   docker compose -f .devcontainer/docker-compose_dev.yml exec python \\
        python manage.py collectstatic --noinput
 
 Verify Installation
@@ -79,13 +79,13 @@ For production deployment:
 .. code-block:: bash
 
    # Start production containers
-   docker-compose up -d
+   docker compose up -d
    
    # Run migrations
-   docker-compose exec web-prod python manage.py migrate
+   docker compose exec web-prod python manage.py migrate
    
    # Create superuser
-   docker-compose exec web-prod python manage.py createsuperuser
+   docker compose exec web-prod python manage.py createsuperuser
 
 Manual Installation (Without Docker)
 =====================================
@@ -146,11 +146,11 @@ Port Conflicts
 --------------
 
 If ports 8000, 5432, or 4000 are already in use, you can change them in the
-``docker-compose.yml`` file or use environment variables:
+``docker compose.yml`` file or use environment variables:
 
 .. code-block:: bash
 
-   DJANGO_DEV_PORT=8001 docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+   DJANGO_DEV_PORT=8001 docker compose -f .devcontainer/docker-compose_dev.yml up -d
 
 Permission Issues
 -----------------

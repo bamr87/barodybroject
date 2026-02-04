@@ -400,7 +400,7 @@ The initialization system integrates seamlessly with CI/CD:
 ### Docker Compose Integration
 
 ```yaml
-# docker-compose.yml
+# docker compose.yml
 # Services automatically detected and orchestrated by init_setup.sh
 services:
   barodydb: PostgreSQL database

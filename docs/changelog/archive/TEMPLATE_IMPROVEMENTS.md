@@ -46,13 +46,13 @@
 cd /src && ./scripts/quick_test.sh
 
 # Run Django tests
-cd /src && docker-compose exec python python manage.py test parodynews.tests.test_templates
+cd /src && docker compose exec python python manage.py test parodynews.tests.test_templates
 
 # Start Docker services
-cd /src && docker-compose up -d
+cd /src && docker compose up -d
 
 # View logs
-cd /src && docker-compose logs -f python
+cd /src && docker compose logs -f python
 ```
 
 ---

@@ -22,7 +22,7 @@ All configuration has been abstracted into environment variables for easier mana
 
 - `.env` - Contains all environment variables (DO NOT commit to version control)
 - `.env.example` - Template file with default values (safe to commit)
-- `docker-compose.yml` - Docker Compose configuration using environment variables
+- `docker compose.yml` - Docker Compose configuration using environment variables
 - `.gitignore` - Ensures `.env` and data directories are not committed
 
 ### Environment Variables
@@ -104,21 +104,21 @@ The following categories of variables are configured:
 
 1. **Start all services:**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 2. **Check status:**
    ```bash
-   docker-compose ps
+   docker compose ps
    ```
 
 3. **View logs:**
    ```bash
    # All services
-   docker-compose logs -f
+   docker compose logs -f
    
    # Specific service
-   docker-compose logs -f web
+   docker compose logs -f web
    ```
 
 4. **Access PostHog:**
@@ -128,13 +128,13 @@ The following categories of variables are configured:
 
 ```bash
 # Stop services but keep data
-docker-compose stop
+docker compose stop
 
 # Stop and remove containers (keeps data volumes)
-docker-compose down
+docker compose down
 
 # Stop, remove containers AND delete all data
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Validation
@@ -153,7 +153,7 @@ curl -I http://localhost:8080
 Before deploying, validate your configuration:
 
 ```bash
-docker-compose config
+docker compose config
 ```
 
 This will show the resolved configuration with all environment variables substituted.
@@ -164,7 +164,7 @@ This will show the resolved configuration with all environment variables substit
 
 Check logs for specific service:
 ```bash
-docker-compose logs [service-name]
+docker compose logs [service-name]
 ```
 
 Service names: `db`, `redis`, `clickhouse`, `kafka`, `zookeeper`, `worker`, `web`, `plugins`
@@ -173,7 +173,7 @@ Service names: `db`, `redis`, `clickhouse`, `kafka`, `zookeeper`, `worker`, `web
 
 1. Ensure all services are running:
    ```bash
-   docker-compose ps
+   docker compose ps
    ```
 
 2. Check network connectivity:
@@ -186,7 +186,7 @@ Service names: `db`, `redis`, `clickhouse`, `kafka`, `zookeeper`, `worker`, `web
 
 View web service logs to see migration progress:
 ```bash
-docker-compose logs -f web | grep -i migrate
+docker compose logs -f web | grep -i migrate
 ```
 
 ### Port conflicts
@@ -198,7 +198,7 @@ WEB_PORT=8081
 
 Then restart:
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Data Persistence

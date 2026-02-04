@@ -65,7 +65,7 @@ barodybroject/
 ├── .github/
 │   ├── workflows/             # GitHub Actions workflows
 │   └── instructions/          # AI coding instructions
-└── docker-compose.yml         # Local development environment
+└── docker compose.yml         # Local development environment
 ```
 
 ## 📋 README-First, README-Last Principle
@@ -165,7 +165,7 @@ After completing any work, **ALWAYS**:
 
 ### Container-First Development
 - All development occurs in Docker containers
-- Use `docker-compose.yml` for local multi-service setup
+- Use `docker compose.yml` for local multi-service setup
 - Match development environment to production closely
 - Never install dependencies directly on host machine
 - Document all container requirements (ports, volumes, environment variables)
@@ -269,7 +269,7 @@ Usage: from parodynews.models import Article
 Use Docker Compose for consistent local development:
 
 ```yaml
-# docker-compose.yml
+# docker compose.yml
 version: '3.8'
 
 services:

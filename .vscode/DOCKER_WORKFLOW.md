@@ -35,7 +35,7 @@ This project uses **Docker-first development** for consistency, reliability, and
 
 **Option C: Use Command Line**
 ```bash
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 # Then in VS Code: F5 → 🐳 Django: Docker Debug
 ```
 
@@ -54,20 +54,20 @@ Cmd+Shift+P → Tasks: Run Task → 📋 Docker: View Dev Logs
 
 Or in terminal:
 ```bash
-docker-compose -f .devcontainer/docker-compose_dev.yml logs -f python
+docker compose -f .devcontainer/docker-compose_dev.yml logs -f python
 ```
 
 ### 4. Run Django Commands in Docker
 
 ```bash
 # Run migrations
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate
 
 # Create superuser
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py createsuperuser
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py createsuperuser
 
 # Django shell
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py shell
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py shell
 
 # Or use VS Code tasks (Cmd+Shift+P → Tasks: Run Task)
 ```
@@ -75,7 +75,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage
 ### 5. Stop Everything
 
 ```bash
-docker-compose -f .devcontainer/docker-compose_dev.yml down
+docker compose -f .devcontainer/docker-compose_dev.yml down
 ```
 
 Or use VS Code task: `⛔ Docker: Stop Development`
@@ -159,14 +159,14 @@ So breakpoints in your local files work in the container!
 
 ```bash
 # Morning: Start containers
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 
 # In VS Code: Press F5 → 🐳 Django: Docker Debug
 
 # Make changes, set breakpoints, debug...
 
 # Evening: Stop containers (optional, can leave running)
-docker-compose -f .devcontainer/docker-compose_dev.yml down
+docker compose -f .devcontainer/docker-compose_dev.yml down
 ```
 
 ### Making Model Changes
@@ -174,10 +174,10 @@ docker-compose -f .devcontainer/docker-compose_dev.yml down
 ```bash
 # 1. Edit your model in VS Code
 # 2. Create migrations (in container)
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py makemigrations
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py makemigrations
 
 # 3. Run migrations
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate
 
 # Or use VS Code tasks:
 # - 🔧 Django: Make Migrations (Dev)
@@ -188,13 +188,13 @@ docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage
 
 ```bash
 # All tests
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py test
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py test
 
 # Specific app
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py test parodynews
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py test parodynews
 
 # With coverage
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python -m pytest --cov=parodynews
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python -m pytest --cov=parodynews
 
 # Or use VS Code tasks/debug configs
 ```
@@ -203,16 +203,16 @@ docker-compose -f .devcontainer/docker-compose_dev.yml exec python python -m pyt
 
 ```bash
 # Django shell
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py shell
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py shell
 
 # Direct PostgreSQL access
-docker-compose -f .devcontainer/docker-compose_dev.yml exec barodydb psql -U postgres -d barodydb
+docker compose -f .devcontainer/docker-compose_dev.yml exec barodydb psql -U postgres -d barodydb
 
 # Create backup
-docker-compose -f .devcontainer/docker-compose_dev.yml exec barodydb pg_dump -U postgres barodydb > backup.sql
+docker compose -f .devcontainer/docker-compose_dev.yml exec barodydb pg_dump -U postgres barodydb > backup.sql
 
 # Restore backup
-cat backup.sql | docker-compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb psql -U postgres -d barodydb
+cat backup.sql | docker compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb psql -U postgres -d barodydb
 ```
 
 ### Installing New Python Packages
@@ -222,7 +222,7 @@ cat backup.sql | docker-compose -f .devcontainer/docker-compose_dev.yml exec -T 
 echo "new-package==1.0.0" >> src/requirements.txt
 
 # 2. Rebuild containers
-docker-compose -f .devcontainer/docker-compose_dev.yml up --build -d
+docker compose -f .devcontainer/docker-compose_dev.yml up --build -d
 
 # Or use VS Code task: 🔧 Docker: Rebuild Development
 ```
@@ -231,16 +231,16 @@ docker-compose -f .devcontainer/docker-compose_dev.yml up --build -d
 
 ```bash
 # All services
-docker-compose -f .devcontainer/docker-compose_dev.yml logs -f
+docker compose -f .devcontainer/docker-compose_dev.yml logs -f
 
 # Just Django
-docker-compose -f .devcontainer/docker-compose_dev.yml logs -f python
+docker compose -f .devcontainer/docker-compose_dev.yml logs -f python
 
 # Just PostgreSQL
-docker-compose -f .devcontainer/docker-compose_dev.yml logs -f barodydb
+docker compose -f .devcontainer/docker-compose_dev.yml logs -f barodydb
 
 # Last 100 lines
-docker-compose -f .devcontainer/docker-compose_dev.yml logs --tail=100 python
+docker compose -f .devcontainer/docker-compose_dev.yml logs --tail=100 python
 ```
 
 ## 🐛 Debugging Tips
@@ -301,15 +301,15 @@ pk == 42  # Only pause when pk is 42
 **Solution:**
 ```bash
 # Check container status
-docker-compose -f .devcontainer/docker-compose_dev.yml ps
+docker compose -f .devcontainer/docker-compose_dev.yml ps
 
 # Check logs
-docker-compose -f .devcontainer/docker-compose_dev.yml logs python
+docker compose -f .devcontainer/docker-compose_dev.yml logs python
 
 # Should see: "Starting Django with debugpy on port 5678..."
 
 # Restart if needed
-docker-compose -f .devcontainer/docker-compose_dev.yml restart python
+docker compose -f .devcontainer/docker-compose_dev.yml restart python
 ```
 
 ### "Port 5678 already in use"
@@ -319,10 +319,10 @@ docker-compose -f .devcontainer/docker-compose_dev.yml restart python
 **Solution:**
 ```bash
 # Stop all containers
-docker-compose -f .devcontainer/docker-compose_dev.yml down
+docker compose -f .devcontainer/docker-compose_dev.yml down
 
 # Start fresh
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 ```
 
 ### Breakpoints Not Working
@@ -344,9 +344,9 @@ docker-compose -f .devcontainer/docker-compose_dev.yml up -d
 **Solution:**
 ```bash
 # Restart the container to pick up changes
-docker-compose -f .devcontainer/docker-compose_dev.yml restart python
+docker compose -f .devcontainer/docker-compose_dev.yml restart python
 
-# Or if you don't need debugging, comment out debugpy in docker-compose and use:
+# Or if you don't need debugging, comment out debugpy in docker compose and use:
 # python manage.py runserver 0.0.0.0:8000
 # (Then auto-reload works, but no debugging)
 ```
@@ -356,27 +356,27 @@ docker-compose -f .devcontainer/docker-compose_dev.yml restart python
 **Check:**
 ```bash
 # Is PostgreSQL running?
-docker-compose -f .devcontainer/docker-compose_dev.yml ps barodydb
+docker compose -f .devcontainer/docker-compose_dev.yml ps barodydb
 
 # Can we connect?
-docker-compose -f .devcontainer/docker-compose_dev.yml exec barodydb psql -U postgres -d barodydb
+docker compose -f .devcontainer/docker-compose_dev.yml exec barodydb psql -U postgres -d barodydb
 
 # Check logs
-docker-compose -f .devcontainer/docker-compose_dev.yml logs barodydb
+docker compose -f .devcontainer/docker-compose_dev.yml logs barodydb
 ```
 
 ### Container Won't Start
 
 ```bash
 # Clean everything
-docker-compose -f .devcontainer/docker-compose_dev.yml down -v
+docker compose -f .devcontainer/docker-compose_dev.yml down -v
 docker system prune -f
 
 # Rebuild from scratch
-docker-compose -f .devcontainer/docker-compose_dev.yml build --no-cache
+docker compose -f .devcontainer/docker-compose_dev.yml build --no-cache
 
 # Start fresh
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 ```
 
 ## 📊 Performance
@@ -427,5 +427,7 @@ Increase RAM to 4GB+ for better performance
 **Last Updated:** 2025-12-20
 **Status:** ✅ Production Ready
 **Support:** Create an issue if you encounter problems
+
+
 
 

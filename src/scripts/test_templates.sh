@@ -8,7 +8,7 @@
 #
 # Dependencies:
 # - docker
-# - docker-compose
+# - docker compose
 # - curl
 #
 # Usage: ./test_templates.sh [options]
@@ -32,7 +32,7 @@ TESTS_PASSED=0
 TESTS_FAILED=0
 
 # Configuration
-DOCKER_COMPOSE_FILE="docker-compose.yml"
+DOCKER_COMPOSE_FILE="docker compose.yml"
 BASE_URL="http://localhost:80"
 TIMEOUT=30
 VERBOSE=false
@@ -114,11 +114,11 @@ start_containers() {
     
     if [ "$FORCE_BUILD" = true ]; then
         log_info "Building containers from scratch..."
-        docker-compose -f "$DOCKER_COMPOSE_FILE" down -v
-        docker-compose -f "$DOCKER_COMPOSE_FILE" build --no-cache
+        docker compose -f "$DOCKER_COMPOSE_FILE" down -v
+        docker compose -f "$DOCKER_COMPOSE_FILE" build --no-cache
     fi
     
-    docker-compose -f "$DOCKER_COMPOSE_FILE" up -d
+    docker compose -f "$DOCKER_COMPOSE_FILE" up -d
     
     if [ $? -eq 0 ]; then
         log_success "Containers started successfully"
@@ -354,7 +354,7 @@ test_javascript_loaded() {
 run_django_checks() {
     log_info "Running Django system checks..."
     
-    if docker-compose exec -T python python manage.py check; then
+    if docker compose exec -T python python manage.py check; then
         pass_test "Django system checks passed"
     else
         fail_test "Django system checks failed"
@@ -365,7 +365,7 @@ run_django_checks() {
 test_database_connection() {
     log_info "Testing database connection..."
     
-    if docker-compose exec -T python python manage.py dbshell --command="SELECT 1;" > /dev/null 2>&1; then
+    if docker compose exec -T python python manage.py dbshell --command="SELECT 1;" > /dev/null 2>&1; then
         pass_test "Database connection successful"
     else
         fail_test "Database connection failed"
@@ -387,7 +387,7 @@ test_template_syntax() {
     )
     
     for template in "${templates[@]}"; do
-        if docker-compose exec -T python python manage.py validate_templates 2>&1 | grep -q "error"; then
+        if docker compose exec -T python python manage.py validate_templates 2>&1 | grep -q "error"; then
             fail_test "Template syntax error in $template"
         else
             pass_test "Template syntax OK: $template"
@@ -491,7 +491,7 @@ generate_report() {
 cleanup() {
     log_info "Cleaning up..."
     if [ "${1:-}" = "stop" ]; then
-        docker-compose -f "$DOCKER_COMPOSE_FILE" down
+        docker compose -f "$DOCKER_COMPOSE_FILE" down
         log_info "Containers stopped"
     fi
 }
@@ -515,7 +515,7 @@ main() {
     # Wait for services
     if ! wait_for_service "$BASE_URL" 30; then
         log_error "Services failed to start. Check Docker logs."
-        docker-compose logs --tail=50
+        docker compose logs --tail=50
         exit 1
     fi
     

@@ -29,11 +29,11 @@ Run management commands:
 .. code-block:: bash
 
    # In development
-   docker-compose -f .devcontainer/docker-compose_dev.yml exec python \\
+   docker compose -f .devcontainer/docker-compose_dev.yml exec python \\
        python manage.py <command_name>
    
    # In production
-   docker-compose exec web-prod python manage.py <command_name>
+   docker compose exec web-prod python manage.py <command_name>
 
 See Also
 ========

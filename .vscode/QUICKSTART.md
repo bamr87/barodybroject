@@ -59,15 +59,15 @@ Press `F5` and select:
 docker logs -f devcontainer-python-1
 
 # Restart Django (to see code changes)
-docker-compose -f .devcontainer/docker-compose_dev.yml restart python
+docker compose -f .devcontainer/docker-compose_dev.yml restart python
 
 # Run Django command
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py [command]
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py [command]
 
 # Examples:
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py createsuperuser
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py shell
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py createsuperuser
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py shell
 ```
 
 ### VS Code Tasks
@@ -141,7 +141,7 @@ def test_post_creation(self):
 docker ps
 
 # If not running:
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 
 # In VS Code: F5 → 🐳 Django: Docker Debug
 ```
@@ -155,7 +155,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml up -d
 
 **Note:** Code changes require container restart:
 ```bash
-docker-compose -f .devcontainer/docker-compose_dev.yml restart python
+docker compose -f .devcontainer/docker-compose_dev.yml restart python
 # Then reattach debugger (F5)
 ```
 
@@ -163,7 +163,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml restart python
 
 ```bash
 # Optional: Stop containers (or leave running for tomorrow)
-docker-compose -f .devcontainer/docker-compose_dev.yml down
+docker compose -f .devcontainer/docker-compose_dev.yml down
 ```
 
 ## ❌ Troubleshooting
@@ -183,7 +183,7 @@ Waiting for VS Code debugger to attach...
 
 **Fix:**
 ```bash
-docker-compose -f .devcontainer/docker-compose_dev.yml restart python
+docker compose -f .devcontainer/docker-compose_dev.yml restart python
 # Wait 30 seconds
 # Try F5 again
 ```
@@ -200,7 +200,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml restart python
 
 **Solution:**
 ```bash
-docker-compose -f .devcontainer/docker-compose_dev.yml restart python
+docker compose -f .devcontainer/docker-compose_dev.yml restart python
 # Then F5 to reattach
 ```
 
@@ -212,17 +212,17 @@ lsof -i :8000
 lsof -i :5678
 
 # Stop containers
-docker-compose -f .devcontainer/docker-compose_dev.yml down
+docker compose -f .devcontainer/docker-compose_dev.yml down
 
 # Start fresh
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 ```
 
 ## 📚 Next Steps
 
 1. **Create a superuser:**
    ```bash
-   docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py createsuperuser
+   docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py createsuperuser
    ```
 
 2. **Visit admin:** http://localhost:8000/admin
@@ -233,7 +233,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml up -d
 
 5. **Run tests:**
    ```bash
-   docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py test
+   docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py test
    ```
 
 ## 🎓 Learn More
@@ -258,5 +258,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml up -d
 
 **Last Updated:** 2025-12-20
 **Status:** ✅ Ready for Development
+
+
 
 

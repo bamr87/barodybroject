@@ -5,58 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.0] - 2025-12-20
-
-### Added
-- **Automatic Django Admin Credentials**: Complete credential management system for Docker environments
-  - Added `ensure_admin` management command that automatically creates/updates Django superuser
-  - Auto-creates admin user on Docker container startup with environment variables or defaults
-  - Saves credentials to `setup_data/admin_credentials.txt` for easy reference (gitignored)
-  - Supports multiple configuration methods: `.env` file, GitHub Secrets, Azure Key Vault
-  - Default development credentials: `admin` / `admin` (customizable via environment)
-  - Added `.env.example` template with admin credential environment variables
-  - Added production `docker-entrypoint.sh` script that runs migrations and creates admin user
-  - Credentials file includes username, password, email, timestamp, and security warnings
-  - File permissions automatically set to 600 (owner read/write only) on Unix systems
-
-- **Comprehensive Documentation**: Five new documentation files for credential management
-  - `ADMIN_CREDENTIALS_QUICKSTART.md` - Quick reference guide for finding/using credentials
-  - `IMPLEMENTATION_SUMMARY.md` - Complete feature overview and usage examples
-  - `CREDENTIALS_LOCATION.txt` - Visual guide showing all credential locations
-  - `docs/configuration/admin-credentials.md` - Detailed configuration guide (500+ lines)
-  - `docs/ADMIN_CREDENTIALS_SETUP.md` - Implementation architecture and testing guide
-
-- **Security Features**: Multiple security enhancements for credential handling
-  - Credentials file automatically added to `.gitignore` (never committed to version control)
-  - Warning messages displayed when using default credentials in production
-  - Support for secrets management integration (GitHub Secrets, Azure Key Vault)
-  - Documented security best practices for development vs production
-
-### Changed
-- **Docker Development**: Updated `.devcontainer/docker-compose_dev.yml`
-  - Added `DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_EMAIL`, `DJANGO_SUPERUSER_PASSWORD` environment variables
-  - Added `ADMIN_CREDENTIALS_FILE` environment variable for customizing save location
-  - Added `python manage.py ensure_admin` to startup command sequence (runs after migrations)
-  - Admin user now created automatically on container startup
-
-- **Docker Production**: Updated production Docker configuration
-  - Updated `docker-compose.yml` with admin credential environment variables
-  - Updated `src/Dockerfile` to use new entrypoint script
-  - Added `docker-entrypoint.sh` that handles database wait, migrations, admin creation, and startup
-  - Production containers now auto-create admin user without manual intervention
-
-- **Documentation**: Enhanced main README.md
-  - Added comprehensive "Docker Admin Credentials" section with usage examples
-  - Added credential customization instructions for development and production
-  - Added troubleshooting section for credential-related issues
-  - Updated Quick Start sections to mention automatic credential creation
-
-### Security
-- **Credential File Protection**: Added gitignore entries
-  - `setup_data/admin_credentials.txt` - Main credentials file
-  - `**/admin_credentials.txt` - Any credentials file in subdirectories
-  - Ensures credentials are never accidentally committed to version control
-
 ## [0.4.0] - 2025-12-20
 
 ### Added
@@ -187,7 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Separate optional dependency groups: dev, security, monitoring, cms
 
 ### Fixed
-- **Docker Configuration**: Updated docker-compose.yml to use proper Dockerfile build
+- **Docker Configuration**: Updated docker compose.yml to use proper Dockerfile build
   - Ensures gcc and build tools are available for packages requiring compilation
   - Fixes pycairo build issues for SVG support in easy-thumbnails
   - Proper multi-stage builds with caching

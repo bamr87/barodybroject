@@ -1,7 +1,7 @@
 # Docker Debugging Setup for Barodybroject
 
 ## Quick Start
-1. **Start containers**: `docker-compose up -d`
+1. **Start containers**: `docker compose up -d`
 2. **Open VS Code**: Launch configuration "🐍 Python/Django Debug (Attach to Docker)"
 3. **Set breakpoints** in your Django code
 4. **Navigate to http://localhost:8000** to trigger debugging
@@ -19,7 +19,7 @@
 - **Pre-launch Task**: Automatically starts Docker containers
 
 ### 📁 Files Modified
-- `docker-compose.yml`: Development configuration with debug ports
+- `docker compose.yml`: Development configuration with debug ports
 - `src/entrypoint-dev.sh`: Development entrypoint with debugpy
 - `src/requirements.txt`: Added debugpy dependency
 - `.vscode/launch.json`: Updated with attach configuration
@@ -47,18 +47,18 @@
 ### Container Won't Start
 ```bash
 # Check container status
-docker-compose ps
+docker compose ps
 
 # View container logs
-docker-compose logs web
+docker compose logs web
 
 # Rebuild if needed
-docker-compose build --no-cache
+docker compose build --no-cache
 ```
 
 ### Debugging Not Working
-1. Ensure containers are running: `docker-compose ps`
-2. Check debugpy port is exposed: `docker-compose logs web | grep 5678`
+1. Ensure containers are running: `docker compose ps`
+2. Check debugpy port is exposed: `docker compose logs web | grep 5678`
 3. Verify VS Code is using correct launch configuration
 4. Check path mappings in launch.json
 
@@ -69,7 +69,7 @@ docker-compose build --no-cache
 
 ## Production vs Development
 
-### Development (docker-compose.yml)
+### Development (docker compose.yml)
 - Uses `entrypoint-dev.sh`
 - Django development server on port 8000
 - Debugpy enabled on port 5678

@@ -9,7 +9,7 @@ Comprehensive Sphinx documentation for the Parodynews Django application.
 **Development Mode** (with live reload):
 ```bash
 # Start documentation server with auto-rebuild
-docker-compose -f .devcontainer/docker-compose_dev.yml up docs
+docker compose -f .devcontainer/docker-compose_dev.yml up docs
 
 # Access at http://localhost:8080
 # Changes auto-rebuild and reload in browser
@@ -18,7 +18,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml up docs
 **Production Mode** (static build):
 ```bash
 # Build and serve static documentation with nginx
-docker-compose up -d docs
+docker compose up -d docs
 
 # Access at http://localhost:8080
 ```
@@ -31,7 +31,7 @@ Build documentation locally in development container:
 
 ```bash
 # In development container
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python bash
+docker compose -f .devcontainer/docker-compose_dev.yml exec python bash
 cd /workspace/src/parodynews/docs
 pip install -r requirements.txt
 make clean && make html

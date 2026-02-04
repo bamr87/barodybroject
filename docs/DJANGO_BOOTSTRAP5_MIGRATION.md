@@ -158,7 +158,7 @@ Successfully migrated the Barodybroject Django application from manual Bootstrap
 
 **System Checks Passed:**
 ```bash
-docker-compose exec python python manage.py check --deploy
+docker compose exec python python manage.py check --deploy
 # System check identified 2 issues (0 silenced)
 # Only warnings: DEBUG=True and SSL redirect (expected in dev)
 ```

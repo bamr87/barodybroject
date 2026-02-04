@@ -197,9 +197,9 @@ Added comprehensive documentation:
 
 **Reason:** 
 - These configurations attempted to attach to debugpy on port 5678
-- The docker-compose configuration doesn't start debugpy server
+- The docker compose configuration doesn't start debugpy server
 - Local development provides better debugging experience
-- If needed in future, docker-compose needs updating first
+- If needed in future, docker compose needs updating first
 
 **Migration Path:**
 Use local development configurations instead:
@@ -325,7 +325,7 @@ def forwards(apps, schema_editor):
 
 ```
 1. Start PostgreSQL in Docker:
-   docker-compose up barodydb -d
+   docker compose up barodydb -d
 
 2. Use local Django:
    F5 → 🐍 Django: Run Server (Local)
@@ -368,7 +368,7 @@ F5 → 🧪 Django: Run All Tests (Local)
 → Use: `🧪 Django: Run All Tests (Local)` (faster, better debugging)
 
 **Local SQLite setup**
-→ Start PostgreSQL: `docker-compose up barodydb -d`
+→ Start PostgreSQL: `docker compose up barodydb -d`
 → Then use any local configuration
 
 ## Future Enhancements
@@ -376,7 +376,7 @@ F5 → 🧪 Django: Run All Tests (Local)
 Potential additions for future updates:
 
 1. **Docker Debugpy Support:**
-   - Update docker-compose to start debugpy
+   - Update docker compose to start debugpy
    - Add attach configurations back
 
 2. **More Compound Configs:**
@@ -422,5 +422,7 @@ If you have questions about:
 **Updated:** 2025-12-20
 **Author:** AI Assistant via Cursor
 **Review Status:** ✅ Complete
+
+
 
 

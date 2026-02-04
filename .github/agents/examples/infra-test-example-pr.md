@@ -92,8 +92,8 @@ This PR includes:
 # Result: 14/14 passed
 
 # Performance testing
-time docker-compose build
-time docker-compose up -d
+time docker compose build
+time docker compose up -d
 docker images | grep barodybroject
 docker stats --no-stream
 ```
@@ -131,7 +131,7 @@ Memory usage: 486 MB (5% reduction)
 ```
 modified: Dockerfile
 modified: .devcontainer/docker-compose_dev.yml
-modified: docker-compose.yml
+modified: docker compose.yml
 modified: docs/INFRASTRUCTURE_TESTING.md
 added: .dockerignore
 ```
@@ -164,8 +164,8 @@ These optimizations were discovered during routine infrastructure testing. The c
 If issues occur, revert with:
 ```bash
 git revert <commit-hash>
-docker-compose down
-docker-compose up -d --build
+docker compose down
+docker compose up -d --build
 ```
 
 ---

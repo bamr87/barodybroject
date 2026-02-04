@@ -112,7 +112,7 @@ jobs:
           
           # Get Docker logs
           echo "🐳 Collecting Docker container logs..."
-          docker compose -f .devcontainer/docker-compose_dev.yml logs --no-color > artifacts/logs/docker-compose.log 2>&1 || echo "Failed to collect Docker logs"
+          docker compose -f .devcontainer/docker-compose_dev.yml logs --no-color > artifacts/logs/docker compose.log 2>&1 || echo "Failed to collect Docker logs"
           
           # Get individual container logs
           docker compose -f .devcontainer/docker-compose_dev.yml logs --no-color python > artifacts/logs/python-container.log 2>&1 || echo "Failed to collect Python logs"

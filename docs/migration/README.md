@@ -140,7 +140,7 @@ Before applying migrations to production:
 
 1. **Test in development container**:
    ```bash
-   docker-compose -f .devcontainer/docker-compose_dev.yml up
+   docker compose -f .devcontainer/docker-compose_dev.yml up
    ```
 
 2. **Run migration validation**:

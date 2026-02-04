@@ -1,16 +1,16 @@
 # Docker Simplification Summary
 
 ## 🎯 **Objective Achieved**
-Successfully eliminated custom Dockerfile and entrypoint.sh scripts by using a standard Python Docker image with inline commands in docker-compose.yml.
+Successfully eliminated custom Dockerfile and entrypoint.sh scripts by using a standard Python Docker image with inline commands in docker compose.yml.
 
 ## ✅ **Changes Made**
 
 ### 1. **Replaced Custom Build with Standard Image**
 - ❌ **Removed**: Custom `src/Dockerfile` (30+ lines)
 - ❌ **Removed**: Custom `src/entrypoint.sh` script 
-- ❌ **Removed**: Duplicate `src/docker-compose.yml`
+- ❌ **Removed**: Duplicate `src/docker compose.yml`
 - ✅ **Added**: Standard `python:3.11-slim` image usage
-- ✅ **Added**: Inline command configuration in docker-compose.yml
+- ✅ **Added**: Inline command configuration in docker compose.yml
 
 ### 2. **Simplified Docker Configuration**
 ```yaml
@@ -58,7 +58,7 @@ web:
 
 | Aspect | Before | After |
 |--------|--------|-------|
-| **Docker Files** | 3 files (Dockerfile, entrypoint.sh, docker-compose.yml) | 1 file (docker-compose.yml) |
+| **Docker Files** | 3 files (Dockerfile, entrypoint.sh, docker compose.yml) | 1 file (docker compose.yml) |
 | **Build Process** | Custom image build required | Standard image, no build needed |
 | **Startup Time** | Build + start | Start only |
 | **Maintainability** | Multiple files to manage | Single configuration file |
@@ -70,7 +70,7 @@ web:
 1. **Simplified Development**:
    - No need to build custom Docker images
    - No maintenance of Dockerfile or entrypoint scripts
-   - All configuration in one place (docker-compose.yml)
+   - All configuration in one place (docker compose.yml)
 
 2. **Faster Iteration**:
    - No image building time
@@ -106,16 +106,16 @@ web:
 ### Simple Commands:
 ```bash
 # Start development environment
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs web
+docker compose logs web
 
 # Stop environment  
-docker-compose down
+docker compose down
 
 # Force rebuild (if requirements change)
-docker-compose down && docker-compose up -d
+docker compose down && docker compose up -d
 ```
 
 ### No More Need For:

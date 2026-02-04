@@ -304,7 +304,7 @@ print(User.objects.count())
 # Find and kill process
 lsof -ti:8001 | xargs kill -9
 # Or for Docker
-docker-compose down
+docker compose down
 ```
 
 ### Issue: "Module not found"
@@ -341,9 +341,9 @@ docker-compose down
 ### Issue: Docker containers won't start
 ```bash
 # Clean up and restart
-docker-compose down
+docker compose down
 docker system prune -f
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Issue: Tests fail with database errors
@@ -431,5 +431,7 @@ docker exec devcontainer-barodydb-1 psql -U postgres -c "SELECT 1;"
 
 **Last Updated:** 2025-12-20
 **Status:** Ready for testing
+
+
 
 

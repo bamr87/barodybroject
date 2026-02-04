@@ -503,7 +503,7 @@ jobs:
 - name: Cleanup on failure
   if: failure()
   run: |
-    docker-compose down -v
+    docker compose down -v
     rm -rf tmp/*
 ```
 
@@ -522,7 +522,7 @@ jobs:
     
     echo "=== Docker Info ==="
     docker --version
-    docker-compose --version
+    docker compose --version
 ```
 
 ## Artifact Management

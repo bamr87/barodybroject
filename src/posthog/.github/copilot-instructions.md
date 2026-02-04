@@ -13,16 +13,16 @@ Web (Django) ─┬─> PostgreSQL (metadata)
 Worker (Celery) + Plugins (Node.js)
 ```
 
-**Key Dependencies**: Web service waits for all infrastructure (db, redis, clickhouse, kafka, worker) before starting. Migrations run automatically on web service startup via `docker-compose.yml` command: `sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"`.
+**Key Dependencies**: Web service waits for all infrastructure (db, redis, clickhouse, kafka, worker) before starting. Migrations run automatically on web service startup via `docker compose.yml` command: `sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"`.
 
 ## Configuration Pattern
 
-**ALL configuration lives in environment variables** - never hardcode values in `docker-compose.yml` or ClickHouse XML configs.
+**ALL configuration lives in environment variables** - never hardcode values in `docker compose.yml` or ClickHouse XML configs.
 
 ### Critical Files
 - `.env` - Active configuration (git-ignored, contains secrets)
 - `.env.example` - Template with defaults (committed to git)
-- `docker-compose.yml` - Uses `${VAR_NAME}` syntax for all config
+- `docker compose.yml` - Uses `${VAR_NAME}` syntax for all config
 - `clickhouse/config.xml` - Minimal static config (logging, network)
 - `clickhouse/users.xml` - User profiles (static, but passwords from `.env`)
 
@@ -41,28 +41,28 @@ Worker (Celery) + Plugins (Node.js)
 ### Starting/Stopping Services
 ```bash
 # Validate configuration before starting
-docker-compose config
+docker compose config
 
 # Start all services (detached)
-docker-compose up -d
+docker compose up -d
 
 # Check service health
-docker-compose ps
+docker compose ps
 
 # View logs (all or specific service)
-docker-compose logs -f [service-name]
+docker compose logs -f [service-name]
 
 # Stop and remove containers (keeps data)
-docker-compose down
+docker compose down
 
 # Nuclear option: delete all data volumes
-docker-compose down -v
+docker compose down -v
 ```
 
 ### Debugging Failures
-1. **Service won't start**: Check `docker-compose logs [service-name]` for the specific service
+1. **Service won't start**: Check `docker compose logs [service-name]` for the specific service
 2. **Plugin errors**: Usually encryption key format issues - keys must be base64url (32 bytes, using `-_` not `+/`, no `=` padding)
-3. **Migration issues**: Web service logs show migration progress - `docker-compose logs -f web | grep -i migrate`
+3. **Migration issues**: Web service logs show migration progress - `docker compose logs -f web | grep -i migrate`
 4. **Expected warnings** (safe to ignore):
    - "Skipping async migrations setup. This is unsafe in production!" (dev mode)
    - "pkg_resources is deprecated" (Python library warning)
@@ -74,7 +74,7 @@ docker-compose down -v
 curl -I http://localhost:8080
 
 # Check for critical errors (returns 0 if none found)
-docker-compose logs --tail=50 2>&1 | grep -i "error\|failed\|exception" || echo "No critical errors"
+docker compose logs --tail=50 2>&1 | grep -i "error\|failed\|exception" || echo "No critical errors"
 ```
 
 ## Project-Specific Conventions
@@ -87,7 +87,7 @@ openssl rand -base64 32 | tr '+/' '-_' | tr -d '='
 ```
 
 ### Service Names Are Fixed
-When modifying `docker-compose.yml`, use these exact service names (PostHog expects them):
+When modifying `docker compose.yml`, use these exact service names (PostHog expects them):
 - `db` (PostgreSQL)
 - `redis` 
 - `clickhouse`
@@ -111,16 +111,16 @@ Named volumes preserve data across container restarts:
 ## Common Modifications
 
 ### Changing Ports
-Update `WEB_PORT` in `.env`, then `docker-compose up -d` (auto-recreates with new port mapping).
+Update `WEB_PORT` in `.env`, then `docker compose up -d` (auto-recreates with new port mapping).
 
 ### Adding New Environment Variables
 1. Add to `.env` with value
 2. Add to `.env.example` with safe default/placeholder
-3. Reference in `docker-compose.yml` as `${NEW_VAR}`
+3. Reference in `docker compose.yml` as `${NEW_VAR}`
 4. Document in `README.md` under "Environment Variables"
 
 ### Upgrading PostHog Version
-Change image tag in `docker-compose.yml` (3 services use `posthog/posthog:latest`):
+Change image tag in `docker compose.yml` (3 services use `posthog/posthog:latest`):
 ```yaml
 image: posthog/posthog:1.50.0  # Pin specific version
 ```
@@ -150,12 +150,12 @@ Uses `ENCRYPTION_KEYS` to secure plugin configuration data stored in PostgreSQL.
 - ❌ Don't use standard base64 for encryption keys (must be base64url)
 - ❌ Don't remove `depends_on` relationships (controls startup order)
 - ❌ Don't change volume names (breaks data persistence)
-- ❌ Don't skip `docker-compose config` before deploying (catches substitution errors)
+- ❌ Don't skip `docker compose config` before deploying (catches substitution errors)
 
 ## Quick Reference
 
-**First-time setup**: `cp .env.example .env && docker-compose up -d`  
+**First-time setup**: `cp .env.example .env && docker compose up -d`  
 **Access PostHog**: http://localhost:8080  
-**Check health**: `docker-compose ps` (all services should show "Up")  
-**View errors**: `docker-compose logs --tail=50 | grep -i error`  
-**Reset everything**: `docker-compose down -v` (deletes all data)
+**Check health**: `docker compose ps` (all services should show "Up")  
+**View errors**: `docker compose logs --tail=50 | grep -i error`  
+**Reset everything**: `docker compose down -v` (deletes all data)

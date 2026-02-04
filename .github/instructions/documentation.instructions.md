@@ -695,7 +695,7 @@ git clone https://github.com/user/repo.git
 cd repo
 
 # Start with Docker Compose
-docker-compose up -d
+docker compose up -d
 
 # Access application
 open http://localhost:8000

@@ -34,7 +34,7 @@ cp src/barodybroject/settings.py src/barodybroject/settings_backup_$(date +%Y%m%
 cp .env .env.backup.$(date +%Y%m%d) 2>/dev/null || echo "No .env file found"
 
 # Backup docker configuration
-cp docker-compose.yml docker-compose.backup.$(date +%Y%m%d).yml
+cp docker compose.yml docker compose.backup.$(date +%Y%m%d).yml
 ```
 
 ## Migration Steps
@@ -190,7 +190,7 @@ The new settings file should contain these major sections:
 
 #### 3.1 Update Docker Configuration
 
-Ensure your `docker-compose.yml` includes PostgreSQL:
+Ensure your `docker compose.yml` includes PostgreSQL:
 
 ```yaml
 services:
@@ -213,16 +213,16 @@ volumes:
 
 ```bash
 # Start the database container
-docker-compose up -d barodydb
+docker compose up -d barodydb
 
 # Wait for database to be ready
 sleep 10
 
 # Run migrations
-docker-compose exec python python manage.py migrate
+docker compose exec python python manage.py migrate
 
 # Create superuser (optional)
-docker-compose exec python python manage.py createsuperuser
+docker compose exec python python manage.py createsuperuser
 ```
 
 ### Step 4: Cache Configuration (5 minutes)
@@ -236,8 +236,8 @@ For development, the new configuration automatically uses database caching as a 
 For production, ensure Redis is available:
 
 ```bash
-# Add Redis to production docker-compose.yml
-cat >> docker-compose.yml << 'EOF'
+# Add Redis to production docker compose.yml
+cat >> docker compose.yml << 'EOF'
   redis:
     image: redis:7-alpine
     ports:
@@ -259,10 +259,10 @@ Run the built-in validation script:
 
 ```bash
 # Validate development configuration
-docker-compose exec python python manage.py check
+docker compose exec python python manage.py check
 
 # Validate with deployment checks
-docker-compose exec python python manage.py check --deploy
+docker compose exec python python manage.py check --deploy
 ```
 
 #### 5.2 Environment Testing
@@ -271,7 +271,7 @@ Test both development and production configurations:
 
 ```bash
 # Test development environment
-RUNNING_IN_PRODUCTION=False docker-compose exec python python manage.py shell -c "
+RUNNING_IN_PRODUCTION=False docker compose exec python python manage.py shell -c "
 from django.conf import settings
 print(f'DEBUG: {settings.DEBUG}')
 print(f'Database: {settings.DATABASES[\"default\"][\"ENGINE\"]}')
@@ -279,7 +279,7 @@ print(f'Cache: {settings.CACHES[\"default\"][\"BACKEND\"]}')
 "
 
 # Test production-like environment
-RUNNING_IN_PRODUCTION=True docker-compose exec python python manage.py shell -c "
+RUNNING_IN_PRODUCTION=True docker compose exec python python manage.py shell -c "
 from django.conf import settings
 print(f'DEBUG: {settings.DEBUG}')
 print(f'Security: HTTPS redirect = {settings.SECURE_SSL_REDIRECT}')
@@ -290,7 +290,7 @@ print(f'Security: HTTPS redirect = {settings.SECURE_SSL_REDIRECT}')
 
 ```bash
 # Start the development server
-docker-compose up -d
+docker compose up -d
 
 # Test basic functionality
 curl http://localhost:8000/
@@ -311,7 +311,7 @@ curl http://localhost:8000/static/admin/css/base.css
 **Solution**:
 ```bash
 # Check which variables are missing
-docker-compose exec python python manage.py shell -c "
+docker compose exec python python manage.py shell -c "
 import os
 from django.core.exceptions import ImproperlyConfigured
 required_vars = ['SECRET_KEY', 'DB_NAME', 'DB_USER', 'DB_PASSWORD']
@@ -331,14 +331,14 @@ export MISSING_VAR=value
 **Solution**:
 ```bash
 # Check database container status
-docker-compose ps barodydb
+docker compose ps barodydb
 
 # Check database logs
-docker-compose logs barodydb
+docker compose logs barodydb
 
 # Reset database container
-docker-compose down barodydb
-docker-compose up -d barodydb
+docker compose down barodydb
+docker compose up -d barodydb
 ```
 
 ### Issue 3: Cache Configuration Issues
@@ -348,7 +348,7 @@ docker-compose up -d barodydb
 **Solution**:
 ```bash
 # Check Redis availability
-docker-compose exec python python -c "
+docker compose exec python python -c "
 import redis
 try:
     r = redis.Redis.from_url('redis://localhost:6379/1')
@@ -359,7 +359,7 @@ except:
 "
 
 # Test cache functionality
-docker-compose exec python python manage.py shell -c "
+docker compose exec python python manage.py shell -c "
 from django.core.cache import cache
 cache.set('test', 'value')
 print(f'Cache test: {cache.get(\"test\")}')
@@ -373,10 +373,10 @@ print(f'Cache test: {cache.get(\"test\")}')
 **Solution**:
 ```bash
 # Collect static files
-docker-compose exec python python manage.py collectstatic --noinput
+docker compose exec python python manage.py collectstatic --noinput
 
 # Check static files configuration
-docker-compose exec python python manage.py shell -c "
+docker compose exec python python manage.py shell -c "
 from django.conf import settings
 print(f'STATIC_URL: {settings.STATIC_URL}')
 print(f'STATIC_ROOT: {settings.STATIC_ROOT}')
@@ -400,7 +400,7 @@ print(f'STATIC_ROOT: {settings.STATIC_ROOT}')
 
 ```bash
 # Test database performance
-docker-compose exec python python manage.py shell -c "
+docker compose exec python python manage.py shell -c "
 import time
 from django.db import connection
 start = time.time()
@@ -410,7 +410,7 @@ print(f'Database query time: {time.time() - start:.3f}s')
 "
 
 # Test cache performance
-docker-compose exec python python manage.py shell -c "
+docker compose exec python python manage.py shell -c "
 import time
 from django.core.cache import cache
 start = time.time()
@@ -446,11 +446,11 @@ mv src/barodybroject/settings_old.py src/barodybroject/settings.py
 mv .env.backup.$(date +%Y%m%d) .env 2>/dev/null || echo "No env backup"
 
 # Restore docker configuration
-mv docker-compose.backup.$(date +%Y%m%d).yml docker-compose.yml
+mv docker compose.backup.$(date +%Y%m%d).yml docker compose.yml
 
 # Restart containers
-docker-compose down
-docker-compose up -d
+docker compose down
+docker compose up -d
 ```
 
 ### Gradual Rollback

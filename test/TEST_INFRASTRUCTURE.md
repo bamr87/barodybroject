@@ -207,7 +207,7 @@ pip install responses==0.23.3          # HTTP mocking
 
 # Docker testing dependencies
 docker --version  # 24.0+
-docker-compose --version  # 2.0+
+docker compose --version  # 2.0+
 
 # Database testing
 pip install psycopg2-binary==2.9.7     # PostgreSQL driver
@@ -271,22 +271,22 @@ print(f'Connection params: {db.get_connection_params()}')
 ```bash
 # Comprehensive Docker environment validation
 docker info
-docker-compose --version
+docker compose --version
 docker system df  # Check disk usage
 
 # Container orchestration testing
-docker-compose -f .devcontainer/docker-compose_dev.yml config --quiet
-docker-compose -f .devcontainer/docker-compose_dev.yml ps
-docker-compose -f .devcontainer/docker-compose_dev.yml logs --tail=100
+docker compose -f .devcontainer/docker-compose_dev.yml config --quiet
+docker compose -f .devcontainer/docker-compose_dev.yml ps
+docker compose -f .devcontainer/docker-compose_dev.yml logs --tail=100
 
 # Network connectivity validation
 docker network ls
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python ping -c 3 barodydb
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python nslookup barodydb
+docker compose -f .devcontainer/docker-compose_dev.yml exec python ping -c 3 barodydb
+docker compose -f .devcontainer/docker-compose_dev.yml exec python nslookup barodydb
 
 # Volume and data persistence testing
 docker volume ls
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python ls -la /app
+docker compose -f .devcontainer/docker-compose_dev.yml exec python ls -la /app
 ```
 
 #### Environment Setup Issues (Enhanced)
@@ -450,7 +450,7 @@ repos:
         
       - id: validate-docker-config
         name: Validate Docker Configuration
-        entry: docker-compose -f .devcontainer/docker-compose_dev.yml config --quiet
+        entry: docker compose -f .devcontainer/docker-compose_dev.yml config --quiet
         language: system
         pass_filenames: false
         stages: [commit]

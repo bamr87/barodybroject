@@ -74,7 +74,7 @@ barodybroject/
 │   ├── pages/         # Jekyll blog (59 posts)
 │   ├── static/        # CSS, JS, images
 │   └── requirements.txt
-├── docker-compose.yml
+├── docker compose.yml
 ├── azure.yaml         # Azure Developer CLI config
 └── pyproject.toml
 ```

@@ -57,7 +57,7 @@ barodybroject/
 │   ├── manage.py           # Django management script
 │   └── requirements.txt    # Python dependencies
 ├── tests/                   # Test files and test data
-├── docker-compose.yml      # Local development environment
+├── docker compose.yml      # Local development environment
 ├── Dockerfile              # Container configuration
 └── README.md               # Project overview and setup
 ```

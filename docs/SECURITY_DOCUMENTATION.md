@@ -332,7 +332,7 @@ LABEL security.scan="enabled"
 
 **Container Network Isolation:**
 ```yaml
-# docker-compose.yml network configuration
+# docker compose.yml network configuration
 networks:
   barody-network:
     driver: bridge

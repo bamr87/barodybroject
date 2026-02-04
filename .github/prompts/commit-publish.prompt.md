@@ -44,10 +44,10 @@ Execute the complete release pipeline for the current changes in the repository.
 2. **Execute Tests**:
    ```bash
    # Run Django tests in development container
-   docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py test
+   docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py test
    
    # Run pytest with coverage
-   docker-compose -f .devcontainer/docker-compose_dev.yml exec python python -m pytest --cov=parodynews
+   docker compose -f .devcontainer/docker-compose_dev.yml exec python python -m pytest --cov=parodynews
    ```
 
 3. **Verify Test Results**:

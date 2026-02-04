@@ -220,8 +220,8 @@ check_dependencies() {
             exit 1
         fi
         
-        if ! command -v docker-compose &> /dev/null; then
-            log_error "docker-compose is required for --docker mode but not installed"
+        if ! command -v docker compose &> /dev/null; then
+            log_error "docker compose is required for --docker mode but not installed"
             exit 1
         fi
     fi
@@ -283,21 +283,21 @@ run_docker_tests() {
     
     # Start development containers
     log_info "Starting Docker containers..."
-    docker-compose -f .devcontainer/docker-compose_dev.yml up -d --build
+    docker compose -f .devcontainer/docker-compose_dev.yml up -d --build
     
     # Wait for containers to be ready
     sleep 10
     
     # Run database migrations
     log_info "Running database migrations..."
-    docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate --noinput
+    docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate --noinput
     
     # Run tests inside container
     local pytest_cmd=$(build_pytest_command)
     log_info "Executing tests in container: $pytest_cmd"
     
     if [ "$DRY_RUN" = false ]; then
-        docker-compose -f .devcontainer/docker-compose_dev.yml exec python $pytest_cmd
+        docker compose -f .devcontainer/docker-compose_dev.yml exec python $pytest_cmd
         local test_exit_code=$?
     else
         log_info "DRY RUN: Would execute: $pytest_cmd"
@@ -306,7 +306,7 @@ run_docker_tests() {
     
     # Clean up containers
     log_info "Stopping Docker containers..."
-    docker-compose -f .devcontainer/docker-compose_dev.yml down
+    docker compose -f .devcontainer/docker-compose_dev.yml down
     
     return $test_exit_code
 }

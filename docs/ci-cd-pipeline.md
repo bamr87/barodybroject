@@ -330,7 +330,7 @@ services:
 gh run view <run_id> --log --job "pre-flight-checks"
 
 # Verify database connectivity
-docker-compose -f .devcontainer/docker-compose_dev.yml logs barodydb
+docker compose -f .devcontainer/docker-compose_dev.yml logs barodydb
 
 # Test migrations locally
 python manage.py migrate --dry-run

@@ -458,16 +458,16 @@ services:
 set -euo pipefail
 
 echo "Starting test environment..."
-docker-compose -f docker-compose.test.yml up -d test-db
+docker compose -f docker-compose.test.yml up -d test-db
 
 echo "Waiting for database to be ready..."
 sleep 5
 
 echo "Running tests..."
-docker-compose -f docker-compose.test.yml run --rm test-runner
+docker compose -f docker-compose.test.yml run --rm test-runner
 
 echo "Collecting coverage report..."
-docker-compose -f docker-compose.test.yml down
+docker compose -f docker-compose.test.yml down
 ```
 
 ## Pytest Configuration

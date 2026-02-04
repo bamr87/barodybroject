@@ -158,10 +158,10 @@ Test scripts used `docker-compose` command (Docker Compose V1) but the CI/CD env
 **Root Cause:**
 ```bash
 # V1 command (used in scripts)
-docker-compose -f docker-compose.yml up
+docker compose -f docker compose.yml up
 
 # V2 command (available in environment)
-docker compose -f docker-compose.yml up
+docker compose -f docker compose.yml up
 ```
 
 **Solution Implemented:**
@@ -174,7 +174,7 @@ docker compose "$@"
 
 **Validation:**
 - Wrapper successfully translates V1 commands to V2
-- All docker-compose commands now work correctly
+- All docker compose commands now work correctly
 - Both syntaxes supported simultaneously
 
 **Files Modified:**
@@ -247,7 +247,7 @@ Added intelligent wait logic that checks for Django installation:
 MAX_WAIT=180  # 3 minutes max wait
 WAIT_COUNT=0
 while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-    if docker-compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>/dev/null | grep -q "Django installed"; then
+    if docker compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>/dev/null | grep -q "Django installed"; then
         log_success "Package installation completed"
         break
     fi
@@ -509,7 +509,7 @@ pip install -r requirements-extras.txt || echo "Some extras failed to install"
 **Impact:** Medium
 
 **Description:**
-Add proper health checks to docker-compose configuration to ensure containers are truly ready before tests run.
+Add proper health checks to docker compose configuration to ensure containers are truly ready before tests run.
 
 **Implementation:**
 
@@ -603,7 +603,7 @@ log_info "Waiting for package installation to complete..."
 MAX_WAIT=180  # 3 minutes max wait
 WAIT_COUNT=0
 while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-    if docker-compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>/dev/null | grep -q "Django installed"; then
+    if docker compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>/dev/null | grep -q "Django installed"; then
         log_success "Package installation completed"
         break
     fi
@@ -636,7 +636,7 @@ pip install --timeout 180 --retries 5 -r requirements.txt || pip install --no-de
 
 ### 3. Runtime Changes
 
-**Created docker-compose wrapper:**
+**Created docker compose wrapper:**
 - Location: `/usr/local/bin/docker-compose`
 - Purpose: Docker Compose V2 compatibility
 - Implementation: Shell script wrapper
@@ -662,9 +662,9 @@ pip install --timeout 180 --retries 5 -r requirements.txt || pip install --no-de
 
 Docker container logs available via:
 ```bash
-docker-compose -f .devcontainer/docker-compose_dev.yml logs python
-docker-compose -f .devcontainer/docker-compose_dev.yml logs barodydb
-docker-compose -f .devcontainer/docker-compose_dev.yml logs jekyll
+docker compose -f .devcontainer/docker-compose_dev.yml logs python
+docker compose -f .devcontainer/docker-compose_dev.yml logs barodydb
+docker compose -f .devcontainer/docker-compose_dev.yml logs jekyll
 ```
 
 ## Conclusion

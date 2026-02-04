@@ -67,7 +67,7 @@ test -x ./scripts/test-infrastructure.sh || chmod +x ./scripts/test-infrastructu
 test -x ./scripts/test-init-setup.sh || chmod +x ./scripts/test-init-setup.sh
 
 # 4. Clean up any existing test containers
-docker-compose -f .devcontainer/docker-compose_dev.yml down -v 2>/dev/null || true
+docker compose -f .devcontainer/docker-compose_dev.yml down -v 2>/dev/null || true
 ```
 
 ### Phase 2: Infrastructure Build Testing
@@ -80,13 +80,13 @@ docker-compose -f .devcontainer/docker-compose_dev.yml down -v 2>/dev/null || tr
 # If failures: Document issues and create recommendations
 
 # 2. Test Docker development build
-docker-compose -f .devcontainer/docker-compose_dev.yml build
+docker compose -f .devcontainer/docker-compose_dev.yml build
 
 # Expected: Successful build with no errors
 # Validate: Multi-stage build efficiency, layer caching
 
 # 3. Test Docker production build
-docker-compose build
+docker compose build
 
 # Expected: Successful optimized production build
 # Validate: Security hardening, minimal image size
@@ -121,25 +121,25 @@ docker-compose build
 
 ```bash
 # 1. Test database infrastructure
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
+docker compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
 sleep 10
-docker-compose -f .devcontainer/docker-compose_dev.yml exec barodydb pg_isready -U postgres
+docker compose -f .devcontainer/docker-compose_dev.yml exec barodydb pg_isready -U postgres
 
 # Expected: Database ready to accept connections
 
 # 2. Test Django migrations
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d python
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate --check
+docker compose -f .devcontainer/docker-compose_dev.yml up -d python
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate --check
 
 # Expected: All migrations applied successfully
 
 # 3. Test static file collection
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py collectstatic --noinput --dry-run
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py collectstatic --noinput --dry-run
 
 # Expected: Static files can be collected without errors
 
 # 4. Test management commands
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py check --deploy
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py check --deploy
 
 # Expected: No deployment issues detected
 ```
@@ -148,7 +148,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage
 
 ```bash
 # 1. Test complete application stack
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 
 # Wait for all services to be healthy
 sleep 30
@@ -171,7 +171,7 @@ curl -f http://localhost:8000/api/ || echo "ERROR: API not accessible"
 docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"
 
 # 2. Measure startup time
-time docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+time docker compose -f .devcontainer/docker-compose_dev.yml up -d
 
 # Expected: < 60 seconds for full stack startup
 
@@ -369,7 +369,7 @@ curl -I http://localhost:8000/
 **Validation:**
 ```bash
 # Measure startup time
-time docker-compose up -d
+time docker compose up -d
 # Check resource usage
 docker stats --no-stream
 ```
@@ -556,15 +556,15 @@ Track and report:
 ./scripts/test-init-setup.sh
 
 # Check Docker health
-docker-compose ps
-docker-compose logs -f
+docker compose ps
+docker compose logs -f
 
 # Run specific test
-docker-compose exec python pytest tests/test_specific.py -v
+docker compose exec python pytest tests/test_specific.py -v
 
 # Clean and rebuild
-docker-compose down -v
-docker-compose up -d --build
+docker compose down -v
+docker compose up -d --build
 ```
 
 ### Emergency Procedures

@@ -134,7 +134,7 @@ Tasks for running Django commands in containers:
 
 1. **Start PostgreSQL:**
    ```bash
-   docker-compose up barodydb -d
+   docker compose up barodydb -d
    ```
 
 2. **Run Django Locally:**
@@ -213,9 +213,9 @@ Configurations are organized into groups for better UI organization:
 
 **Issue:** Docker configurations for Python debugging don't work.
 
-**Reason:** The docker-compose configuration doesn't start debugpy server.
+**Reason:** The docker compose configuration doesn't start debugpy server.
 
-**Solution:** Use local development configurations instead, or update docker-compose to include debugpy:
+**Solution:** Use local development configurations instead, or update docker compose to include debugpy:
 
 ```yaml
 # In .devcontainer/docker-compose_dev.yml
@@ -233,17 +233,17 @@ command:
 **Issue:** Django can't connect to PostgreSQL.
 
 **Check:**
-1. PostgreSQL is running: `docker-compose ps barodydb`
+1. PostgreSQL is running: `docker compose ps barodydb`
 2. Port is accessible: `psql -h localhost -U postgres -d barodydb`
 3. Environment variables are correct in launch configuration
 
 **Solution:**
 ```bash
 # Start PostgreSQL
-docker-compose up barodydb -d
+docker compose up barodydb -d
 
 # Wait for health check
-docker-compose ps barodydb
+docker compose ps barodydb
 ```
 
 ### "Module not found" Errors
@@ -282,7 +282,7 @@ docker-compose ps barodydb
 lsof -ti:8000 | xargs kill -9
 
 # Or stop all containers
-docker-compose down
+docker compose down
 ```
 
 ## Best Practices

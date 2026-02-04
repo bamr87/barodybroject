@@ -10,7 +10,7 @@ This is the main source code directory for the Django-based parody news generato
 - `assets/`: Static assets (images, js)
 - `azure.yaml`: Azure configuration
 - `barodybroject/`: Django project settings
-- `docker-compose.yml`: Docker composition
+- `docker compose.yml`: Docker composition
 - `Dockerfile`: Container definition
 - `docs/`: Documentation files
 - `entrypoint.sh`: Container entrypoint

@@ -11,7 +11,7 @@
 # 
 # Dependencies:
 # - docker: Container platform
-# - docker-compose: Container orchestration
+# - docker compose: Container orchestration
 # 
 # Usage: ./test/scripts/test_docker_setup.sh
 
@@ -65,7 +65,7 @@ check_prerequisites() {
     fi
     
     # Check Docker Compose
-    if ! command -v docker-compose &> /dev/null; then
+    if ! command -v docker compose &> /dev/null; then
         log_error "Docker Compose is not installed or not in PATH"
         exit 1
     fi
@@ -91,7 +91,7 @@ cleanup_docker_environment() {
     cd "$PROJECT_ROOT"
     
     # Stop and remove containers
-    docker-compose -f "$COMPOSE_FILE" down --remove-orphans 2>&1 | tee -a "$LOG_FILE" || true
+    docker compose -f "$COMPOSE_FILE" down --remove-orphans 2>&1 | tee -a "$LOG_FILE" || true
     
     # Remove setup data volume if exists
     docker volume rm barodybroject_setup_data 2>/dev/null || true
@@ -108,7 +108,7 @@ start_docker_environment() {
     cd "$PROJECT_ROOT"
     
     # Build and start containers
-    if docker-compose -f "$COMPOSE_FILE" up -d --build 2>&1 | tee -a "$LOG_FILE"; then
+    if docker compose -f "$COMPOSE_FILE" up -d --build 2>&1 | tee -a "$LOG_FILE"; then
         log_success "Docker containers started"
     else
         log_error "Failed to start Docker containers"
@@ -119,7 +119,7 @@ start_docker_environment() {
     log_info "Waiting for containers to be ready..."
     local attempts=0
     while [[ $attempts -lt 30 ]]; do
-        if docker-compose -f "$COMPOSE_FILE" exec -T python python --version &> /dev/null; then
+        if docker compose -f "$COMPOSE_FILE" exec -T python python --version &> /dev/null; then
             log_success "Python container is ready"
             break
         fi
@@ -133,7 +133,7 @@ start_docker_environment() {
     fi
     
     # Check database connectivity
-    if docker-compose -f "$COMPOSE_FILE" exec -T python python -c "
+    if docker compose -f "$COMPOSE_FILE" exec -T python python -c "
 import django
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'barodybroject.settings.development')
@@ -164,13 +164,13 @@ y
 EOF
     
     # Run interactive setup in container
-    if docker-compose -f "$COMPOSE_FILE" exec -T python bash -c "
+    if docker compose -f "$COMPOSE_FILE" exec -T python bash -c "
 cd /app && python manage.py setup_wizard < /tmp/input.txt
 " < "$input_file" 2>&1 | tee -a "$LOG_FILE"; then
         log_success "Interactive setup in Docker completed"
         
         # Verify admin user was created
-        if docker-compose -f "$COMPOSE_FILE" exec -T python python -c "
+        if docker compose -f "$COMPOSE_FILE" exec -T python python -c "
 import django
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'barodybroject.settings.development')
@@ -202,11 +202,11 @@ test_docker_headless_setup() {
     cd "$PROJECT_ROOT"
     
     # Clean previous setup state
-    docker-compose -f "$COMPOSE_FILE" exec -T python rm -rf /app/setup_data 2>/dev/null || true
+    docker compose -f "$COMPOSE_FILE" exec -T python rm -rf /app/setup_data 2>/dev/null || true
     
     # Run headless setup in container
     local headless_output
-    headless_output=$(docker-compose -f "$COMPOSE_FILE" exec -T python python manage.py setup_wizard --headless 2>&1)
+    headless_output=$(docker compose -f "$COMPOSE_FILE" exec -T python python manage.py setup_wizard --headless 2>&1)
     
     echo "$headless_output" | tee -a "$LOG_FILE"
     
@@ -224,7 +224,7 @@ test_docker_headless_setup() {
         else
             log_warning "Could not extract token from Docker headless output"
             # Try to get token via service
-            token=$(docker-compose -f "$COMPOSE_FILE" exec -T python python -c "
+            token=$(docker compose -f "$COMPOSE_FILE" exec -T python python -c "
 import django
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'barodybroject.settings.development')
@@ -257,7 +257,7 @@ test_docker_web_interface() {
     
     # Start Django server in container
     log_info "Starting Django server in Docker..."
-    docker-compose -f "$COMPOSE_FILE" exec -d python python manage.py runserver 0.0.0.0:8000
+    docker compose -f "$COMPOSE_FILE" exec -d python python manage.py runserver 0.0.0.0:8000
     
     # Wait for server to start
     sleep 10
@@ -266,14 +266,14 @@ test_docker_web_interface() {
     local server_url="http://localhost:8000"
     
     # Test basic connectivity
-    if docker-compose -f "$COMPOSE_FILE" exec -T python curl -s "$server_url" > /dev/null; then
+    if docker compose -f "$COMPOSE_FILE" exec -T python curl -s "$server_url" > /dev/null; then
         log_success "Django server accessible in Docker"
     else
         log_warning "Django server not accessible via curl from within container"
     fi
     
     # Test setup endpoints
-    if docker-compose -f "$COMPOSE_FILE" exec -T python curl -s "$server_url/setup/wizard/" > /dev/null; then
+    if docker compose -f "$COMPOSE_FILE" exec -T python curl -s "$server_url/setup/wizard/" > /dev/null; then
         log_success "Setup wizard accessible in Docker"
     else
         log_warning "Setup wizard not accessible in Docker"
@@ -282,7 +282,7 @@ test_docker_web_interface() {
     # Test with token if available
     if [[ -f "$LOG_DIR/docker_token.txt" ]]; then
         local token=$(cat "$LOG_DIR/docker_token.txt")
-        if docker-compose -f "$COMPOSE_FILE" exec -T python curl -s "$server_url/setup/create-admin/?token=$token" > /dev/null; then
+        if docker compose -f "$COMPOSE_FILE" exec -T python curl -s "$server_url/setup/create-admin/?token=$token" > /dev/null; then
             log_success "Admin creation page accessible with token in Docker"
         else
             log_warning "Admin creation page not accessible with token in Docker"
@@ -296,7 +296,7 @@ test_docker_data_persistence() {
     cd "$PROJECT_ROOT"
     
     # Create test data
-    docker-compose -f "$COMPOSE_FILE" exec -T python python -c "
+    docker compose -f "$COMPOSE_FILE" exec -T python python -c "
 import django
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'barodybroject.settings.development')
@@ -308,17 +308,17 @@ print('Test user created')
     
     # Stop containers
     log_info "Stopping containers to test persistence..."
-    docker-compose -f "$COMPOSE_FILE" stop 2>&1 | tee -a "$LOG_FILE"
+    docker compose -f "$COMPOSE_FILE" stop 2>&1 | tee -a "$LOG_FILE"
     
     # Start containers again
     log_info "Restarting containers..."
-    docker-compose -f "$COMPOSE_FILE" start 2>&1 | tee -a "$LOG_FILE"
+    docker compose -f "$COMPOSE_FILE" start 2>&1 | tee -a "$LOG_FILE"
     
     # Wait for restart
     sleep 10
     
     # Check if data persisted
-    if docker-compose -f "$COMPOSE_FILE" exec -T python python -c "
+    if docker compose -f "$COMPOSE_FILE" exec -T python python -c "
 import django
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'barodybroject.settings.development')
@@ -346,7 +346,7 @@ test_docker_environment_variables() {
     cd "$PROJECT_ROOT"
     
     # Check Django settings
-    if docker-compose -f "$COMPOSE_FILE" exec -T python python -c "
+    if docker compose -f "$COMPOSE_FILE" exec -T python python -c "
 import django
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'barodybroject.settings.development')
@@ -363,7 +363,7 @@ print('Environment variables loaded correctly')
     fi
     
     # Check custom environment variables
-    docker-compose -f "$COMPOSE_FILE" exec -T python bash -c "
+    docker compose -f "$COMPOSE_FILE" exec -T python bash -c "
 echo 'Python Path:' \$PYTHONPATH
 echo 'Django Settings:' \$DJANGO_SETTINGS_MODULE
 " 2>&1 | tee -a "$LOG_FILE"
@@ -375,7 +375,7 @@ test_docker_setup_integration() {
     cd "$PROJECT_ROOT"
     
     # Test setup service functionality in Docker
-    if docker-compose -f "$COMPOSE_FILE" exec -T python python -c "
+    if docker compose -f "$COMPOSE_FILE" exec -T python python -c "
 import django
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'barodybroject.settings.development')
@@ -440,7 +440,7 @@ generate_docker_test_report() {
         <h2>Docker Environment</h2>
         <pre>
 Docker Version: $(docker --version 2>/dev/null || echo "Not available")
-Docker Compose Version: $(docker-compose --version 2>/dev/null || echo "Not available")
+Docker Compose Version: $(docker compose --version 2>/dev/null || echo "Not available")
         </pre>
     </div>
     

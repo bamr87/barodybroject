@@ -658,7 +658,7 @@ Run the test suite to verify templates still work:
 ```bash
 cd /src
 ./scripts/quick_test.sh  # Quick HTTP tests
-docker-compose exec python python manage.py test  # Full test suite
+docker compose exec python python manage.py test  # Full test suite
 ```
 
 #### Custom Template Modifications
@@ -805,13 +805,13 @@ cd /src
 ./scripts/quick_test.sh
 
 # Django unit tests (39 tests, ~4 seconds)
-docker-compose exec python python manage.py test parodynews.tests.test_templates
+docker compose exec python python manage.py test parodynews.tests.test_templates
 
 # All tests (50 tests, ~10 seconds)
 ./scripts/run_all_tests.sh
 
 # Verbose Django tests
-docker-compose exec python python manage.py test parodynews.tests.test_templates --verbosity=2
+docker compose exec python python manage.py test parodynews.tests.test_templates --verbosity=2
 ```
 
 ### Docker Commands
@@ -819,22 +819,22 @@ docker-compose exec python python manage.py test parodynews.tests.test_templates
 ```bash
 # Start all services
 cd /src
-docker-compose up -d
+docker compose up -d
 
 # Check container status
-docker-compose ps
+docker compose ps
 
 # View logs
-docker-compose logs -f python
+docker compose logs -f python
 
 # Restart services
-docker-compose restart
+docker compose restart
 
 # Stop all services
-docker-compose down
+docker compose down
 
 # Rebuild containers
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 ### Useful Links

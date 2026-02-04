@@ -141,10 +141,10 @@ DOCUMENTATION_FRESHNESS_CHECK=true
 
 ### Docker Compose Integration
 
-Update your `docker-compose.yml` for ecosystem integration:
+Update your `docker compose.yml` for ecosystem integration:
 
 ```yaml
-# docker-compose.yml - Ecosystem Integration
+# docker compose.yml - Ecosystem Integration
 version: '3.8'
 
 services:
@@ -192,10 +192,10 @@ volumes:
 
 ### Docker-Compose Optimization
 
-Optimize docker-compose configuration for ecosystem integration:
+Optimize docker compose configuration for ecosystem integration:
 
 ```yaml
-# docker-compose.yml - Ecosystem Integration Features
+# docker compose.yml - Ecosystem Integration Features
 version: '3.8'
 
 services:

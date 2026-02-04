@@ -58,7 +58,7 @@ run_django_tests() {
     
     cd "$PROJECT_ROOT"
     
-    if docker-compose exec -T python python manage.py test parodynews.tests.test_templates --verbosity=2; then
+    if docker compose exec -T python python manage.py test parodynews.tests.test_templates --verbosity=2; then
         log_success "Django tests passed"
         return 0
     else
@@ -88,7 +88,7 @@ check_template_syntax() {
     
     cd "$PROJECT_ROOT"
     
-    if docker-compose exec -T python python manage.py validate_templates; then
+    if docker compose exec -T python python manage.py validate_templates; then
         log_success "Template syntax check passed"
         return 0
     else
@@ -141,7 +141,7 @@ main() {
     run_bash_tests "$@" || bash_result=$?
     
     # Run Django tests (if containers are still running)
-    if docker-compose ps | grep -q "Up"; then
+    if docker compose ps | grep -q "Up"; then
         run_django_tests || django_result=$?
     else
         log_info "Containers not running, skipping Django tests"

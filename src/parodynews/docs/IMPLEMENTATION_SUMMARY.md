@@ -279,7 +279,7 @@ make clean && make html
 
 ```bash
 # In development container
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python bash
+docker compose -f .devcontainer/docker-compose_dev.yml exec python bash
 
 # Inside container
 cd /workspace/src/parodynews/docs
@@ -295,7 +295,7 @@ make html
 
 ```bash
 # Build in container
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python \
+docker compose -f .devcontainer/docker-compose_dev.yml exec python \
     bash -c "cd /workspace/src/parodynews/docs && make clean && make html"
 
 # Documentation will be in: src/parodynews/docs/build/html/

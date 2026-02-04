@@ -127,7 +127,7 @@ jobs:
           PYTHONUNBUFFERED=1
           EOL
       
-      - name: Test docker-compose services
+      - name: Test docker compose services
         run: |
           # Start database service only
           docker compose -f .devcontainer/docker-compose_dev.yml up -d barodydb

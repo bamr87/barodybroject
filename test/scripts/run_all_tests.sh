@@ -239,7 +239,7 @@ run_docker_tests() {
     
     # This would run the test suite inside a Docker container
     # For now, just validate Docker setup
-    if docker-compose -f "$PROJECT_ROOT/.devcontainer/docker-compose_dev.yml" config > /dev/null; then
+    if docker compose -f "$PROJECT_ROOT/.devcontainer/docker-compose_dev.yml" config > /dev/null; then
         log_success "Docker configuration valid"
     else
         log_error "Docker configuration invalid"

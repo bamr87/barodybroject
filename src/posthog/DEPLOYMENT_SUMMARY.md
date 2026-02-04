@@ -15,7 +15,7 @@ All hardcoded configuration values have been extracted from the Docker and Click
 - `README.md` - Comprehensive documentation
 
 #### Files Modified:
-- `docker-compose.yml` - Updated to use environment variables instead of hardcoded values
+- `docker compose.yml` - Updated to use environment variables instead of hardcoded values
 
 #### Configuration Categories:
 1. **Database** (PostgreSQL)
@@ -66,8 +66,8 @@ The deployment was successfully tested with the following results:
 
 The deployment was validated using:
 ```bash
-docker-compose config  # Validated environment variable substitution
-docker-compose ps      # Confirmed all services running
+docker compose config  # Validated environment variable substitution
+docker compose ps      # Confirmed all services running
 curl http://localhost:8080  # Verified web service accessibility
 ```
 
@@ -144,9 +144,9 @@ Total variables configured: **32**
 
 If you need to revert to the original hardcoded configuration:
 
-1. Restore the original `docker-compose.yml` from version control
+1. Restore the original `docker compose.yml` from version control
 2. Remove the `.env` file
-3. Restart services: `docker-compose down && docker-compose up -d`
+3. Restart services: `docker compose down && docker compose up -d`
 
 ## Support Resources
 

@@ -112,7 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docker troubleshooting and quick fixes documentation
 
 ### Changed
-- Consolidated 3 separate docker-compose files into 1 unified configuration
+- Consolidated 3 separate docker compose files into 1 unified configuration
 - Updated service names for clarity: `web` → `web-dev` (development), `web-prod` (production)
 - Reorganized project documentation into structured changelog system
 - Moved existing summary files to organized archive structure
@@ -124,7 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - `docker-compose.prod.yml` (functionality moved to production profile)
-- `src/docker-compose.yml` (duplicate configuration eliminated)
+- `src/docker compose.yml` (duplicate configuration eliminated)
 - `supervisord.conf` (archived as no longer needed)
 - `DOCKER_GUIDE.md` (content integrated into README.md)
 - `DOCKER_QUICK_REFERENCE.md` (content integrated into README.md)
@@ -219,14 +219,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Replaced custom Dockerfile with standard Python 3.11-slim image
-- Simplified Docker configuration to single docker-compose.yml file
+- Simplified Docker configuration to single docker compose.yml file
 - Inline command configuration for container startup
 - Streamlined dependency management
 
 ### Removed
 - Custom `src/Dockerfile` (30+ lines)
 - Custom `src/entrypoint.sh` script
-- Duplicate `src/docker-compose.yml`
+- Duplicate `src/docker compose.yml`
 
 ### Improved
 - 66% reduction in Docker configuration files (3 → 1)

@@ -194,7 +194,7 @@ tail -f logs/infrastructure-test-*.log
 
 # Debug with containers preserved
 ./scripts/test-infrastructure.sh --skip-cleanup
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python bash
+docker compose -f .devcontainer/docker-compose_dev.yml exec python bash
 ```
 
 ### 🚀 CI/CD Environment
@@ -239,7 +239,7 @@ skip_cleanup: false    # Cleanup after testing
 #### Docker-Related Problems
 ```bash
 # Container startup failures
-docker-compose -f .devcontainer/docker-compose_dev.yml logs
+docker compose -f .devcontainer/docker-compose_dev.yml logs
 
 # Network connectivity issues  
 docker network ls
@@ -253,19 +253,19 @@ docker volume inspect barodybroject_postgres_data
 #### Database Connection Issues
 ```bash
 # PostgreSQL connection testing
-docker-compose -f .devcontainer/docker-compose_dev.yml exec barodydb pg_isready -U test_user -d test_db
+docker compose -f .devcontainer/docker-compose_dev.yml exec barodydb pg_isready -U test_user -d test_db
 
 # Django database configuration
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py dbshell
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py dbshell
 ```
 
 #### Service Import Failures
 ```bash
 # Python path and module resolution
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python -c "import sys; print(sys.path)"
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python -c "import sys; print(sys.path)"
 
 # Django app registration
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py check
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py check
 ```
 
 #### Test Execution Problems
@@ -277,7 +277,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage
 ./scripts/test-infrastructure.sh --skip-cleanup
 
 # Manual test execution
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python pytest test/unit/test_services.py -v
+docker compose -f .devcontainer/docker-compose_dev.yml exec python pytest test/unit/test_services.py -v
 ```
 
 ### 🛠️ Debugging Strategies
@@ -298,11 +298,11 @@ grep -n "ERROR\|FAIL" logs/infrastructure-test-*.log
 #### Container Inspection
 ```bash
 # Enter containers for manual testing
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python bash
-docker-compose -f .devcontainer/docker-compose_dev.yml exec barodydb psql -U test_user -d test_db
+docker compose -f .devcontainer/docker-compose_dev.yml exec python bash
+docker compose -f .devcontainer/docker-compose_dev.yml exec barodydb psql -U test_user -d test_db
 
 # Inspect container configurations
-docker-compose -f .devcontainer/docker-compose_dev.yml config
+docker compose -f .devcontainer/docker-compose_dev.yml config
 
 # Monitor resource usage
 docker stats
@@ -314,7 +314,7 @@ docker stats
 # (Extract specific test commands from test-infrastructure.sh)
 
 # Test database only
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
+docker compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
 # ... specific database tests
 
 # Test Django services only
@@ -367,7 +367,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
 ./scripts/test-infrastructure.sh --verbose | grep -E "(SUCCESS|ERROR)"
 
 # Unit tests validation
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python pytest test/unit/ -q
+docker compose -f .devcontainer/docker-compose_dev.yml exec python pytest test/unit/ -q
 ```
 
 #### Feature Development Workflow

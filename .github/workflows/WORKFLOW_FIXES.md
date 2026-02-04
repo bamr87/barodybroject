@@ -24,7 +24,7 @@ This document details all fixes and improvements made to GitHub Actions workflow
 **Example Change:**
 ```yaml
 # Before
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 
 # After
 docker compose -f .devcontainer/docker-compose_dev.yml up -d

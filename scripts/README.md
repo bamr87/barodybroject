@@ -617,24 +617,24 @@ sudo apt-get install python3 python3-pip git docker.io
 3. **Database connection**:
    ```bash
    # Check database health
-   docker-compose exec barodydb pg_isready -U postgres
+   docker compose exec barodydb pg_isready -U postgres
    
    # Restart database
-   docker-compose restart barodydb
+   docker compose restart barodydb
    
    # Fresh start (⚠️ deletes data)
-   docker-compose down -v
-   docker-compose up -d
+   docker compose down -v
+   docker compose up -d
    ```
 
 4. **View logs**:
    ```bash
    # All services
-   docker-compose logs -f
+   docker compose logs -f
    
    # Specific service
-   docker-compose logs -f python
-   docker-compose logs -f barodydb
+   docker compose logs -f python
+   docker compose logs -f barodydb
    ```
 
 #### **Issue**: Azure deployment failures
@@ -715,8 +715,8 @@ sudo apt-get install python3 python3-pip git docker.io
 4. **Database reset** (⚠️ deletes all data):
    ```bash
    # For Docker
-   docker-compose down -v
-   docker-compose up -d
+   docker compose down -v
+   docker compose up -d
    python manage.py migrate
    
    # For local PostgreSQL (PostgreSQL-only project)
@@ -804,8 +804,8 @@ If you encounter issues not covered here:
 ./init_setup.sh  # Run dependency check
 
 # Docker diagnostics
-docker-compose ps
-docker-compose logs -f
+docker compose ps
+docker compose logs -f
 docker system df
 
 # Azure diagnostics
@@ -994,13 +994,13 @@ az monitor app-insights component show --app <app-insights-name> --resource-grou
 3. **Test locally before pushing**:
    ```bash
    # Run full test suite
-   docker-compose exec python python manage.py test
+   docker compose exec python python manage.py test
    
    # Run infrastructure tests
    ./scripts/test-infrastructure.sh
    
    # Run with coverage
-   docker-compose exec python pytest --cov=parodynews
+   docker compose exec python pytest --cov=parodynews
    ```
 
 ### Security Best Practices
@@ -1082,13 +1082,13 @@ az monitor app-insights component show --app <app-insights-name> --resource-grou
      --name <server-name>
    
    # Manual backup
-   docker-compose exec barodydb pg_dump -U postgres parody > backup.sql
+   docker compose exec barodydb pg_dump -U postgres parody > backup.sql
    ```
 
 3. **Monitor post-deployment**:
    ```bash
    # Check application logs
-   docker-compose logs -f python
+   docker compose logs -f python
    
    # Azure logs
    az containerapp logs show --name <app> --resource-group <rg>
@@ -1102,15 +1102,15 @@ az monitor app-insights component show --app <app-insights-name> --resource-grou
 1. **Run linters before committing**:
    ```bash
    # Python code quality
-   docker-compose exec python flake8 parodynews/
-   docker-compose exec python black parodynews/ --check
-   docker-compose exec python mypy parodynews/
+   docker compose exec python flake8 parodynews/
+   docker compose exec python black parodynews/ --check
+   docker compose exec python mypy parodynews/
    ```
 
 2. **Maintain test coverage**:
    ```bash
    # Aim for >80% coverage
-   docker-compose exec python pytest --cov=parodynews --cov-report=html
+   docker compose exec python pytest --cov=parodynews --cov-report=html
    open htmlcov/index.html
    ```
 
@@ -1153,15 +1153,15 @@ az monitor app-insights component show --app <app-insights-name> --resource-grou
    tail -f logs/django.log
    
    # Database logs
-   docker-compose logs barodydb
+   docker compose logs barodydb
    
    # All services
-   docker-compose logs -f
+   docker compose logs -f
    ```
 
 2. **Use Django shell for debugging**:
    ```bash
-   docker-compose exec python python manage.py shell
+   docker compose exec python python manage.py shell
    
    # Test database connection
    from django.db import connection

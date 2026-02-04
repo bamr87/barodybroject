@@ -26,7 +26,7 @@ SETUP_TOKEN_EXPIRY_HOURS=1
 **Development mode:**
 ```bash
 # Start development containers
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose -f .devcontainer/docker-compose_dev.yml up -d
 
 # Access application at http://localhost:8000
 ```
@@ -34,7 +34,7 @@ docker-compose -f .devcontainer/docker-compose_dev.yml up -d
 **Production mode:**
 ```bash
 # Start production containers
-docker-compose up -d
+docker compose up -d
 
 # Access application at http://localhost
 ```
@@ -44,7 +44,7 @@ docker-compose up -d
 #### Interactive Mode (Recommended for development)
 ```bash
 # Connect to container
-docker-compose exec python bash
+docker compose exec python bash
 
 # Run interactive wizard
 python manage.py setup_wizard
@@ -53,7 +53,7 @@ python manage.py setup_wizard
 #### Headless Mode (Recommended for production)
 ```bash
 # Connect to container
-docker-compose exec web-prod bash
+docker compose exec web-prod bash
 
 # Generate setup token
 python manage.py setup_wizard --headless
@@ -144,25 +144,25 @@ logging.getLogger('setup').setLevel(logging.DEBUG)
 Remove installation state:
 ```bash
 # Remove configuration file
-docker-compose exec web-prod rm -f /app/setup_data/setup_config.json
+docker compose exec web-prod rm -f /app/setup_data/setup_config.json
 
 # Restart containers
-docker-compose restart
+docker compose restart
 ```
 
 ## Development Workflow
 
 ### With Installation Wizard (Testing)
 1. Set `SKIP_INSTALLATION_CHECK=false` in `.env`
-2. Start containers: `docker-compose -f .devcontainer/docker-compose_dev.yml up -d`
+2. Start containers: `docker compose -f .devcontainer/docker-compose_dev.yml up -d`
 3. Visit http://localhost:8000 (redirects to setup wizard)
 4. Complete setup process
 5. Access main application
 
 ### Without Installation Wizard (Normal Development)
 1. Set `SKIP_INSTALLATION_CHECK=true` in `.env`
-2. Start containers: `docker-compose -f .devcontainer/docker-compose_dev.yml up -d`
-3. Create admin manually: `docker-compose exec python python manage.py createsuperuser`
+2. Start containers: `docker compose -f .devcontainer/docker-compose_dev.yml up -d`
+3. Create admin manually: `docker compose exec python python manage.py createsuperuser`
 4. Access application directly
 
 ## Production Deployment
@@ -170,10 +170,10 @@ docker-compose restart
 ### Automated Setup
 ```bash
 # Start production containers
-docker-compose up -d
+docker compose up -d
 
 # Generate setup token
-docker-compose exec web-prod python manage.py setup_wizard --headless
+docker compose exec web-prod python manage.py setup_wizard --headless
 
 # Complete admin creation via web interface
 # Visit: http://yourapp.com/setup/admin/?token=YOUR_TOKEN
@@ -182,13 +182,13 @@ docker-compose exec web-prod python manage.py setup_wizard --headless
 ### Manual Setup
 ```bash
 # Start containers
-docker-compose up -d
+docker compose up -d
 
 # Create admin manually
-docker-compose exec web-prod python manage.py createsuperuser
+docker compose exec web-prod python manage.py createsuperuser
 
 # Mark installation complete
-docker-compose exec web-prod python manage.py shell -c "
+docker compose exec web-prod python manage.py shell -c "
 from setup.services import InstallationService
 service = InstallationService()
 service.mark_installation_complete()
@@ -224,4 +224,4 @@ For issues and questions:
 - [Full Documentation](docs/installation-wizard.md)
 - [Environment Configuration](.env.example)
 - [Docker Compose Development](.devcontainer/docker-compose_dev.yml)
-- [Docker Compose Production](docker-compose.yml)
+- [Docker Compose Production](docker compose.yml)

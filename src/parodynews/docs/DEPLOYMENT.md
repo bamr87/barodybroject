@@ -10,7 +10,7 @@ Start the documentation server with auto-rebuild on changes:
 
 ```bash
 # Start the docs service (development mode)
-docker-compose -f .devcontainer/docker-compose_dev.yml up docs
+docker compose -f .devcontainer/docker-compose_dev.yml up docs
 
 # Access documentation at http://localhost:8080
 ```
@@ -26,7 +26,7 @@ Build and deploy the documentation as a static site with nginx:
 
 ```bash
 # Build and start the docs service (production mode)
-docker-compose up -d docs
+docker compose up -d docs
 
 # Access documentation at http://localhost:8080
 ```
@@ -93,7 +93,7 @@ Change the documentation port by setting the environment variable:
 ```bash
 # Use port 9000 instead of 8080
 export DOCS_PORT=9000
-docker-compose up -d docs
+docker compose up -d docs
 ```
 
 Or add to `.env` file:
@@ -107,7 +107,7 @@ DOCS_PORT=9000
 
 ```bash
 # Enter the development container
-docker-compose -f .devcontainer/docker-compose_dev.yml exec docs bash
+docker compose -f .devcontainer/docker-compose_dev.yml exec docs bash
 
 # Clean and rebuild
 make clean
@@ -120,7 +120,7 @@ make html
 
 ```bash
 # Enter the python development container
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python bash
+docker compose -f .devcontainer/docker-compose_dev.yml exec python bash
 
 # Navigate to docs directory
 cd parodynews/docs
@@ -139,13 +139,13 @@ make html
 
 ```bash
 # Build the documentation Docker image
-docker-compose build docs
+docker compose build docs
 
 # Run the container
-docker-compose up -d docs
+docker compose up -d docs
 
 # View logs
-docker-compose logs -f docs
+docker compose logs -f docs
 ```
 
 ## 🔍 Accessing Documentation
@@ -162,26 +162,26 @@ Once the container is running:
 
 ```bash
 # Start documentation service only
-docker-compose up -d docs
+docker compose up -d docs
 
 # Stop documentation service
-docker-compose stop docs
+docker compose stop docs
 
 # Restart after code changes (production)
-docker-compose restart docs
+docker compose restart docs
 
 # Rebuild from scratch
-docker-compose up -d --build docs
+docker compose up -d --build docs
 ```
 
 ### View Logs
 
 ```bash
 # Follow documentation server logs
-docker-compose logs -f docs
+docker compose logs -f docs
 
 # View last 50 lines
-docker-compose logs --tail=50 docs
+docker compose logs --tail=50 docs
 ```
 
 ### Health Checks
@@ -211,7 +211,7 @@ Health check configuration:
 **Solution**: Ensure Django settings are properly configured:
 ```bash
 # Check if Django can be imported
-docker-compose exec docs python -c "import django; django.setup()"
+docker compose exec docs python -c "import django; django.setup()"
 ```
 
 ### Port Already in Use
@@ -220,7 +220,7 @@ docker-compose exec docs python -c "import django; django.setup()"
 
 **Solution**: Change the port:
 ```bash
-DOCS_PORT=9000 docker-compose up -d docs
+DOCS_PORT=9000 docker compose up -d docs
 ```
 
 ### Changes Not Appearing (Development)
@@ -229,12 +229,12 @@ DOCS_PORT=9000 docker-compose up -d docs
 
 **Solution**: Check sphinx-autobuild is running:
 ```bash
-docker-compose logs docs | grep "Serving on"
+docker compose logs docs | grep "Serving on"
 ```
 
 Restart the service:
 ```bash
-docker-compose restart docs
+docker compose restart docs
 ```
 
 ### Nginx 404 Errors (Production)
@@ -243,12 +243,12 @@ docker-compose restart docs
 
 **Solution**: Verify HTML was built correctly:
 ```bash
-docker-compose exec docs ls -la /usr/share/nginx/html/
+docker compose exec docs ls -la /usr/share/nginx/html/
 ```
 
 Rebuild if necessary:
 ```bash
-docker-compose up -d --build docs
+docker compose up -d --build docs
 ```
 
 ## 📁 File Structure

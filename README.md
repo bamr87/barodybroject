@@ -292,7 +292,7 @@ barodybroject/
 │   ├── requirements.txt       # Python dependencies
 │   ├── manage.py              # Django management script
 │   └── Dockerfile             # Application container definition
-├── docker-compose.yml         # Local development orchestration
+├── docker compose.yml         # Local development orchestration
 ├── azure.yaml                 # Azure Developer CLI configuration
 ├── pyproject.toml             # Python project metadata
 ├── requirements-dev.txt       # Development dependencies
@@ -432,8 +432,6 @@ python manage.py createsuperuser
 
 Follow the prompts to create your admin account.
 
-**Note:** When using Docker, admin credentials are automatically created. See the [Docker Admin Credentials](#docker-admin-credentials) section below.
-
 8. **Run the Development Server**
 
 ```bash
@@ -504,36 +502,27 @@ The project uses a **unified Docker Compose configuration** that supports multip
 
 ```bash
 # Start development environment
-docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+docker compose up -d
 
 # View the application
 open http://localhost:8000
 ```
 
-**Admin Access:** Default credentials are automatically created:
-- **Username:** `admin`
-- **Password:** `admin`
-- **Admin URL:** http://localhost:8000/admin/
-
-See [Docker Admin Credentials](#docker-admin-credentials) for customization.
-
 #### Production Environment
 
 ```bash
 # Start production environment
-docker-compose up -d
+docker compose --profile production up -d
 
 # View the application
 open http://localhost:80
 ```
 
-**⚠️ Security Warning:** Change default admin credentials before deploying to production! See [Docker Admin Credentials](#docker-admin-credentials).
-
 #### Development + Jekyll
 
 ```bash
 # Start development with Jekyll static site
-docker-compose --profile jekyll up -d
+docker compose --profile jekyll up -d
 
 # Access points:
 # - Django: http://localhost:8000
@@ -555,28 +544,28 @@ docker-compose --profile jekyll up -d
 
 ```bash
 # Stop all services
-docker-compose down
+docker compose down
 
 # Stop and remove volumes (⚠️ deletes database data)
-docker-compose down -v
+docker compose down -v
 
 # View logs
-docker-compose logs -f web-dev           # Development logs
-docker-compose logs -f barodydb          # Database logs
-docker-compose logs -f                   # All logs
+docker compose logs -f web-dev           # Development logs
+docker compose logs -f barodydb          # Database logs
+docker compose logs -f                   # All logs
 
 # Check service status
-docker-compose ps
+docker compose ps
 
 # View resource usage
 docker stats
 
 # Rebuild services
-docker-compose up --build --force-recreate  # Force rebuild all
-docker-compose build --no-cache web-dev     # Rebuild specific service
+docker compose up --build --force-recreate  # Force rebuild all
+docker compose build --no-cache web-dev     # Rebuild specific service
 
 # Clean up resources
-docker-compose rm                        # Remove stopped containers
+docker compose rm                        # Remove stopped containers
 docker system prune -f                   # Clean unused Docker resources
 ```
 
@@ -584,29 +573,29 @@ docker system prune -f                   # Clean unused Docker resources
 
 ```bash
 # Database operations (development)
-docker-compose exec web-dev python manage.py makemigrations  # Create new migrations
-docker-compose exec web-dev python manage.py migrate        # Apply migrations
-docker-compose exec web-dev python manage.py shell          # Open Django shell
+docker compose exec web-dev python manage.py makemigrations  # Create new migrations
+docker compose exec web-dev python manage.py migrate        # Apply migrations
+docker compose exec web-dev python manage.py shell          # Open Django shell
 
 # User management (development)
-docker-compose exec web-dev python manage.py createsuperuser
+docker compose exec web-dev python manage.py createsuperuser
 
 # Static files (development)
-docker-compose exec web-dev python manage.py collectstatic --noinput
+docker compose exec web-dev python manage.py collectstatic --noinput
 
 # Testing (development)
-docker-compose exec web-dev python -m pytest               # Run all tests
-docker-compose exec web-dev python -m pytest --cov=parodynews  # With coverage
+docker compose exec web-dev python -m pytest               # Run all tests
+docker compose exec web-dev python -m pytest --cov=parodynews  # With coverage
 ```
 
 #### Production Commands
 
 ```bash
 # Run migrations (production)
-docker-compose --profile production exec web-prod python manage.py migrate
+docker compose --profile production exec web-prod python manage.py migrate
 
 # Create superuser (production)
-docker-compose --profile production exec web-prod python manage.py createsuperuser
+docker compose --profile production exec web-prod python manage.py createsuperuser
 ```
 
 ### Environment Configuration
@@ -632,127 +621,10 @@ POSTGRES_PORT=5432
 DB_PASSWORD=postgres
 POSTGRES_PASSWORD=postgres
 
-# Django admin credentials (auto-created on startup)
-DJANGO_SUPERUSER_USERNAME=admin
-DJANGO_SUPERUSER_EMAIL=admin@localhost.local
-DJANGO_SUPERUSER_PASSWORD=admin
-
 # Application settings
 DEBUG=True
 SECRET_KEY=your-secret-key-here
 OPENAI_API_KEY=your-openai-api-key
-```
-
-### Docker Admin Credentials
-
-#### 🔐 Automatic Admin User Creation
-
-When you start the Docker containers, an admin superuser is **automatically created** using environment variables. This eliminates the need to manually run `createsuperuser`.
-
-#### Default Credentials (Development)
-
-If no environment variables are set, these defaults are used:
-
-- **Username:** `admin`
-- **Password:** `admin`
-- **Email:** `admin@localhost.local`
-
-**Credentials are saved to:** `setup_data/admin_credentials.txt` (gitignored)
-
-#### Customizing Admin Credentials
-
-**Option 1: Environment Variables (Recommended)**
-
-Set these in your `.env` file:
-
-```bash
-DJANGO_SUPERUSER_USERNAME=myadmin
-DJANGO_SUPERUSER_EMAIL=admin@example.com
-DJANGO_SUPERUSER_PASSWORD=MySecurePassword123!
-```
-
-**Option 2: GitHub Secrets (CI/CD)**
-
-For automated deployments, set these as repository secrets:
-- `DJANGO_SUPERUSER_USERNAME`
-- `DJANGO_SUPERUSER_EMAIL`
-- `DJANGO_SUPERUSER_PASSWORD`
-
-**Option 3: Azure Key Vault (Production)**
-
-Store credentials in Azure Key Vault and reference them in your container app configuration.
-
-#### Viewing Saved Credentials
-
-After the first container startup, credentials are saved to:
-
-```bash
-# View saved credentials
-cat setup_data/admin_credentials.txt
-```
-
-This file contains:
-- Username, email, and password
-- Timestamp of creation
-- Admin URL for your environment
-- Security warnings and best practices
-
-#### Manual Admin Creation
-
-If you prefer to create admin users manually:
-
-```bash
-# Development
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python \
-    python manage.py createsuperuser
-
-# Production
-docker-compose exec web-prod python manage.py createsuperuser
-```
-
-#### Security Best Practices
-
-**For Development:**
-✅ Default credentials are acceptable  
-✅ Credentials file is automatically gitignored  
-✅ Useful for quick testing and development
-
-**For Production:**
-⚠️ **NEVER use default credentials**  
-✅ Set strong passwords via environment variables  
-✅ Use secrets management (GitHub Secrets, Azure Key Vault)  
-✅ Rotate credentials regularly  
-✅ Delete credentials file after first login  
-✅ Use MFA/2FA when available
-
-#### Troubleshooting
-
-**Admin user not created?**
-
-Manually run the ensure_admin command:
-
-```bash
-# Development
-docker-compose -f .devcontainer/docker-compose_dev.yml exec python \
-    python manage.py ensure_admin
-
-# Production
-docker-compose exec web-prod python manage.py ensure_admin
-```
-
-**Forgot admin password?**
-
-Reset it by restarting containers (credentials are recreated from environment variables):
-
-```bash
-docker-compose down
-docker-compose up -d
-```
-
-Or manually reset:
-
-```bash
-docker-compose exec web-prod python manage.py changepassword admin
 ```
 
 ### VS Code Integration
@@ -786,33 +658,33 @@ DJANGO_DEV_PORT=8001
 POSTGRES_PORT=5433
 
 # Restart services
-docker-compose down
-docker-compose up -d
+docker compose down
+docker compose up -d
 ```
 
 #### Database Issues
 
 ```bash
 # Check database health
-docker-compose exec barodydb pg_isready -U postgres
+docker compose exec barodydb pg_isready -U postgres
 
 # Restart database
-docker-compose restart barodydb
+docker compose restart barodydb
 
 # View database logs
-docker-compose logs barodydb
+docker compose logs barodydb
 ```
 
 #### Fresh Start
 
 ```bash
 # Stop and remove everything (⚠️ deletes database data)
-docker-compose down -v
+docker compose down -v
 
 # Start fresh
-docker-compose up -d
-docker-compose exec web-dev python manage.py migrate
-docker-compose exec web-dev python manage.py createsuperuser
+docker compose up -d
+docker compose exec web-dev python manage.py migrate
+docker compose exec web-dev python manage.py createsuperuser
 ```
 
 ### Database Operations
@@ -820,19 +692,19 @@ docker-compose exec web-dev python manage.py createsuperuser
 #### PostgreSQL Access
 ```bash
 # Connect to database directly
-docker-compose exec barodydb psql -U postgres -d barodydb
+docker compose exec barodydb psql -U postgres -d barodydb
 
 # Check database health
-docker-compose exec barodydb pg_isready -U postgres
+docker compose exec barodydb pg_isready -U postgres
 ```
 
 #### Backup & Restore
 ```bash
 # Create timestamped backup
-docker-compose exec barodydb pg_dump -U postgres barodydb > "backup-$(date +%Y%m%d-%H%M%S).sql"
+docker compose exec barodydb pg_dump -U postgres barodydb > "backup-$(date +%Y%m%d-%H%M%S).sql"
 
 # Restore from backup
-cat backup-20250101-120000.sql | docker-compose exec -T barodydb psql -U postgres -d barodydb
+cat backup-20250101-120000.sql | docker compose exec -T barodydb psql -U postgres -d barodydb
 ```
 
 ### Development Workflows
@@ -840,41 +712,41 @@ cat backup-20250101-120000.sql | docker-compose exec -T barodydb psql -U postgre
 #### Daily Development
 ```bash
 # 1. Start development environment
-docker-compose up -d
+docker compose up -d
 
 # 2. Apply any new migrations
-docker-compose exec web-dev python manage.py migrate
+docker compose exec web-dev python manage.py migrate
 
 # 3. View logs if needed
-docker-compose logs -f web-dev
+docker compose logs -f web-dev
 
 # 4. Make code changes (auto-reloads)
 
 # 5. Run tests
-docker-compose exec web-dev python -m pytest
+docker compose exec web-dev python -m pytest
 
 # 6. Stop when done
-docker-compose down
+docker compose down
 ```
 
 #### Production Testing
 ```bash
 # Build and test production setup locally
-docker-compose --profile production up --build
+docker compose --profile production up --build
 
 # Test your application at http://localhost:80
 
 # Stop production testing
-docker-compose --profile production down
+docker compose --profile production down
 ```
 
 #### Fresh Development Setup
 ```bash
 # Complete reset (⚠️ deletes database data)
-docker-compose down -v
-docker-compose up --build -d
-docker-compose exec web-dev python manage.py migrate
-docker-compose exec web-dev python manage.py createsuperuser
+docker compose down -v
+docker compose up --build -d
+docker compose exec web-dev python manage.py migrate
+docker compose exec web-dev python manage.py createsuperuser
 ```
 
 ### Quick Reference Commands
@@ -882,13 +754,13 @@ docker-compose exec web-dev python manage.py createsuperuser
 #### Service Management
 ```bash
 # View all service status
-docker-compose ps
+docker compose ps
 
 # View resource usage
 docker stats
 
 # Validate configuration
-docker-compose config -q
+docker compose config -q
 
 # Clean up unused resources
 docker system prune -f
@@ -897,13 +769,13 @@ docker system prune -f
 #### Testing & Coverage
 ```bash
 # Run all tests
-docker-compose exec web-dev python -m pytest
+docker compose exec web-dev python -m pytest
 
 # Run with coverage
-docker-compose exec web-dev python -m pytest --cov=parodynews
+docker compose exec web-dev python -m pytest --cov=parodynews
 
 # Run specific test file
-docker-compose exec web-dev python -m pytest tests/test_models.py
+docker compose exec web-dev python -m pytest tests/test_models.py
 ```
 
 ### Access Points
@@ -920,7 +792,7 @@ docker-compose exec web-dev python -m pytest tests/test_models.py
 
 This project has been consolidated from multiple Docker configurations into a single unified setup. The migration provides:
 
-- **Single Configuration File**: All environments managed from one `docker-compose.yml`
+- **Single Configuration File**: All environments managed from one `docker compose.yml`
 - **Profile-Based Environments**: Easy switching between dev/prod/jekyll setups
 - **Environment Variables**: Centralized configuration through `.env` file
 - **Predictable Networking**: Named networks for reliable service communication
@@ -1199,7 +1071,7 @@ If you encounter issues:
 
 1. Pull the latest image: `docker pull amrabdel/barody-python:latest`
 2. Check GitHub Actions for pending builds
-3. For debugging, switch `image:` to `build:` in docker-compose.yml
+3. For debugging, switch `image:` to `build:` in docker compose.yml
 
 ## Contributing
 

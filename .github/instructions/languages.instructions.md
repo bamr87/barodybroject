@@ -804,19 +804,19 @@ build_dev_container() {
 docker_manage() {
     local command="$*"
     
-    docker-compose exec web python manage.py $command
+    docker compose exec web python manage.py $command
 }
 
 # Run tests in container
 docker_test() {
-    docker-compose exec web pytest tests/ -v --cov=parodynews
+    docker compose exec web pytest tests/ -v --cov=parodynews
 }
 
 # Check container health
 check_container_health() {
     local container_name="${1:-web}"
     
-    if docker-compose ps "$container_name" | grep -q "Up (healthy)"; then
+    if docker compose ps "$container_name" | grep -q "Up (healthy)"; then
         echo "Container ${container_name} is healthy"
         return 0
     else
@@ -828,10 +828,10 @@ check_container_health() {
 # Clean up containers and volumes
 cleanup_containers() {
     echo "Stopping containers..."
-    docker-compose down
+    docker compose down
     
     echo "Removing volumes..."
-    docker-compose down -v
+    docker compose down -v
     
     echo "Pruning unused images..."
     docker image prune -f

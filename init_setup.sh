@@ -176,8 +176,8 @@ check_dependencies() {
         log_success "Docker ${docker_version} installed"
     fi
     
-    if ! command_exists docker-compose; then
-        optional_deps+=("docker-compose")
+    if ! docker compose version >/dev/null 2>&1; then
+        optional_deps+=("docker compose")
         log_warning "Docker Compose not found (recommended for development)"
     else
         log_success "Docker Compose installed"
@@ -353,7 +353,7 @@ setup_docker() {
     log_section "Docker Development Setup"
     
     # Verify Docker is available
-    if ! command_exists docker || ! command_exists docker-compose; then
+    if ! command_exists docker || ! docker compose version >/dev/null 2>&1; then
         log_error "Docker or Docker Compose not found"
         log_error "Please install Docker Desktop from: https://www.docker.com/products/docker-desktop"
         return 1
@@ -383,17 +383,17 @@ setup_docker() {
         1)
             log_info "Starting development environment..."
             cd "$PROJECT_ROOT"
-            docker-compose -f .devcontainer/docker-compose_dev.yml up -d
+            docker compose -f .devcontainer/docker-compose_dev.yml up -d
             ;;
         2)
             log_info "Starting production environment..."
             cd "$PROJECT_ROOT"
-            docker-compose up -d
+            docker compose up -d
             ;;
         3)
             log_info "Starting development + Jekyll environment..."
             cd "$PROJECT_ROOT"
-            docker-compose -f .devcontainer/docker-compose_dev.yml --profile jekyll up -d
+            docker compose -f .devcontainer/docker-compose_dev.yml --profile jekyll up -d
             ;;
         *)
             log_error "Invalid choice"
@@ -408,9 +408,9 @@ setup_docker() {
     # Run initial setup tasks
     log_info "Running database migrations..."
     if [[ "$env_choice" == "1" || "$env_choice" == "3" ]]; then
-        docker-compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate
+        docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate
     else
-        docker-compose exec web-prod python manage.py migrate
+        docker compose exec web-prod python manage.py migrate
     fi
     
     log_success "Docker environment is ready!"
@@ -443,10 +443,10 @@ print_docker_access_info() {
     
     echo ""
     log_info "Useful Docker commands:"
-    echo "  docker-compose ps              # Check service status"
-    echo "  docker-compose logs -f         # View logs"
-    echo "  docker-compose down            # Stop services"
-    echo "  docker-compose restart         # Restart services"
+    echo "  docker compose ps              # Check service status"
+    echo "  docker compose logs -f         # View logs"
+    echo "  docker compose down            # Stop services"
+    echo "  docker compose restart         # Restart services"
 }
 
 # ============================================================================

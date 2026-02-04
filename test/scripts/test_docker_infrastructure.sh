@@ -10,7 +10,7 @@
 #
 # Dependencies:
 # - docker: Container runtime
-# - docker-compose: Multi-container orchestration
+# - docker compose: Multi-container orchestration
 #
 # Usage: ./test/scripts/test_docker_infrastructure.sh [options]
 
@@ -136,8 +136,8 @@ check_docker() {
         exit 1
     fi
     
-    if ! command -v docker-compose &> /dev/null; then
-        log_error "docker-compose is required but not installed"
+    if ! command -v docker compose &> /dev/null; then
+        log_error "docker compose is required but not installed"
         exit 1
     fi
     
@@ -157,7 +157,7 @@ cleanup_docker() {
     cd "$PROJECT_ROOT"
     
     # Stop and remove containers
-    docker-compose -f "$COMPOSE_FILE" down --volumes --remove-orphans 2>/dev/null || true
+    docker compose -f "$COMPOSE_FILE" down --volumes --remove-orphans 2>/dev/null || true
     
     # Remove unused images and volumes
     docker system prune -f &> /dev/null || true
@@ -172,8 +172,8 @@ test_container_builds() {
     cd "$PROJECT_ROOT"
     
     # Build containers
-    log_info "Building containers with docker-compose..."
-    if docker-compose -f "$COMPOSE_FILE" build --no-cache; then
+    log_info "Building containers with docker compose..."
+    if docker compose -f "$COMPOSE_FILE" build --no-cache; then
         log_success "Container builds completed successfully"
     else
         log_error "Container builds failed"
@@ -206,7 +206,7 @@ test_container_startup() {
     
     # Start containers
     log_info "Starting containers..."
-    if docker-compose -f "$COMPOSE_FILE" up -d; then
+    if docker compose -f "$COMPOSE_FILE" up -d; then
         log_success "Containers started successfully"
     else
         log_error "Failed to start containers"
@@ -219,7 +219,7 @@ test_container_startup() {
     local attempt=0
     
     while [ $attempt -lt $max_attempts ]; do
-        if docker-compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
+        if docker compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
             log_success "Containers are running"
             break
         fi
@@ -235,7 +235,7 @@ test_container_startup() {
     
     # Check container health
     log_info "Checking container health..."
-    docker-compose -f "$COMPOSE_FILE" ps
+    docker compose -f "$COMPOSE_FILE" ps
     
     return 0
 }
@@ -248,7 +248,7 @@ test_container_networking() {
     
     # Test database connectivity from Python container
     log_info "Testing database connectivity..."
-    if docker-compose -f "$COMPOSE_FILE" exec python python -c "
+    if docker compose -f "$COMPOSE_FILE" exec python python -c "
 import os
 import psycopg2
 try:
@@ -272,7 +272,7 @@ except Exception as e:
     
     # Test Django can connect to database
     log_info "Testing Django database connection..."
-    if docker-compose -f "$COMPOSE_FILE" exec python python manage.py check --database default; then
+    if docker compose -f "$COMPOSE_FILE" exec python python manage.py check --database default; then
         log_success "Django database connection test passed"
     else
         log_error "Django database connection test failed"
@@ -290,7 +290,7 @@ test_data_persistence() {
     
     # Run migrations to create database structure
     log_info "Running database migrations..."
-    if docker-compose -f "$COMPOSE_FILE" exec python python manage.py migrate --noinput; then
+    if docker compose -f "$COMPOSE_FILE" exec python python manage.py migrate --noinput; then
         log_success "Database migrations completed"
     else
         log_error "Database migrations failed"
@@ -301,7 +301,7 @@ test_data_persistence() {
     log_info "Testing installation wizard data persistence..."
     
     # Create admin user via management command
-    if docker-compose -f "$COMPOSE_FILE" exec python python manage.py shell -c "
+    if docker compose -f "$COMPOSE_FILE" exec python python manage.py shell -c "
 from django.contrib.auth.models import User
 from setup.services import InstallationService
 
@@ -327,13 +327,13 @@ except Exception as e:
     
     # Restart containers to test persistence
     log_info "Restarting containers to test data persistence..."
-    docker-compose -f "$COMPOSE_FILE" restart
+    docker compose -f "$COMPOSE_FILE" restart
     
     # Wait for restart
     sleep 10
     
     # Verify data persisted
-    if docker-compose -f "$COMPOSE_FILE" exec python python manage.py shell -c "
+    if docker compose -f "$COMPOSE_FILE" exec python python manage.py shell -c "
 from django.contrib.auth.models import User
 from setup.services import InstallationService
 
@@ -374,7 +374,7 @@ test_installation_wizard_docker() {
     
     # Test headless installation
     log_info "Testing headless installation..."
-    if docker-compose -f "$COMPOSE_FILE" exec python python manage.py setup_wizard --headless --force; then
+    if docker compose -f "$COMPOSE_FILE" exec python python manage.py setup_wizard --headless --force; then
         log_success "Headless installation test passed"
     else
         log_error "Headless installation test failed"
@@ -383,7 +383,7 @@ test_installation_wizard_docker() {
     
     # Test installation status
     log_info "Testing installation status..."
-    if docker-compose -f "$COMPOSE_FILE" exec python python -c "
+    if docker compose -f "$COMPOSE_FILE" exec python python -c "
 from setup.services import InstallationService
 service = InstallationService()
 status = service.get_installation_status()
@@ -405,7 +405,7 @@ show_container_logs() {
     if [ "$SHOW_LOGS" = true ]; then
         log_info "Container logs:"
         echo "===================="
-        docker-compose -f "$COMPOSE_FILE" logs --tail=50
+        docker compose -f "$COMPOSE_FILE" logs --tail=50
         echo "===================="
     fi
 }

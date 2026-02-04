@@ -7,7 +7,7 @@ This directory contains workflow files that have been superseded by the foundati
 ### tests.yml
 **Reason**: Superseded by `ci.yml`
 - **Original Purpose**: Cross-platform Python testing (Ubuntu, macOS, Windows) with multiple Python versions
-- **Why Archived**: `ci.yml` now provides comprehensive testing with docker-compose approach, eliminating the need for complex matrix testing across different OS/Python combinations
+- **Why Archived**: `ci.yml` now provides comprehensive testing with docker compose approach, eliminating the need for complex matrix testing across different OS/Python combinations
 - **Coverage**: The container-based approach in `ci.yml` ensures consistent environment testing
 
 ### format.yml  
@@ -27,7 +27,7 @@ The current foundational pipeline consists of:
 
 ## Docker-Compose Only Approach
 
-All archived workflows used custom Dockerfiles or complex environment setups. The foundational pipeline uses docker-compose exclusively for:
+All archived workflows used custom Dockerfiles or complex environment setups. The foundational pipeline uses docker compose exclusively for:
 - Consistent development/CI environments
 - Simplified container orchestration
 - Reduced maintenance overhead
@@ -38,5 +38,5 @@ All archived workflows used custom Dockerfiles or complex environment setups. Th
 If any archived workflow needs to be restored:
 1. Copy the file back to `.github/workflows/`
 2. Update triggers to avoid conflicts with foundational pipeline
-3. Verify compatibility with docker-compose approach
+3. Verify compatibility with docker compose approach
 4. Update documentation accordingly

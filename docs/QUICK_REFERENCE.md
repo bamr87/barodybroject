@@ -57,34 +57,34 @@ Select your setup mode and follow the prompts!
 ### Docker Operations
 ```bash
 # Start containers
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f python
+docker compose logs -f python
 
 # Stop containers
-docker-compose stop
+docker compose stop
 
 # Rebuild containers
-docker-compose up --build --force-recreate -d
+docker compose up --build --force-recreate -d
 
 # Shell access
-docker-compose exec python bash
+docker compose exec python bash
 ```
 
 ### Django Management
 ```bash
 # Migrations
-docker-compose exec python python manage.py migrate
+docker compose exec python python manage.py migrate
 
 # Create superuser
-docker-compose exec python python manage.py createsuperuser
+docker compose exec python python manage.py createsuperuser
 
 # Collect static files
-docker-compose exec python python manage.py collectstatic
+docker compose exec python python manage.py collectstatic
 
 # Django shell
-docker-compose exec python python manage.py shell
+docker compose exec python python manage.py shell
 ```
 
 ### Testing
@@ -93,10 +93,10 @@ docker-compose exec python python manage.py shell
 ./scripts/test-infrastructure.sh
 
 # Django tests
-docker-compose exec python python manage.py test
+docker compose exec python python manage.py test
 
 # With coverage
-docker-compose exec python pytest --cov=parodynews
+docker compose exec python pytest --cov=parodynews
 ```
 
 ### Azure Management
@@ -134,11 +134,11 @@ POSTGRES_PORT=5433
 ### Problem: Database connection failed
 ```bash
 # Restart database
-docker-compose restart barodydb
+docker compose restart barodydb
 
 # Fresh start (⚠️ deletes data)
-docker-compose down -v
-docker-compose up -d
+docker compose down -v
+docker compose up -d
 ```
 
 ### Problem: Missing dependencies
@@ -212,13 +212,13 @@ Before deploying to production:
 **Emergency Commands**:
 ```bash
 # View all logs
-docker-compose logs -f
+docker compose logs -f
 
 # Check application health
 curl -I http://localhost:8000/
 
 # Test database connection
-docker-compose exec python python manage.py check --database default
+docker compose exec python python manage.py check --database default
 ```
 
 ---
@@ -228,13 +228,13 @@ docker-compose exec python python manage.py check --database default
 Check system health:
 ```bash
 # Docker status
-docker-compose ps
+docker compose ps
 
 # Application status
 curl http://localhost:8000/health/
 
 # Database status
-docker-compose exec barodydb pg_isready
+docker compose exec barodydb pg_isready
 
 # Azure status (if deployed)
 az containerapp show --name <app> --resource-group <rg> --query properties.runningStatus
