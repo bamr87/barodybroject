@@ -131,12 +131,16 @@ resource app 'Microsoft.App/containerApps@2023-05-02-preview' = {
               value: '8000'
             }
             {
-              name: 'RUNNING_IN_PRODUCTION'
-              value: 'false'
+              name: 'DJANGO_SETTINGS_MODULE'
+              value: 'barodybroject.settings.production'
             }
             {
-              name: 'SECRET_KEY'
-              value: 'django-insecure-9=woki=bii5gfdzfb3igh$qcxb=i+-u+!c58xl76x1tk)gaqd3'
+              name: 'DEBUG'
+              value: 'False'
+            }
+            {
+              name: 'RUNNING_IN_PRODUCTION'
+              value: 'True'
             }
           ],
           env,

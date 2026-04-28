@@ -18,17 +18,34 @@
         "value": {
           "settings": [
             {
-              "name": "",
-              "value": "${VAR}",
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR} to use the value of 'VAR' from the current environment."
+              "name": "SECRET_KEY",
+              "value": "${SECRET_KEY}",
+              "secret": true,
+              "secretRef": "secret-key"
             },
             {
-              "name": "",
-              "value": "${VAR_S}",
+              "name": "OPENAI_API_KEY",
+              "value": "${OPENAI_API_KEY}",
               "secret": true,
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR_S} to use the value of 'VAR_S' from the current environment."
+              "secretRef": "openai-api-key"
+            },
+            {
+              "name": "DJANGO_SUPERUSER_USERNAME",
+              "value": "${DJANGO_SUPERUSER_USERNAME=admin}"
+            },
+            {
+              "name": "DJANGO_SUPERUSER_EMAIL",
+              "value": "${DJANGO_SUPERUSER_EMAIL=admin@example.com}"
+            },
+            {
+              "name": "DJANGO_SUPERUSER_PASSWORD",
+              "value": "${DJANGO_SUPERUSER_PASSWORD}",
+              "secret": true,
+              "secretRef": "django-superuser-password"
+            },
+            {
+              "name": "ALLOWED_HOSTS",
+              "value": "${ALLOWED_HOSTS}"
             }
           ]
         }

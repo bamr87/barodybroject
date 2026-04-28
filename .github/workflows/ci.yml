@@ -2,9 +2,12 @@ name: CI - Build and Test
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -12,12 +15,12 @@ concurrency:
 
 env:
   PYTHON_VERSION: "3.11"
-  DJANGO_SETTINGS_MODULE: "barodybroject.settings.testing"
+  DJANGO_SETTINGS_MODULE: barodybroject.settings.testing
+  DEV_COMPOSE: .devcontainer/docker-compose_dev.yml
 
 jobs:
-  # Fast pre-checks to fail quickly on obvious issues
   pre-checks:
-    name: Pre-flight Checks
+    name: Django Pre-checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -35,138 +38,44 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
+          cache: pip
+          cache-dependency-path: |
+            src/requirements.txt
+            requirements-dev.txt
 
       - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            pkg-config \
-            libcairo2-dev \
-            libgirepository1.0-dev \
-            libglib2.0-dev \
-            python3-dev \
-            python3-cairo \
-            python3-gi \
-            python3-gi-cairo \
-            libcairo-gobject2 \
-            libcairo-gobject-perl \
-            gobject-introspection
+        run: bash .github/scripts/ci-install-system-deps.sh django
 
-      - name: Install dependencies
-        run: |
-          cd src
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Install Python dependencies
+        run: bash .github/scripts/python-install.sh runtime
 
-      - name: Check Django configuration
-        working-directory: src
-        run: |
-          python manage.py check --deploy
+      - name: Run Django pre-checks
+        run: bash .github/scripts/django-prechecks.sh
         env:
-          SECRET_KEY: "ci-test-key-not-for-production"
+          SECRET_KEY: ci-test-key-not-for-production
           DEBUG: "False"
+          DB_CHOICE: postgres
           DB_HOST: localhost
           DB_NAME: ci_barodydb
           DB_USERNAME: postgres
           DB_PASSWORD: postgres
           DB_SCHEMA: public
-          DB_CHOICE: postgres
 
-      - name: Check for migration issues
-        working-directory: src
-        run: |
-          # Check if there are any unapplied migrations (which is expected in CI)
-          python manage.py showmigrations --plan || echo "Migration planning check completed"
-          # Check model integrity without requiring exact migration state
-          python manage.py check --deploy || echo "Deployment check completed with warnings"
-        env:
-          SECRET_KEY: "ci-test-key-not-for-production"
-          DEBUG: "False"
-          DB_HOST: localhost
-          DB_NAME: ci_barodydb
-          DB_USERNAME: postgres
-          DB_PASSWORD: postgres
-          DB_SCHEMA: public
-          DB_CHOICE: postgres
-
-  # Docker Compose services verification  
-  container-compose-test:
-    name: Docker Compose Test
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: pre-checks
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Create environment file
-        run: |
-          cat > .env << EOL
-          POSTGRES_USER=test_user
-          POSTGRES_DB=test_db
-          POSTGRES_PASSWORD=test_password
-          DB_HOST=barodydb
-          DB_USERNAME=test_user
-          DB_NAME=test_db
-          DB_PASSWORD=test_password
-          DJANGO_SETTINGS_MODULE=barodybroject.settings.development
-          DEBUG=True
-          RUNNING_IN_PRODUCTION=False
-          PYTHONPATH=/workspace/src
-          PYTHONUNBUFFERED=1
-          EOL
-      
-      - name: Test docker-compose services
-        run: |
-          # Start database service only
-          docker compose -f .devcontainer/docker-compose_dev.yml up -d barodydb
-          
-          # Wait for database to be ready
-          timeout 60 bash -c 'until docker compose -f .devcontainer/docker-compose_dev.yml exec -T barodydb pg_isready -U test_user -d test_db; do sleep 2; done'
-          
-          # Create a simple Python container to test Django setup
-          docker compose -f .devcontainer/docker-compose_dev.yml run --rm -e SECRET_KEY="ci-test-key-not-for-production" python bash -c "
-            set -e
-            echo '🔧 Installing system dependencies...'
-            apt-get update -qq
-            apt-get install -y -qq postgresql-client git build-essential pkg-config libcairo2-dev python3-dev
-            
-            echo '🐍 Installing Python dependencies...'
-            pip install --upgrade pip -q
-            pip install -r requirements.txt -q
-            
-            echo '🔍 Testing Django configuration...'
-            python manage.py check --deploy
-            
-            echo '📊 Testing database migrations...'
-            python manage.py migrate --noinput
-            
-            echo '✓ Docker Compose services working correctly'
-          "
-      
-      - name: Cleanup containers
-        if: always()
-        run: |
-          docker compose -f .devcontainer/docker-compose_dev.yml down -v
-
-  # Comprehensive testing with multiple Python versions
-  test:
-    name: Test (Python ${{ matrix.python-version }})
+  tests:
+    name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: pre-checks
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -192,60 +101,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          cache: pip
+          cache-dependency-path: |
+            src/requirements.txt
+            requirements-dev.txt
 
       - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libpq-dev postgresql-client
+        run: bash .github/scripts/ci-install-system-deps.sh test
 
       - name: Install Python dependencies
-        run: |
-          cd src
-          python -m pip install --upgrade pip
-          # Try to use system pycairo first, then install other dependencies
-          python -c "import gi.repository.cairo as cairo; print('System pycairo available')" || echo "System pycairo not available, will install from PyPI"
-          # Install pinned project requirements without pulling in heavy optional deps
-          pip install -r requirements.txt --no-deps
-          # Install required runtime deps (without optional extras deps)
-          pip install \
-            django \
-            djangorestframework \
-            psycopg2-binary \
-            gunicorn \
-            openai \
-            setuptools \
-            jsonref \
-            jsonschema \
-            jsonschema-specifications \
-            Markdown \
-            PyYAML \
-            aiosmtpd \
-            dkimpy \
-            boto3 \
-            azure-monitor-opentelemetry \
-            pygithub \
-            django-import-export \
-            django-json-widget \
-            django-markdownify \
-            django-ses \
-            django-environ \
-            martor
-          # Install testing dependencies
-          pip install coverage pytest-cov pytest-django pytest-playwright
+        run: bash .github/scripts/python-install.sh test
 
-      - name: Install Playwright (Chromium)
-        run: |
-          python -m playwright install --with-deps chromium
-
-      - name: Run unit/integration tests (pytest)
-        run: |
-          python -m pytest -m "not e2e" --cov-report=xml --cov-report=term-missing
+      - name: Run pytest
+        run: bash .github/scripts/run-pytest.sh
         env:
-          SECRET_KEY: "ci-test-key-not-for-production"
+          SECRET_KEY: ci-test-key-not-for-production
           DEBUG: "True"
           DB_CHOICE: postgres
           DB_HOST: localhost
@@ -254,92 +127,198 @@ jobs:
           DB_PASSWORD: postgres
           DB_SCHEMA: public
 
-      - name: Prepare E2E database/schema
-        run: |
-          export PGPASSWORD=postgres
-          psql -h localhost -U postgres -d postgres -c "CREATE DATABASE test_barodydb_e2e;" || true
-          psql -h localhost -U postgres -d test_barodydb_e2e -c "CREATE SCHEMA IF NOT EXISTS e2e;"
+      - name: Upload coverage artifact
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: django-coverage-xml
+          path: src/coverage.xml
+          if-no-files-found: error
 
-      - name: Migrate + seed E2E user
-        run: |
-          python src/manage.py migrate --noinput
-          python src/manage.py ensure_e2e_user --is-staff
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: pre-checks
+
+    services:
+      postgres:
+        image: postgres:15-alpine
         env:
-          SECRET_KEY: "ci-test-key-not-for-production"
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: e2e_seed
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            src/requirements.txt
+            requirements-dev.txt
+
+      - name: Install system dependencies
+        run: bash .github/scripts/ci-install-system-deps.sh e2e
+
+      - name: Install Python dependencies
+        run: bash .github/scripts/python-install.sh e2e
+
+      - name: Run Playwright E2E
+        run: bash .github/scripts/e2e-tests.sh
+        env:
+          SECRET_KEY: ci-test-key-not-for-production
           DEBUG: "True"
           DB_CHOICE: postgres
           DB_HOST: localhost
-          DB_NAME: test_barodydb_e2e
           DB_USERNAME: postgres
           DB_PASSWORD: postgres
-          DB_SCHEMA: e2e
           E2E_USERNAME: e2e_user
           E2E_EMAIL: e2e_user@example.com
           E2E_PASSWORD: e2e_password
 
-      - name: Start Django server (E2E)
-        run: |
-          nohup python src/manage.py runserver 0.0.0.0:8000 --noreload > server.log 2>&1 &
-          for i in {1..30}; do
-            if curl -fsS http://localhost:8000/ > /dev/null; then
-              echo "Server is up";
-              exit 0;
-            fi
-            sleep 1
-          done
-          echo "Server failed to start";
-          tail -200 server.log || true
-          exit 1
-        env:
-          SECRET_KEY: "ci-test-key-not-for-production"
-          DEBUG: "True"
-          DB_CHOICE: postgres
-          DB_HOST: localhost
-          DB_NAME: test_barodydb_e2e
-          DB_USERNAME: postgres
-          DB_PASSWORD: postgres
-          DB_SCHEMA: e2e
-          E2E_USERNAME: e2e_user
-          E2E_PASSWORD: e2e_password
+  quality:
+    name: Quality and Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
 
-      - name: Run Playwright E2E (Chromium)
-        run: |
-          python -m pytest -m e2e --browser chromium
-        env:
-          E2E_BASE_URL: http://localhost:8000
-          E2E_USERNAME: e2e_user
-          E2E_PASSWORD: e2e_password
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Upload coverage to Codecov
-        if: matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v3
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          files: ./coverage.xml
-          flags: django-tests
-          name: codecov-barodybroject
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            src/requirements.txt
+            requirements-dev.txt
 
-  # Results summary
+      - name: Install system dependencies
+        run: bash .github/scripts/ci-install-system-deps.sh quality
+
+      - name: Install lint tools
+        run: bash .github/scripts/python-install.sh lint
+
+      - name: Run lint checks
+        run: bash .github/scripts/quality.sh lint
+
+      - name: Install dependency audit tools
+        run: bash .github/scripts/python-install.sh security
+
+      - name: Run dependency scans
+        run: bash .github/scripts/quality.sh dependency-scan
+
+      - name: Install quality analysis tools
+        run: bash .github/scripts/python-install.sh quality
+
+      - name: Run quality analysis
+        run: bash .github/scripts/quality.sh metrics
+
+      - name: Run environment validation
+        run: bash .github/scripts/quality.sh environment
+
+      - name: Upload quality reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-and-security-reports
+          path: |
+            bandit-report.json
+            secrets-scan.json
+            src/safety-report.json
+            src/pip-audit-report.json
+            src/pylint-report.*
+            src/mypy-report/
+            src/radon-*.json
+
+  container-validation:
+    name: Container Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [python, jekyll]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Validate Compose files
+        run: bash .github/scripts/compose-validation.sh validate
+
+      - name: Run Compose smoke test
+        if: matrix.service == 'python'
+        run: bash .github/scripts/compose-validation.sh smoke
+
+      - name: Build and test service
+        run: bash .github/scripts/compose-validation.sh build-service ${{ matrix.service }}
+
+  container-security:
+    name: Container Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build production image for scanning
+        run: bash .github/scripts/compose-validation.sh build-production-image barodybroject:security-scan
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: barodybroject:security-scan
+          format: sarif
+          output: trivy-results.sarif
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        with:
+          sarif_file: trivy-results.sarif
+
   ci-summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [pre-checks, test, container-compose-test]
+    needs: [pre-checks, tests, e2e, quality, container-validation, container-security]
     if: always()
 
     steps:
-      - name: Check all jobs status
-        run: |
-          echo "Pre-checks: ${{ needs.pre-checks.result }}"
-          echo "Tests: ${{ needs.test.result }}"
-          echo "Container Compose: ${{ needs.container-compose-test.result }}"
-          
-          if [[ "${{ needs.pre-checks.result }}" == "failure" || 
-                "${{ needs.test.result }}" == "failure" || 
-                "${{ needs.container-compose-test.result }}" == "failure" ]]; then
-            echo "❌ CI Pipeline Failed"
-            exit 1
-          else
-            echo "✅ CI Pipeline Passed"
-            echo ""
-            echo "💡 For comprehensive infrastructure testing, check the Infrastructure Testing workflow"
-            echo "   or run: ./scripts/test-infrastructure.sh"
-          fi
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check required jobs
+        run: >-
+          bash .github/scripts/check-job-results.sh
+          pre-checks=${{ needs.pre-checks.result }}
+          tests=${{ needs.tests.result }}
+          e2e=${{ needs.e2e.result }}
+          quality=${{ needs.quality.result }}
+          container-validation=${{ needs.container-validation.result }}
+          container-security=${{ needs.container-security.result }}

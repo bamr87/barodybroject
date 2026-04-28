@@ -1,0 +1,222 @@
+name: Maintenance and Infrastructure
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+    inputs:
+      task:
+        description: Maintenance task to run
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - dependency-check
+          - container-environments
+          - infrastructure-test
+          - update-dependencies
+          - cleanup
+      verbose:
+        description: Enable verbose infrastructure test output
+        required: false
+        default: false
+        type: boolean
+      skip_cleanup:
+        description: Skip infrastructure test cleanup
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  DJANGO_SETTINGS_MODULE: barodybroject.settings.testing
+  DEV_COMPOSE: .devcontainer/docker-compose_dev.yml
+
+jobs:
+  dependency-check:
+    name: Dependency Health Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 8 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.task == 'all' || inputs.task == 'dependency-check' || inputs.task == 'update-dependencies'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            src/requirements.txt
+            requirements-dev.txt
+
+      - name: Install maintenance tools
+        run: bash .github/scripts/python-install.sh maintenance
+
+      - name: Check dependency health
+        run: bash .github/scripts/maintenance.sh dependency-check
+
+      - name: Upload dependency report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-report
+          path: reports/
+
+  container-environments:
+    name: Container Environment (${{ matrix.config }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 8 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.task == 'all' || inputs.task == 'container-environments'))
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [development, production]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test container environment
+        run: bash .github/scripts/maintenance.sh container-environment ${{ matrix.config }}
+
+  infrastructure-test:
+    name: Infrastructure Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 2 * * *') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.task == 'all' || inputs.task == 'infrastructure-test'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run infrastructure test suite
+        env:
+          VERBOSE: ${{ inputs.verbose || false }}
+          SKIP_CLEANUP: ${{ inputs.skip_cleanup || false }}
+        run: bash .github/scripts/maintenance.sh infrastructure-test
+
+      - name: Upload infrastructure artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: infrastructure-test-artifacts-${{ github.run_id }}
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  update-dependencies:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: dependency-check
+    if: github.event_name == 'workflow_dispatch' && inputs.task == 'update-dependencies'
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ github.token }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            src/requirements.txt
+            requirements-dev.txt
+
+      - name: Update dependencies
+        run: bash .github/scripts/maintenance.sh update-dependencies
+
+      - name: Verify updated dependencies
+        working-directory: src
+        run: python manage.py check
+        env:
+          SECRET_KEY: test-key-for-dependency-update
+          DEBUG: "True"
+          DB_CHOICE: postgres
+          DB_HOST: localhost
+          DB_NAME: env_validation_db
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_SCHEMA: public
+
+      - name: Create pull request for dependency updates
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ github.token }}
+          commit-message: "chore: update Python dependencies"
+          title: "Automated dependency updates"
+          body: |
+            ## Automated Dependency Updates
+
+            This pull request contains automated updates to Python dependencies.
+
+            Review the dependency diff and run the full CI suite before merging.
+          branch: automated/dependency-updates
+          delete-branch: true
+
+  cleanup:
+    name: Cleanup and Optimization
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'workflow_dispatch' && inputs.task == 'cleanup'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run cleanup checks
+        run: bash .github/scripts/maintenance.sh cleanup
+
+  maintenance-report:
+    name: Maintenance Health Report
+    runs-on: ubuntu-latest
+    needs: [dependency-check, container-environments, infrastructure-test]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate maintenance report
+        env:
+          DEPENDENCY_RESULT: ${{ needs.dependency-check.result }}
+          CONTAINER_RESULT: ${{ needs.container-environments.result }}
+          INFRASTRUCTURE_RESULT: ${{ needs.infrastructure-test.result }}
+        run: bash .github/scripts/maintenance.sh report
+
+      - name: Upload maintenance report
+        uses: actions/upload-artifact@v4
+        with:
+          name: maintenance-health-report
+          path: reports/
