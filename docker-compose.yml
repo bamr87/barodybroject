@@ -41,7 +41,7 @@ services:
       DB_NAME: ${DB_NAME:-barodydb}
       DB_HOST: ${DB_HOST:-barodydb}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      DJANGO_SETTINGS_MODULE: barodybroject.settings
+      DJANGO_SETTINGS_MODULE: barodybroject.settings.production
       DEBUG: "False"
       PYTHONPATH: /app
       PYTHONUNBUFFERED: 1

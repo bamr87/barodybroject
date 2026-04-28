@@ -13,7 +13,10 @@ Dependencies:
 Usage: from parodynews.utils.config import get_openai_client
 """
 
+import os
+
 from django.apps import apps
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Q
 
 
@@ -64,19 +67,27 @@ def get_config_value(key):
 
 def get_openai_client():
     """
-    Initialize and return an OpenAI client with configuration from database.
+    Initialize and return an OpenAI client from database or environment config.
 
     Returns:
-        OpenAI module configured with api_key and organization
+        OpenAI client configured with api_key and optional organization/project
     """
-    import openai
+    from openai import OpenAI
 
-    api_key = get_config_value("api_key")
-    org_id = get_config_value("org_id")
+    api_key = get_config_value("api_key") or os.environ.get("OPENAI_API_KEY")
+    org_id = get_config_value("org_id") or os.environ.get("OPENAI_ORG_ID")
+    project_id = get_config_value("project_id") or os.environ.get("OPENAI_PROJECT_ID")
 
-    openai.api_key = api_key
+    if not api_key:
+        raise ImproperlyConfigured(
+            "OpenAI API key is not configured. Set OPENAI_API_KEY or add an AppConfig row."
+        )
+
+    client_kwargs = {"api_key": api_key}
     if org_id:
-        openai.organization = org_id
+        client_kwargs["organization"] = org_id
+    if project_id:
+        client_kwargs["project"] = project_id
 
-    return openai
+    return OpenAI(**client_kwargs)
 

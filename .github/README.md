@@ -6,7 +6,7 @@ AI-powered Django application for generating parody news content using OpenAI AP
 
 ## Tech Stack
 
-**Backend**: Django 4.2 • Python 3.8+ • Django CMS • DRF  
+**Backend**: Django 5.1 • Python 3.10+ • DRF  
 **Database**: PostgreSQL  
 **Infrastructure**: Docker • Azure Container Apps • Azure Bicep  
 **AI**: OpenAI API • Custom Assistants  
@@ -44,14 +44,14 @@ python manage.py runserver
 ## Docker Quick Start
 
 ```bash
-# Start all services (Django + PostgreSQL + Jekyll)
-docker compose up -d
+# Start Django + PostgreSQL development services
+docker compose -f .devcontainer/docker-compose_dev.yml up -d barodydb python
 
 # Run Django commands
-docker compose exec python python manage.py migrate
-docker compose exec python python manage.py createsuperuser
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py migrate
+docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py createsuperuser
 
-# Access: http://localhost:80 (Django) | http://localhost:4002 (Jekyll)
+# Access: http://localhost:8000 after attaching the debugger on port 5678
 ```
 
 ## Project Structure
@@ -66,8 +66,8 @@ barodybroject/
 ├── src/
 │   ├── barodybroject/ # Django project config
 │   ├── parodynews/    # Main app (models, views, API)
-│   │   ├── models.py
-│   │   ├── views.py
+│   │   ├── models/
+│   │   ├── views/
 │   │   ├── management/commands/  # Custom commands
 │   │   ├── tests/
 │   │   └── templates/
@@ -88,23 +88,23 @@ python manage.py makemigrations         # Create migrations
 python manage.py migrate                # Apply migrations
 python manage.py createsuperuser        # Admin user
 python manage.py collectstatic          # Collect static files
-python manage.py shell_plus             # Enhanced shell
+python manage.py shell                  # Django shell
 ```
 
 ### Docker
 ```bash
-docker compose up -d                    # Start services
-docker compose down                     # Stop services
-docker compose logs -f python           # View logs
-docker compose exec python bash         # Shell access
-docker compose build                    # Rebuild images
+docker compose -f .devcontainer/docker-compose_dev.yml up -d barodydb python
+docker compose -f .devcontainer/docker-compose_dev.yml down
+docker compose -f .devcontainer/docker-compose_dev.yml logs -f python
+docker compose -f .devcontainer/docker-compose_dev.yml exec python bash
+docker compose -f .devcontainer/docker-compose_dev.yml build
 ```
 
 ### Testing
 ```bash
-pytest                                  # Run all tests
-pytest --cov=parodynews                # With coverage
-pytest -v -k test_name                 # Specific test
+docker compose -f .devcontainer/docker-compose_dev.yml exec -e DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python python -m pytest
+docker compose -f .devcontainer/docker-compose_dev.yml exec -e DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python python -m pytest --cov=parodynews
+docker compose -f .devcontainer/docker-compose_dev.yml exec -e DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python python -m pytest -v -k test_name
 python -m playwright install --with-deps chromium   # Setup browser
 ```
 
@@ -122,8 +122,8 @@ azd pipeline config                    # Setup CI/CD
 ### Django App Structure
 ```
 MVC Pattern:
-- Models: src/parodynews/models.py (Content, Assistant, Thread, Message)
-- Views: Class-based & function-based views
+- Models: src/parodynews/models/ (AI, content, conversation, publishing, config)
+- Views: src/parodynews/views/ (API, assistants, content, posts, threads, schemas)
 - Templates: Bootstrap-based responsive UI
 - API: Django REST Framework endpoints
 
@@ -131,10 +131,10 @@ Authentication:
 - django-allauth (social auth, MFA, SAML)
 - Custom middleware & context processors
 
-CMS:
-- Django CMS integration
-- CKEditor for rich text
-- Versioning & aliasing support
+Settings:
+- `barodybroject.settings.development` for dev compose and local manage.py defaults
+- `barodybroject.settings.production` for WSGI/ASGI and production compose
+- `barodybroject.settings.testing` for pytest and infrastructure scripts
 ```
 
 ### Database Schema
@@ -174,16 +174,16 @@ Core Models:
 ### Testing Strategy
 ```bash
 # Unit tests
-pytest src/parodynews/tests/
+DJANGO_SETTINGS_MODULE=barodybroject.settings.testing pytest src/parodynews/tests/
 
 # Integration tests
-pytest src/parodynews/tests/test_views.py
+DJANGO_SETTINGS_MODULE=barodybroject.settings.testing pytest -m integration
 
 # E2E tests
-pytest src/parodynews/tests/ --headed
+DJANGO_SETTINGS_MODULE=barodybroject.settings.testing pytest src/parodynews/tests/ --headed
 
 # Coverage requirements
-pytest --cov --cov-fail-under=80
+DJANGO_SETTINGS_MODULE=barodybroject.settings.testing pytest --cov --cov-fail-under=80
 ```
 
 ## CI/CD
@@ -223,7 +223,7 @@ AZURE_INSIGHTS_KEY      # Application Insights
 
 ### Add New Model
 ```bash
-# Edit models.py
+# Edit the appropriate module under parodynews/models/
 python manage.py makemigrations
 python manage.py migrate
 # Register in admin.py
@@ -232,7 +232,7 @@ python manage.py migrate
 ### Add New API Endpoint
 ```python
 # 1. Create serializer in serializers.py
-# 2. Create viewset in views.py
+# 2. Create viewset in the appropriate module under parodynews/views/
 # 3. Register in urls.py
 # 4. Add tests in tests/
 ```

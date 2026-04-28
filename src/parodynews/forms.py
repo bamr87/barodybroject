@@ -13,14 +13,13 @@ from django.forms import inlineformset_factory
 from django_json_widget.widgets import JSONEditorWidget
 
 from .mixins import DefaultFormFieldsMixin
-from .models import (  # AI models; Content models; Deprecated models; Publishing models; Conversation models
+from .models import (  # AI models; Content models; Publishing models; Conversation models
     Assistant,
     AssistantGroup,
     AssistantGroupMembership,
     ContentDetail,
     ContentItem,
     JSONSchema,
-    MyObject,
     Post,
     PostFrontMatter,
     Thread,
@@ -205,16 +204,3 @@ class JSONSchemaForm(forms.ModelForm):
                 "Name can only contain letters, numbers, underscores, and hyphens."
             )
         return name
-
-
-# =============================================================================
-# DEPRECATED FORMS
-# =============================================================================
-
-
-class MyObjectForm(forms.ModelForm):
-    """DEPRECATED: Form for the deprecated MyObject model."""
-
-    class Meta:
-        model = MyObject
-        fields = ["name", "description"]

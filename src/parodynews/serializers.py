@@ -7,15 +7,13 @@ Organized by model category matching the new models package structure.
 
 from rest_framework import serializers
 
-from .models import (  # AI models; Content models; Deprecated models; Conversation models; Publishing models; Config models
+from .models import (  # AI models; Content models; Conversation models; Publishing models; Config models
     Assistant,
     AssistantGroup,
     ContentDetail,
     ContentItem,
-    GeneralizedCodes,
     JSONSchema,
     Message,
-    MyObject,
     Post,
     PostFrontMatter,
     PoweredBy,
@@ -80,21 +78,4 @@ class JSONSchemaSerializer(serializers.ModelSerializer):
 class PoweredBySerializer(serializers.ModelSerializer):
     class Meta:
         model = PoweredBy
-        fields = "__all__"
-
-
-# Deprecated models
-class GeneralizedCodesSerializer(serializers.ModelSerializer):
-    """DEPRECATED: This serializer is for a deprecated model."""
-
-    class Meta:
-        model = GeneralizedCodes
-        fields = "__all__"
-
-
-class MyObjectSerializer(serializers.ModelSerializer):
-    """DEPRECATED: This serializer is for a deprecated model."""
-
-    class Meta:
-        model = MyObject
         fields = "__all__"

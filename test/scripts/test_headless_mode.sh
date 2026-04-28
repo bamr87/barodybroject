@@ -63,7 +63,7 @@ setup_test_environment() {
     cd "$PROJECT_ROOT"
     
     # Set up Django environment
-    export DJANGO_SETTINGS_MODULE="barodybroject.settings"
+    export DJANGO_SETTINGS_MODULE="barodybroject.settings.development"
     export PYTHONPATH="$SRC_DIR:$PYTHONPATH"
     
     # Clean up any existing setup state

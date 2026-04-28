@@ -14,8 +14,7 @@ models/
 ├── ai.py                    # OpenAI and AI assistant models
 ├── content.py               # Content generation models
 ├── conversation.py          # Thread and message models
-├── publishing.py            # Post and publishing models
-└── deprecated.py            # Deprecated models (scheduled for removal)
+└── publishing.py            # Post and publishing models
 ```
 
 ## Module Descriptions
@@ -56,13 +55,6 @@ Post publishing and versioning:
 - `PostFrontMatter`: YAML front matter for posts
 - `PostVersion`: Version history for posts
 
-### deprecated.py
-Models scheduled for removal in version 3.0.0:
-- `MyObject`: Test/placeholder model (no clear purpose)
-- `GeneralizedCodes`: Overly generic lookup table
-
-**Warning**: These models emit deprecation warnings when saved. Migrate away from them as soon as possible.
-
 ## Usage
 
 ### Backward Compatible Imports (Recommended)
@@ -90,19 +82,14 @@ from parodynews.models.content import ContentDetail
 
 1. **No immediate changes required**: All existing imports will continue to work due to the `__init__.py` file.
 
-2. **Deprecated models**: If you're using `MyObject` or `GeneralizedCodes`, plan to migrate away from them:
-   - `MyObject`: Remove or replace with appropriate model
-   - `GeneralizedCodes`: Replace with specific, purpose-built models
-
-3. **Field rename**: `AssistantGroupMembership.assistants` will be renamed to `assistant` (singular) in a future migration for clarity.
+2. **Field rename**: `AssistantGroupMembership.assistants` will be renamed to `assistant` (singular) in a future migration for clarity.
 
 ### Database Migrations
 
 The model split itself requires no database migrations as it's purely a code organization change. However, future migrations may include:
 
 1. Renaming `AssistantGroupMembership.assistants` → `assistant`
-2. Removing deprecated models (`MyObject`, `GeneralizedCodes`)
-3. Adding indexes for better query performance
+2. Adding indexes for better query performance
 
 ## Benefits
 

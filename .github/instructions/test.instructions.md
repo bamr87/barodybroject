@@ -437,7 +437,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://test_user:test_password@test-db:5432/test_db
       - SECRET_KEY=test-secret-key-not-for-production
-      - DJANGO_SETTINGS_MODULE=barodybroject.settings
+    - DJANGO_SETTINGS_MODULE=barodybroject.settings.testing
     depends_on:
       test-db:
         condition: service_healthy
@@ -477,7 +477,7 @@ docker-compose -f docker-compose.test.yml down
 ```ini
 # pytest.ini
 [pytest]
-DJANGO_SETTINGS_MODULE = barodybroject.settings
+DJANGO_SETTINGS_MODULE = barodybroject.settings.testing
 python_files = test_*.py
 python_classes = Test*
 python_functions = test_*

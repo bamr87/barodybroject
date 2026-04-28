@@ -31,7 +31,7 @@ RUN mkdir -p /app/logs /app/setup_data /app/static /app/media
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=barodybroject.settings
+ENV DJANGO_SETTINGS_MODULE=barodybroject.settings.production
 
 # Collect static files
 RUN python manage.py collectstatic --noinput || true

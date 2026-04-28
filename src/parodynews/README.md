@@ -8,9 +8,9 @@ This is the main Django application directory for the parody news generator. It 
 
 **Models Refactoring**: The monolithic `models.py` file has been split into a well-organized package structure for better maintainability. See [`models/README.md`](models/README.md) for details.
 
-- ✅ **Backward Compatible**: All existing imports continue to work
+- ✅ **Backward Compatible**: Current domain model imports continue to work
 - 📦 **Better Organization**: Models grouped by domain (AI, Content, Publishing, etc.)
-- 🗑️ **Deprecated Models**: `MyObject` and `GeneralizedCodes` marked for removal
+- 🧹 **Placeholder Models Removed**: obsolete generic demo models were removed during repository cleanup
 - 📚 **Improved Documentation**: Each model module has comprehensive docstrings
 
 ## Contents
@@ -26,7 +26,6 @@ This is the main Django application directory for the parody news generator. It 
 - `tests.py`: Main test file
 - `urls.py`: URL routing configurations
 - `utils.py`: Main utilities file for OpenAI integration
-- `views.py`: Django views (ListView, TemplateView, API views)
 
 ### Directories
 - `docs/`: Documentation directory with detailed app documentation
@@ -39,21 +38,16 @@ This is the main Django application directory for the parody news generator. It 
   - `content.py`: Content generation models
   - `conversation.py`: Thread and message models
   - `publishing.py`: Post and publishing models
-  - `deprecated.py`: Deprecated models (scheduled for removal)
 - `schema/`: JSON schema definitions for data validation
 - `scripts/`: Application-specific utility scripts
 - `templates/`: HTML templates for the application UI
 - `templatetags/`: Custom Django template tags
 - `tests/`: Test suite for the application
 - `utils/`: Utility functions and helper modules
+- `views/`: Package-based Django views and REST API viewsets
 
-### Legacy/Deprecated Files
-- `cms_apps.py`: Django CMS application integration (partially disabled)
-- `cms_config.py`: Django CMS configuration settings (partially disabled)
-- `cms_menus.py`: Django CMS menu definitions (partially disabled)
-- `cms_plugins.py`: Django CMS plugin implementations (partially disabled)
+### Legacy Data
 - `model_choices.json`: JSON file containing model choice configurations
-- `models_backup.py`: Backup of original models.py (for reference only)
 
 ## Usage
 This Django app provides the core functionality of the parody news generator:
@@ -76,7 +70,6 @@ Key features include:
 - OpenAI assistant management and configuration
 - Content generation workflows using AI
 - User interface for creating and managing parody news articles
-- Integration with Django CMS for content management
 - REST API endpoints for programmatic access
 
 ## Container Configuration

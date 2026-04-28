@@ -47,7 +47,7 @@ jobs:
           DB_USERNAME=test_user
           DB_NAME=test_db
           DB_PASSWORD=test_password
-          DJANGO_SETTINGS_MODULE=barodybroject.settings
+          DJANGO_SETTINGS_MODULE=barodybroject.settings.development
           DEBUG=True
           RUNNING_IN_PRODUCTION=False
           PYTHONPATH=/workspace/src
@@ -93,7 +93,7 @@ jobs:
           DB_USERNAME=build_user
           DB_NAME=build_db
           DB_PASSWORD=build_password
-          DJANGO_SETTINGS_MODULE=barodybroject.settings
+          DJANGO_SETTINGS_MODULE=barodybroject.settings.development
           DEBUG=True
           RUNNING_IN_PRODUCTION=False
           PYTHONPATH=/workspace/src
@@ -175,7 +175,7 @@ jobs:
           DB_USERNAME=perf_user
           DB_NAME=perf_db
           DB_PASSWORD=perf_password
-          DJANGO_SETTINGS_MODULE=barodybroject.settings
+          DJANGO_SETTINGS_MODULE=barodybroject.settings.production
           DEBUG=False
           RUNNING_IN_PRODUCTION=True
           PYTHONPATH=/workspace/src

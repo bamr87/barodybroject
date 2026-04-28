@@ -14,7 +14,7 @@ Dependencies:
 Container Requirements:
 - Base Image: python:3.11-slim
 - Volumes: /app/src:rw (for installation state persistence)
-- Environment: DJANGO_SETTINGS_MODULE=barodybroject.settings
+- Environment: DJANGO_SETTINGS_MODULE=barodybroject.settings.development
 
 Usage: from setup.services import InstallationService
 """

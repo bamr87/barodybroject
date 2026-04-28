@@ -16,7 +16,6 @@ This directory contains Django HTML templates that define the user interface and
 - `index.html`: Main landing page template
 - `menu/`: Navigation menu templates
 - `mfa/`: Multi-factor authentication templates (TOTP, WebAuthn, recovery codes)
-- `object_template.html`: Generic object display template
 - `parodynews/`: Application-specific templates for parody news functionality
 - `profile.html`: User profile display template
 - `registration/`: User registration and password reset templates

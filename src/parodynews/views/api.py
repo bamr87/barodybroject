@@ -21,10 +21,8 @@ from ..models import (
     AssistantGroup,
     ContentDetail,
     ContentItem,
-    GeneralizedCodes,
     JSONSchema,
     Message,
-    MyObject,
     Post,
     PostFrontMatter,
     PoweredBy,
@@ -35,10 +33,8 @@ from ..serializers import (
     AssistantSerializer,
     ContentDetailSerializer,
     ContentItemSerializer,
-    GeneralizedCodesSerializer,
     JSONSchemaSerializer,
     MessageSerializer,
-    MyObjectSerializer,
     PostFrontMatterSerializer,
     PostSerializer,
     PoweredBySerializer,
@@ -124,18 +120,4 @@ class PoweredByViewSet(viewsets.ModelViewSet):
 
     queryset = PoweredBy.objects.all()
     serializer_class = PoweredBySerializer
-
-
-class MyObjectViewSet(viewsets.ModelViewSet):
-    """API ViewSet for managing MyObject instances."""
-
-    queryset = MyObject.objects.all()
-    serializer_class = MyObjectSerializer
-
-
-class GeneralizedCodesViewSet(viewsets.ModelViewSet):
-    """API ViewSet for managing Generalized Code definitions."""
-
-    queryset = GeneralizedCodes.objects.all()
-    serializer_class = GeneralizedCodesSerializer
 

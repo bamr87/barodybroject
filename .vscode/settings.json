@@ -105,11 +105,11 @@
   // TERMINAL CONFIGURATION
   // ==========================================
   "terminal.integrated.env.osx": {
-    "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
+    "DJANGO_SETTINGS_MODULE": "barodybroject.settings.development",
     "DOCKER_BUILDKIT": "1"
   },
   "terminal.integrated.env.linux": {
-    "DJANGO_SETTINGS_MODULE": "barodybroject.settings", 
+    "DJANGO_SETTINGS_MODULE": "barodybroject.settings.development", 
     "DOCKER_BUILDKIT": "1"
   },
 
@@ -169,5 +169,6 @@
     "parodynews",
     "django",
     "openai"
-  ]
+  ],
+  "containers.images.label": "latest"
 }

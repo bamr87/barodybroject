@@ -88,7 +88,7 @@ This PR includes:
 # Result: 38/38 passed, startup time: 30s (33% improvement)
 
 # Init script validation
-./scripts/test-init-setup.sh
+./scripts/test-infrastructure.sh
 # Result: 14/14 passed
 
 # Performance testing

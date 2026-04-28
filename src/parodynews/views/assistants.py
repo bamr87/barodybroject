@@ -75,8 +75,6 @@ class ManageAssistantsView(
 
     def save(self, request, assistant_id=None):
         """Save assistant configuration with OpenAI synchronization."""
-        client = AppConfigClientMixin.get_client(self)
-
         assistant_id = request.POST.get("assistant_id")
         save_form = request.POST.get("save_form")
 
@@ -90,15 +88,21 @@ class ManageAssistantsView(
             if assistant_form.is_valid():
                 assistant = assistant_form.save(commit=False)
 
-                assistant_ai = save_assistant(
-                    client,
-                    assistant.name,
-                    assistant.description,
-                    assistant.instructions,
-                    assistant.model,
-                    assistant.json_schema,
-                    assistant.id,
-                )
+                try:
+                    client = AppConfigClientMixin.get_client(self)
+                    assistant_ai = save_assistant(
+                        client,
+                        assistant.name,
+                        assistant.description,
+                        assistant.instructions,
+                        assistant.model,
+                        assistant.json_schema,
+                        assistant.id,
+                    )
+                except Exception as e:
+                    messages.error(request, f"Error creating assistant: {e}")
+                    return self.render_form(request, assistant_form, assistant_id)
+
                 assistant.id = assistant_ai.id
                 assistant.save()
 
@@ -108,22 +112,30 @@ class ManageAssistantsView(
                 return redirect("assistant_detail", assistant_id=assistant.id)
             else:
                 messages.error(request, "Error creating assistant.")
+                return self.render_form(request, assistant_form, assistant_id)
 
         else:
             messages.error(request, "Error creating assistant.")
-            assistants_info = Assistant.objects.all()
-            fields = Assistant._meta.get_fields()
-            display_fields = Assistant().get_display_fields()
-            return render(
-                request,
-                self.template_name,
-                {
-                    "assistant_form": assistant_form,
-                    "assistants_info": assistants_info,
-                    "fields": fields,
-                    "display_fields": display_fields,
-                },
-            )
+            return self.render_form(request, assistant_form, assistant_id)
+
+        return self.render_form(request, assistant_form, assistant_id)
+
+    def render_form(self, request, assistant_form, assistant_id=None):
+        """Render assistant form state with the list view context."""
+        assistants_info = Assistant.objects.all()
+        fields, display_fields = self.get_model_fields()
+        return render(
+            request,
+            self.template_name,
+            {
+                "assistant_form": assistant_form,
+                "assistants_info": assistants_info,
+                "assistant_id": assistant_id,
+                "is_edit": bool(assistant_id),
+                "fields": fields,
+                "display_fields": display_fields,
+            },
+        )
 
     def delete(self, request, assistant_id=None):
         """Delete assistant from both local database and OpenAI."""

@@ -116,7 +116,7 @@ pip install pytest pytest-django pytest-cov selenium requests
 cp test/fixtures/test_config.json.example test/fixtures/test_config.json
 
 # Set test environment variables
-export DJANGO_SETTINGS_MODULE=barodybroject.settings
+export DJANGO_SETTINGS_MODULE=barodybroject.settings.testing
 export TESTING=true
 export DB_CHOICE=postgres
 export DB_HOST=localhost
@@ -129,7 +129,7 @@ export DB_SCHEMA=public
 ### Database Setup
 ```bash
 # Create test database
-python manage.py migrate --settings=barodybroject.test_settings
+python manage.py migrate --settings=barodybroject.settings.testing
 
 # Load test fixtures
 python manage.py loaddata test/fixtures/test_data.json

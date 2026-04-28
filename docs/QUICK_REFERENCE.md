@@ -165,11 +165,10 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 
 | Resource | Path | Purpose |
 |----------|------|---------|
-| **Main README** | [README.md](README.md) | Project overview |
-| **Setup Guide** | [scripts/README.md](scripts/README.md) | Complete script documentation |
-| **Enhancement Summary** | [docs/SETUP_SYSTEM_ENHANCEMENT_SUMMARY.md](docs/SETUP_SYSTEM_ENHANCEMENT_SUMMARY.md) | Detailed enhancement documentation |
-| **Testing Guide** | [docs/INFRASTRUCTURE_TESTING.md](docs/INFRASTRUCTURE_TESTING.md) | Infrastructure testing |
-| **Security Docs** | [docs/SECURITY_DOCUMENTATION.md](docs/SECURITY_DOCUMENTATION.md) | Security best practices |
+| **Main README** | [../README.md](../README.md) | Project overview |
+| **Setup Guide** | [../scripts/README.md](../scripts/README.md) | Script documentation |
+| **Testing Guide** | [INFRASTRUCTURE_TESTING.md](INFRASTRUCTURE_TESTING.md) | Infrastructure testing |
+| **Security Docs** | [SECURITY_DOCUMENTATION.md](SECURITY_DOCUMENTATION.md) | Security best practices |
 
 ---
 

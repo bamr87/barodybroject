@@ -12,7 +12,6 @@ Available Integrations
    :maxdepth: 2
    
    openai
-   django-cms
    github
    docker
    azure

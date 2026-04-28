@@ -301,14 +301,6 @@ class SpecificTemplateTests(TestCase):
         except Exception as e:
             print(f"WARNING: chatbox.html template not found: {e}")
 
-    def test_object_template(self):
-        """Test object template"""
-        try:
-            template = get_template("object_template.html")
-            self.assertIsNotNone(template)
-        except Exception as e:
-            print(f"WARNING: object_template.html template not found: {e}")
-
     def test_footer_template(self):
         """Test footer template"""
         try:

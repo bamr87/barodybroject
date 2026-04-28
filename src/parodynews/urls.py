@@ -6,10 +6,10 @@ from rest_framework import routers
 
 from .views import (
     AssistantGroupViewSet, AssistantViewSet, ContentDetailViewSet,
-    ContentItemViewSet, FooterView, GeneralizedCodesViewSet, JSONSchemaViewSet,
+    ContentItemViewSet, FooterView, JSONSchemaViewSet,
     ManageAssistantGroupsView, ManageAssistantsView, ManageContentView,
-    ManageMessageView, ManagePostView, MessageViewSet, MyObjectView,
-    MyObjectViewSet, PostFrontMatterViewSet, PostViewSet, PoweredByViewSet,
+    ManageMessageView, ManagePostView, MessageViewSet,
+    PostFrontMatterViewSet, PostViewSet, PoweredByViewSet,
     ProcessContentView, ThreadViewSet, create_schema, delete_schema,
     edit_schema, export_schema, get_assistant_details, list_schemas)
 
@@ -25,14 +25,9 @@ router.register(r"posts", PostViewSet)
 router.register(r"post-front-matters", PostFrontMatterViewSet)
 router.register(r"json-schemas", JSONSchemaViewSet)
 router.register(r"powered-by", PoweredByViewSet)
-router.register(r"my-objects", MyObjectViewSet)
-router.register(r"generalized-codes", GeneralizedCodesViewSet)
 
 urlpatterns = [
-    # PostPageView temporarily disabled - CMS-specific view
-    # path("postpage/", PostPageView.as_view(), name="index"),
     path("martor/", include("martor.urls")),
-    # Remove or adjust the root path to prevent conflict with django CMS
     path("footer/", FooterView.as_view(), name="footer"),
     # Include API endpoints under 'api/' path
     path("api/", include(router.urls)),
@@ -203,27 +198,6 @@ urlpatterns = [
             template_name="registration/logged_out.html", next_page="login"
         ),
         name="logout",
-    ),
-    # Object management
-    path("objects/", MyObjectView.as_view(), name="object-list"),
-    path(
-        "objects/create/",
-        MyObjectView.as_view(),
-        {"action": "create"},
-        name="object-create",
-    ),
-    path("objects/<int:pk>/", MyObjectView.as_view(), name="object-detail"),
-    path(
-        "objects/<int:pk>/update/",
-        MyObjectView.as_view(),
-        {"action": "update"},
-        name="object-update",
-    ),
-    path(
-        "objects/<int:pk>/delete/",
-        MyObjectView.as_view(),
-        {"action": "delete"},
-        name="object-delete",
     ),
     # JSON Schema management
     path("schemas/", list_schemas, name="list_schemas"),

@@ -185,7 +185,7 @@ jobs:
           DB_USERNAME=test_user
           DB_NAME=test_db
           DB_PASSWORD=test_password
-          DJANGO_SETTINGS_MODULE=barodybroject.settings
+          DJANGO_SETTINGS_MODULE=barodybroject.settings.development
           DEBUG=True
           RUNNING_IN_PRODUCTION=False
           PYTHONPATH=/workspace/src
@@ -226,7 +226,7 @@ jobs:
           DB_USERNAME=prod_user
           DB_NAME=prod_db
           DB_PASSWORD=prod_password
-          DJANGO_SETTINGS_MODULE=barodybroject.settings
+          DJANGO_SETTINGS_MODULE=barodybroject.settings.production
           DEBUG=False
           RUNNING_IN_PRODUCTION=True
           SECRET_KEY=production-test-key-not-for-real-production

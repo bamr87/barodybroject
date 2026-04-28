@@ -28,30 +28,6 @@ def post_detail(request, post_id):
     return render(request, "parodynews/pages_post_detail.html", context)
 
 
-def get_app_instance(request):
-    """
-    Retrieve Django CMS app instance configuration for current request.
-
-    Returns:
-        tuple: (namespace, config) for CMS app configuration
-    """
-    # CMS functionality temporarily disabled - return empty defaults
-    return "", None
-
-
-class AppHookConfigMixin:
-    """Mixin for Django CMS app hook configuration handling."""
-
-    def dispatch(self, request, *args, **kwargs):
-        self.namespace, self.config = get_app_instance(request)
-        request.current_app = self.namespace
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        return qs.filter(app_config__namespace=self.namespace)
-
-
 def send_welcome_email(user_email):
     """Send welcome email to new user registrations."""
     subject = "Welcome to Barody Broject"

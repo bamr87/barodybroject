@@ -1,6 +1,10 @@
+import os
+
+from django.core.exceptions import ImproperlyConfigured
 from django.views.generic import View
-from .models import AppConfig
 from openai import OpenAI
+
+from .models import AppConfig
 
 
 class ModelFieldsMixin(View):
@@ -19,13 +23,28 @@ class ModelFieldsMixin(View):
 class AppConfigClientMixin(View):
     def get_client(self):
         app_config = AppConfig.objects.first()
-        if not app_config:
-            raise ValueError("AppConfig not found.")
-        api_key = app_config.api_key
-        org_id = app_config.org_id
-        project_id = app_config.project_id
-        client = OpenAI(organization=org_id, project=project_id, api_key=api_key)
-        return client
+        api_key = (app_config.api_key if app_config else None) or os.environ.get(
+            "OPENAI_API_KEY"
+        )
+        org_id = (app_config.org_id if app_config else None) or os.environ.get(
+            "OPENAI_ORG_ID"
+        )
+        project_id = (app_config.project_id if app_config else None) or os.environ.get(
+            "OPENAI_PROJECT_ID"
+        )
+
+        if not api_key:
+            raise ImproperlyConfigured(
+                "OpenAI API key is not configured. Set OPENAI_API_KEY or add an AppConfig row."
+            )
+
+        client_kwargs = {"api_key": api_key}
+        if org_id:
+            client_kwargs["organization"] = org_id
+        if project_id:
+            client_kwargs["project"] = project_id
+
+        return OpenAI(**client_kwargs)
 
 
 # myapp/mixins.py

@@ -609,7 +609,7 @@ import django
 sys.path.insert(0, os.path.abspath('../src'))
 
 # Setup Django
-os.environ['DJANGO_SETTINGS_MODULE'] = 'barodybroject.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'barodybroject.settings.development'
 django.setup()
 
 # Project information

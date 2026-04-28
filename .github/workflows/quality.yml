@@ -233,17 +233,6 @@ jobs:
             echo "⚠️ No azure.yaml found"
           fi
           
-          # Check for apprunner.yaml
-          if [ -f apprunner.yaml ]; then
-            echo "✅ App Runner configuration found"
-            cat apprunner.yaml
-          elif [ -f src/apprunner.yaml ]; then
-            echo "✅ App Runner configuration found in src/"
-            cat src/apprunner.yaml
-          else
-            echo "⚠️ No apprunner.yaml found"
-          fi
-
       - name: Check for secrets in code
         run: |
           # Use official trufflehog action via docker for security

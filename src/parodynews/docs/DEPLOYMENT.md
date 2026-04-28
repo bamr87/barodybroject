@@ -75,7 +75,7 @@ sphinx-autobuild --host 0.0.0.0 --port 8000 source build/html
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `DOCS_PORT` | `8080` | Port to expose documentation on host |
-| `DJANGO_SETTINGS_MODULE` | `barodybroject.settings` | Django settings for autodoc |
+| `DJANGO_SETTINGS_MODULE` | `barodybroject.settings.development` | Django settings for autodoc |
 
 ### Nginx Configuration
 

@@ -19,7 +19,6 @@ from .models import (
     AssistantGroup,
     AssistantGroupMembership,
     FieldDefaults,
-    GeneralizedCodes,
     JSONSchema,
     OpenAIModel,
     Post,
@@ -247,14 +246,6 @@ admin.site.register(Post, PostAdmin)
 admin.site.register(PostFrontMatter)
 admin.site.register(PostPageConfigModel)
 admin.site.register(PostVersion)
-
-
-# =============================================================================
-# DEPRECATED MODELS
-# =============================================================================
-
-# Note: GeneralizedCodes is deprecated and will be removed in version 3.0.0
-admin.site.register(GeneralizedCodes)
 
 
 # =============================================================================

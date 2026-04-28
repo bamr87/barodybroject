@@ -167,7 +167,7 @@ All configurations use these environment variables:
 
 ```json
 {
-  "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
+  "DJANGO_SETTINGS_MODULE": "barodybroject.settings.development",
   "DEBUG": "True",
   "RUNNING_IN_PRODUCTION": "False",
   "DB_HOST": "localhost",

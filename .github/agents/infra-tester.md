@@ -64,7 +64,6 @@ docker info > /dev/null 2>&1 || echo "ERROR: Docker not running"
 
 # 3. Validate test script availability
 test -x ./scripts/test-infrastructure.sh || chmod +x ./scripts/test-infrastructure.sh
-test -x ./scripts/test-init-setup.sh || chmod +x ./scripts/test-init-setup.sh
 
 # 4. Clean up any existing test containers
 docker-compose -f .devcontainer/docker-compose_dev.yml down -v 2>/dev/null || true
@@ -73,19 +72,13 @@ docker-compose -f .devcontainer/docker-compose_dev.yml down -v 2>/dev/null || tr
 ### Phase 2: Infrastructure Build Testing
 
 ```bash
-# 1. Test initialization script
-./scripts/test-init-setup.sh
-
-# Expected: 14/14 tests pass
-# If failures: Document issues and create recommendations
-
-# 2. Test Docker development build
+# 1. Test Docker development build
 docker-compose -f .devcontainer/docker-compose_dev.yml build
 
 # Expected: Successful build with no errors
 # Validate: Multi-stage build efficiency, layer caching
 
-# 3. Test Docker production build
+# 2. Test Docker production build
 docker-compose build
 
 # Expected: Successful optimized production build
@@ -280,7 +273,6 @@ This PR includes:
 ```bash
 # Commands run to validate changes
 ./scripts/test-infrastructure.sh --verbose
-./scripts/test-init-setup.sh
 ```
 
 ### Test Results
@@ -469,7 +461,6 @@ git checkout -b infra-test/improvements-YYYYMMDD
 
 # 3. Validate changes
 ./scripts/test-infrastructure.sh --verbose
-./scripts/test-init-setup.sh
 
 # 4. Commit with descriptive message
 git add .
@@ -552,9 +543,6 @@ Track and report:
 # Full infrastructure test
 ./scripts/test-infrastructure.sh --verbose
 
-# Quick init script validation
-./scripts/test-init-setup.sh
-
 # Check Docker health
 docker-compose ps
 docker-compose logs -f
@@ -580,8 +568,6 @@ If critical failure detected:
 ## Documentation References
 
 - [Infrastructure Testing Guide](../../docs/INFRASTRUCTURE_TESTING.md)
-- [Test Summary](../../docs/TEST_SUMMARY.md)
-- [Init Setup Test Results](../../docs/INIT_SETUP_TEST_RESULTS.md)
 - [Scripts README](../../scripts/README.md)
 - [Main README](../../README.md)
 

@@ -25,7 +25,7 @@ SRC_DIR="$PROJECT_ROOT/src"
 LOG_DIR="$TEST_DIR/logs"
 
 # Test configuration
-DJANGO_SETTINGS_MODULE="barodybroject.settings"
+DJANGO_SETTINGS_MODULE="barodybroject.settings.testing"
 PYTHONPATH="$SRC_DIR:${PYTHONPATH:-}"
 COVERAGE_THRESHOLD=80
 # PostgreSQL-only project: default to a local Postgres database.

@@ -44,7 +44,7 @@ Comprehensive update to `.vscode/launch.json` to provide better debugging capabi
 ```json
 {
   "env": {
-    "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
+    "DJANGO_SETTINGS_MODULE": "barodybroject.settings.development",
     "DEBUG": "True",
     "RUNNING_IN_PRODUCTION": "False",
     "DB_CHOICE": "sqlite"  // ❌ SQLite not supported
@@ -56,7 +56,7 @@ Comprehensive update to `.vscode/launch.json` to provide better debugging capabi
 ```json
 {
   "env": {
-    "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
+    "DJANGO_SETTINGS_MODULE": "barodybroject.settings.development",
     "DEBUG": "True",
     "RUNNING_IN_PRODUCTION": "False",
     "DB_HOST": "localhost",
@@ -156,7 +156,7 @@ All local configurations now use consistent environment variables:
 
 ```json
 {
-  "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
+  "DJANGO_SETTINGS_MODULE": "barodybroject.settings.development",
   "DEBUG": "True",
   "RUNNING_IN_PRODUCTION": "False",
   "DB_HOST": "localhost",

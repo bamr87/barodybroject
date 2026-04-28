@@ -16,36 +16,40 @@ TODO: Add truncated assistant id. Last 4 characters
     <div class="row">
         <div class="col">
             <h2><i class="bi bi-robot"></i> Assistant Form</h2>
-            {% if selected_assistant %}
-            <form method="post" action="{% url 'assistant_detail' assistant_id=selected_assistant.id %}" class="needs-validation">
+            {% if assistant_id %}
+            <form method="post" action="{% url 'edit_assistant' assistant_id %}" class="needs-validation" data-loading>
             {% else %}
-            <form method="post" action="{% url 'manage_assistants' %}" class="needs-validation">
+            <form method="post" action="{% url 'manage_assistants' %}" class="needs-validation" data-loading>
             {% endif %}
                 {% csrf_token %}
+                {% if assistant_id %}
+                    <input type="hidden" name="assistant_id" value="{{ assistant_id }}">
+                {% endif %}
+                <input type="hidden" name="_method" value="save">
+                <input type="hidden" name="action" value="save">
+                <input type="hidden" name="save_form" value="assistant_form">
                 <!-- Assistant Form -->
                 <div class="form-group">
                     {% bootstrap_form assistant_form %}
                 </div>
+
+                <div class="d-grid gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary w-100" data-loading-text="Saving...">
+                        {% if assistant_id %}
+                            <i class="bi bi-save"></i> Save
+                        {% else %}
+                            <i class="bi bi-plus-circle"></i> Create
+                        {% endif %}
+                    </button>
+                </div>
             </form>
 
-            <!-- Action Buttons (outside main form to avoid nesting) -->
-            <div class="d-grid gap-2 mt-3">
+            <!-- Destructive actions stay separate from the save form. -->
             {% if assistant_id %}
-                <!-- Save Button Form -->
-                <form action="{% url 'edit_assistant' assistant_id %}" method="POST">
+            <div class="d-grid gap-2 mt-3">
+                <form action="{% url 'delete_assistant' assistant_id %}" method="POST" class="delete-form">
                     {% csrf_token %}
                     <input type="hidden" name="assistant_id" value="{{ assistant_id }}">
-                    <input type="hidden" name="_method" value="save">
-                    <input type="hidden" name="action" value="save">
-                    <input type="hidden" name="save_form" value="assistant_form">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-save"></i> Save
-                    </button>
-                </form>
-                <!-- Delete Button Form -->
-                <form action="{% url 'delete_assistant' assistant.id %}" method="POST" class="delete-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="assistant_id" value="{{ assistant.id }}">
                     <input type="hidden" name="_method" value="delete">
                     <input type="hidden" name="action" value="delete">
                     <button type="button" class="btn btn-danger w-100 delete-btn"
@@ -55,19 +59,8 @@ TODO: Add truncated assistant id. Last 4 characters
                         <i class="bi bi-trash"></i> Delete
                     </button>
                 </form>
-            {% else %}
-                <!-- Create Button Form -->
-                <form action="{% url 'manage_assistants' %}" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="_method" value="save">
-                    <input type="hidden" name="action" value="save">
-                    <input type="hidden" name="save_form" value="assistant_form">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-plus-circle"></i> Create
-                    </button>
-                </form>
-            {% endif %}
             </div>
+            {% endif %}
         </div>
     </div>
 </div>

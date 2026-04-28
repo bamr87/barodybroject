@@ -34,7 +34,7 @@ services:
       DB_NAME: ${DB_NAME:-barodydb}
       DB_HOST: ${DB_HOST:-barodydb}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      DJANGO_SETTINGS_MODULE: barodybroject.settings
+      DJANGO_SETTINGS_MODULE: barodybroject.settings.development
       DEBUG: "True"
       PYTHONPATH: /workspace/src
       PYTHONUNBUFFERED: 1
@@ -60,10 +60,11 @@ services:
       - /bin/bash
       - -c
       - |
-        apt-get update && apt-get install -y postgresql-client git build-essential pkg-config libcairo2-dev python3-dev
+        apt-get update && apt-get install -y --no-install-recommends postgresql-client git build-essential pkg-config libcairo2-dev python3-dev && rm -rf /var/lib/apt/lists/*
         pip install --upgrade pip
         # Install dependencies with increased timeout and retries for CI/CD reliability
         pip install --timeout 180 --retries 5 -r requirements.txt
+        pip install --timeout 180 --retries 5 -r /workspace/requirements-dev.txt
         # Install debugpy for VS Code debugging
         pip install debugpy
         
@@ -107,7 +108,7 @@ services:
     networks:
       - barody-network
     environment:
-      DJANGO_SETTINGS_MODULE: barodybroject.settings
+      DJANGO_SETTINGS_MODULE: barodybroject.settings.development
       PYTHONPATH: /workspace/src
     command:
       - /bin/bash

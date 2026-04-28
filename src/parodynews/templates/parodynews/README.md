@@ -7,7 +7,6 @@ This directory contains Django templates specific to the parodynews application 
 ## Contents
 - `assistant_detail.html`: Template for displaying individual OpenAI assistant details and configuration
 - `assistant_group_detail.html`: Template for managing groups of assistants and their collective functionality
-- `cms.html`: Content Management System interface template for content editing and management
 - `content_detail.html`: Template for displaying detailed view of generated parody news content
 - `content_processing.html`: Template for the content generation interface and AI processing workflow
 - `index.html`: Main parodynews application landing page and navigation
@@ -19,13 +18,14 @@ This directory contains Django templates specific to the parodynews application 
 These templates are rendered by parodynews application views:
 
 ```python
-# In parodynews/views.py
+# In parodynews/views/content.py
 def content_detail(request, content_id):
     return render(request, 'parodynews/content_detail.html', context)
 
 def content_processing(request):
     return render(request, 'parodynews/content_processing.html', context)
 
+# In parodynews/views/assistants.py
 def assistant_detail(request, assistant_id):
     return render(request, 'parodynews/assistant_detail.html', context)
 ```
@@ -35,7 +35,6 @@ Template features:
 - **Assistant Management**: Configuration and interaction with OpenAI assistants
 - **Content Display**: Formatted presentation of generated parody news
 - **Message Threading**: Conversation flow with AI assistants
-- **CMS Integration**: Content editing and publishing workflow
 
 ## Container Configuration
 Templates are served through Django's template system:

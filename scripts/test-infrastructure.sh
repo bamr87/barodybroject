@@ -241,15 +241,15 @@ finally: s.close()'"
     
     # Test Django setup
     run_test "Django Configuration" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c \"import django; django.setup(); print(\\\"Django setup successful\\\")\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); print(\\\"Django setup successful\\\")\"'"
     
     # Test database connectivity
     run_test "Database Connection" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c \"import django; django.setup(); from django.db import connection; connection.cursor()\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from django.db import connection; connection.cursor()\"'"
     
     # Run migrations
     run_test "Database Migrations" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python src/manage.py migrate --run-syncdb --skip-checks'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python src/manage.py migrate --run-syncdb --skip-checks'"
     
     echo ""
 
@@ -259,15 +259,15 @@ finally: s.close()'"
     
     # Test service initialization
     run_test "InstallationService Import" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService()\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService()\"'"
     
     # Test token generation
     run_test "Token Generation" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token = svc.generate_setup_token(); assert len(token) > 0\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token = svc.generate_setup_token(); assert len(token) > 0\"'"
     
     # Test token validation
     run_test "Token Validation" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token = svc.generate_setup_token(); assert svc.validate_token(token) == True\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token = svc.generate_setup_token(); assert svc.validate_token(token) == True\"'"
     
     echo ""
 
@@ -277,11 +277,11 @@ finally: s.close()'"
     
     # Test admin user creation
     run_test "Admin User Creation" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token = svc.generate_setup_token(); user = svc.create_admin_user(\\\"testadmin\\\", \\\"admin@test.com\\\", \\\"TestPass123\\\", token); assert user is not None; assert user.is_superuser == True\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token = svc.generate_setup_token(); user = svc.create_admin_user(\\\"testadmin\\\", \\\"admin@test.com\\\", \\\"TestPass123\\\", token); assert user is not None; assert user.is_superuser == True\"'"
     
     # Test installation completion
     run_test "Installation Completion Status" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); assert svc.is_installation_complete() == True\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); assert svc.is_installation_complete() == True\"'"
     
     echo ""
 
@@ -291,15 +291,15 @@ finally: s.close()'"
     
     # Test view imports
     run_test "View Classes Import" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c \"import django; django.setup(); from setup.views import SetupWizardView, CreateAdminView, SetupStatusView\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.views import SetupWizardView, CreateAdminView, SetupStatusView\"'"
     
     # Test Django test client
     run_test "Django Test Client" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c \"import django; django.setup(); from django.test import Client; client = Client()\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from django.test import Client; client = Client()\"'"
     
     # Test form imports
     run_test "Form Classes Import" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c \"import django; django.setup(); from setup.forms import AdminUserForm\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.forms import AdminUserForm\"'"
     
     echo ""
 
@@ -309,11 +309,11 @@ finally: s.close()'"
     
     # Test command availability
     run_test "Setup Wizard Command Available" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python src/manage.py help | grep -q setup_wizard'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python src/manage.py help | grep -q setup_wizard'"
     
     # Test command help
     run_test "Setup Wizard Command Help" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python src/manage.py setup_wizard --help > /dev/null'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python src/manage.py setup_wizard --help > /dev/null'"
     
     echo ""
 
@@ -323,7 +323,7 @@ finally: s.close()'"
     
     # Run complete unit test suite
     run_test "Complete Unit Test Suite" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -m pytest test/unit/test_services.py -v --tb=short -q'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -m pytest test/unit/test_services.py -v --tb=short -q'"
     
     echo ""
 
@@ -331,13 +331,8 @@ finally: s.close()'"
     log_step "🔗 STEP 9: INTEGRATION TESTS"
     echo "============================"
     
-    # Check if integration tests can run (skip CMS-dependent tests)
-    if docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c "import cms" 2>/dev/null'; then
-        run_test "Integration Tests Execution" \
-            "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -m pytest test/integration/ -v --tb=short -q'"
-    else
-        log_warning "⚠️ Integration tests skipped (CMS dependency not available)"
-    fi
+    run_test "Integration Tests Execution" \
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -m pytest test/integration/ -v --tb=short -q'"
     
     echo ""
 
@@ -347,11 +342,11 @@ finally: s.close()'"
     
     # Test token security
     run_test "Token Security Validation" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token1 = svc.generate_setup_token(); token2 = svc.generate_setup_token(); assert token1 != token2; assert len(token1) >= 32\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token1 = svc.generate_setup_token(); token2 = svc.generate_setup_token(); assert token1 != token2; assert len(token1) >= 32\"'"
     
     # Test password validation
     run_test "Password Strength Validation" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.test_settings python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token = svc.generate_setup_token(); try: svc.create_admin_user(\\\"test\\\", \\\"test@test.com\\\", \\\"weak\\\", token); assert False; except: pass\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token = svc.generate_setup_token(); try: svc.create_admin_user(\\\"test\\\", \\\"test@test.com\\\", \\\"weak\\\", token); assert False; except: pass\"'"
     
     echo ""
 

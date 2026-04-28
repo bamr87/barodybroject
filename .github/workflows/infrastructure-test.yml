@@ -27,7 +27,7 @@ concurrency:
 
 env:
   PYTHON_VERSION: "3.11"
-  DJANGO_SETTINGS_MODULE: "barodybroject.test_settings"
+  DJANGO_SETTINGS_MODULE: "barodybroject.settings.testing"
 
 jobs:
   infrastructure-test:
@@ -52,7 +52,7 @@ jobs:
           DB_USERNAME=test_user
           DB_NAME=test_db
           DB_PASSWORD=test_password
-          DJANGO_SETTINGS_MODULE=barodybroject.test_settings
+          DJANGO_SETTINGS_MODULE=barodybroject.settings.testing
           DEBUG=True
           RUNNING_IN_PRODUCTION=False
           PYTHONPATH=/workspace/src:/workspace

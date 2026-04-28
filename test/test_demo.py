@@ -7,7 +7,7 @@ import os
 import sys
 
 sys.path.insert(0, "/workspace/src")
-os.environ["DJANGO_SETTINGS_MODULE"] = "barodybroject.test_settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "barodybroject.settings.testing"
 
 # Test the InstallationService token generation
 import django

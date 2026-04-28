@@ -150,7 +150,7 @@
       "justMyCode": false,
       "cwd": "${workspaceFolder}/src",
       "env": {
-        "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
+        "DJANGO_SETTINGS_MODULE": "barodybroject.settings.development",
         "DEBUG": "True",
         "RUNNING_IN_PRODUCTION": "False",
         "DB_HOST": "localhost",
@@ -176,7 +176,7 @@
       "justMyCode": false,
       "cwd": "${workspaceFolder}/src",
       "env": {
-        "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
+        "DJANGO_SETTINGS_MODULE": "barodybroject.settings.testing",
         "DEBUG": "True",
         "RUNNING_IN_PRODUCTION": "False",
         "DB_HOST": "localhost",
@@ -202,7 +202,7 @@
       "justMyCode": false,
       "cwd": "${workspaceFolder}/src",
       "env": {
-        "DJANGO_SETTINGS_MODULE": "barodybroject.settings",
+        "DJANGO_SETTINGS_MODULE": "barodybroject.settings.development",
         "DEBUG": "True",
         "RUNNING_IN_PRODUCTION": "False",
         "DB_HOST": "localhost",

@@ -29,9 +29,6 @@ from .content import ContentDetail, ContentItem
 # Conversation models
 from .conversation import Message, Thread
 
-# Deprecated models (with warnings)
-from .deprecated import GeneralizedCodes, MyObject
-
 # Publishing models
 from .publishing import Post, PostFrontMatter, PostPageConfigModel, PostVersion
 
@@ -58,7 +55,4 @@ __all__ = [
     "PostFrontMatter",
     "PostPageConfigModel",
     "PostVersion",
-    # Deprecated
-    "GeneralizedCodes",
-    "MyObject",
 ]

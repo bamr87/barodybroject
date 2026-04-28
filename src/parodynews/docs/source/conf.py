@@ -20,7 +20,7 @@ project_root = Path(__file__).parents[3].resolve()
 sys.path.insert(0, str(project_root / 'src'))
 
 # Configure Django settings for autodoc
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'barodybroject.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'barodybroject.settings.development')
 try:
     django.setup()
 except Exception as e:

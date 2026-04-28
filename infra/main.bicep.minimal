@@ -91,7 +91,7 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'DJANGO_SETTINGS_MODULE'
-          value: 'barodybroject.settings'
+          value: 'barodybroject.settings.production'
         }
         {
           name: 'PYTHONUNBUFFERED'

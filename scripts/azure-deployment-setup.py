@@ -12,7 +12,6 @@ Features:
 - Production security hardening
 - Database migrations and static file collection
 - Admin user creation
-- Django CMS initial configuration
 - Comprehensive health checks
 
 Usage:
@@ -188,7 +187,7 @@ class AzureSetup:
         ))
         
         # Set Django settings for production
-        prod_commands.append('az containerapp update --name {} --resource-group {} --set-env-vars DJANGO_SETTINGS_MODULE=barodybroject.settings'.format(
+        prod_commands.append('az containerapp update --name {} --resource-group {} --set-env-vars DJANGO_SETTINGS_MODULE=barodybroject.settings.production'.format(
             self.container_app_name, self.resource_group
         ))
         
@@ -517,59 +516,6 @@ else:
             self.print_error("Superuser creation failed")
             return False
             
-    def setup_cms_pages(self) -> bool:
-        """Set up initial CMS pages"""
-        self.print_header("Setting Up CMS Pages")
-        
-        print("This will create initial CMS pages and configure the site.")
-        if not self.get_user_confirmation("Do you want to set up initial CMS pages?"):
-            self.print_info("Skipping CMS setup")
-            return True
-            
-        # Create initial CMS page
-        # Use custom domain if configured, otherwise use the app URL
-        site_domain = self.custom_domain if self.custom_domain else self.app_url.replace('https://', '')
-        
-        django_command = """
-from cms.api import create_page
-from cms.models import Page
-from django.contrib.sites.models import Site
-
-# Update site domain
-site = Site.objects.get(pk=1)
-site.domain = '{}'
-site.name = 'BarodyBroject'
-site.save()
-
-# Create home page if it doesn't exist
-if not Page.objects.filter(title_set__title='Home').exists():
-    page = create_page(
-        title='Home',
-        template='cms/home.html',
-        language='en',
-        slug='home',
-        in_navigation=True,
-        published=True
-    )
-    print('Home page created successfully')
-else:
-    print('Home page already exists')
-""".format(site_domain)
-        
-        # Escape and format for shell execution
-        django_command = django_command.replace('"', '\\"').replace('\n', '; ')
-        command = f'az containerapp exec --name {self.container_app_name} --resource-group {self.resource_group} --command "echo \\"{django_command}\\" | python manage.py shell"'
-        
-        print("Setting up CMS pages...")
-        success, output = self.run_command(command, capture_output=False)
-        
-        if success:
-            self.print_success("CMS pages set up successfully")
-            return True
-        else:
-            self.print_error("CMS setup failed")
-            return False
-            
     def get_user_confirmation(self, message: str) -> bool:
         """Get yes/no confirmation from user"""
         while True:
@@ -619,8 +565,7 @@ else:
         print(f"\n{Colors.OKBLUE}Next Steps:{Colors.ENDC}")
         print("  1. Visit your application URL to verify it's working")
         print("  2. Log into the admin panel with your superuser account")
-        print("  3. Configure your Django CMS pages and content")
-        print("  4. Set up any additional configuration as needed")
+        print("  3. Set up any additional configuration as needed")
         
         if self.is_production:
             print(f"\n{Colors.OKBLUE}Production Checklist:{Colors.ENDC}")
@@ -687,10 +632,6 @@ else:
                 
         if not self.create_superuser():
             if not self.get_user_confirmation("Superuser creation failed. Continue anyway?"):
-                return False
-                
-        if not self.setup_cms_pages():
-            if not self.get_user_confirmation("CMS setup failed. Continue anyway?"):
                 return False
                 
         # Final health check
