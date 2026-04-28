@@ -1,12 +1,17 @@
 # TODO: Project Issues and Enhancements
 
-This document tracks issues, missing functionality, and enhancements needed for the Barody Project to comply with best practices and improve overall quality. It also includes Azure deployment next steps and infrastructure guidance.
+This document tracks open issues, missing functionality, and enhancements for the
+Barodybroject Django/OpenAI project. It was reviewed against the current repository
+state on April 27, 2026.
 
-**Version**: 0.1.0  
-**Last Updated**: October 26, 2025
+**Version**: 0.4.0
+**Last Updated**: April 27, 2026
+**Last Review**: April 27, 2026
+**Next Review**: May 2026
 
 ## Table of Contents
 
+- [Review Snapshot](#review-snapshot)
 - [Azure Deployment Next Steps](#azure-deployment-next-steps)
 - [Configuration & Setup Issues](#configuration--setup-issues)
 - [CI/CD & Automation](#cicd--automation)
@@ -16,637 +21,555 @@ This document tracks issues, missing functionality, and enhancements needed for 
 - [Infrastructure & Deployment](#infrastructure--deployment)
 - [Project Organization](#project-organization)
 - [Feature Enhancements](#feature-enhancements)
+- [Resolved Since Previous Review](#resolved-since-previous-review)
+- [Priority Summary](#priority-summary)
+- [Contributing to This TODO](#contributing-to-this-todo)
+
+---
+
+## Review Snapshot
+
+The previous TODO contained several stale findings. The repository now includes:
+
+- Split Django settings in `src/barodybroject/settings/`.
+- A root `.env.example` template.
+- Tracked initial Django migration at `src/parodynews/migrations/0001_initial.py`.
+- GitHub Actions workflows for CI, quality/security scanning, containers,
+  infrastructure tests, and Azure deployment.
+- DRF throttling defaults in `src/barodybroject/settings/base.py`.
+- Optional Django Debug Toolbar and django-extensions configuration.
+- Logging configuration in `src/barodybroject/settings/base.py`.
+- A setup health endpoint at `/setup/health/`.
+
+Known remaining gaps are concentrated around Azure production hardening,
+repository governance files, dependency automation, OpenAPI documentation,
+deployment runbook consolidation, and local developer automation.
 
 ---
 
 ## Azure Deployment Next Steps
 
-This section contains immediate next steps for Azure deployment using Azure Developer CLI (azd).
+This section tracks Azure Developer CLI (`azd`) and Azure Container Apps follow-up
+work. The deployment workflow exists at `.github/workflows/azure-dev.yml`, so the
+remaining work is verification and production hardening rather than creating the
+pipeline from scratch.
 
-### 🚀 Immediate Azure Deployment Actions
+### Critical
 
-- [ ] **Provision infrastructure and deploy application**
-  - **Action**: Run `azd up` to provision infrastructure and deploy to Azure
-  - **Alternative**: Run `azd provision` then `azd deploy` separately
-  - **Verify**: Visit service endpoints to confirm deployment
-  - **Troubleshooting**: See [Azure troubleshooting](#azure-troubleshooting) section below
+- [ ] **Harden Azure application environment values**
+  - **Impact**: `infra/app/src.bicep` currently sets an insecure fallback
+    `SECRET_KEY` and `RUNNING_IN_PRODUCTION=false` for the Container App.
+  - **Action**: Move `SECRET_KEY` into Key Vault or secure app settings, and set
+    production deployments to `RUNNING_IN_PRODUCTION=true`.
+  - **Files**: `infra/app/src.bicep`, `infra/main.parameters.json`.
 
-- [ ] **Configure environment variables for running services**
-  - **Action**: Update `settings` in [main.parameters.json](./infra/main.parameters.json)
-  - **Database**: Configure `POSTGRES_*` environment variables in [src.bicep](./infra/app/src.bicep)
-  - **Customize**: Modify variables to match application needs
+- [ ] **Verify current Azure deployment state**
+  - **Impact**: The repository contains Azure infrastructure and deployment
+    workflows, but the current deployed resource state is not captured here.
+  - **Action**: Run `azd show` and verify the Container App endpoint, revision
+    status, database connection, and Application Insights connection.
+  - **Document**: Add the verified endpoint and troubleshooting notes to the
+    deployment documentation.
 
-- [ ] **Setup CI/CD pipeline for Azure**
-  - **Step 1**: Create workflow pipeline file locally using starters:
-    - [GitHub Actions starter](https://github.com/Azure-Samples/azd-starter-bicep/blob/main/.github/workflows/azure-dev.yml)
-    - [Azure Pipelines starter](https://github.com/Azure-Samples/azd-starter-bicep/blob/main/.azdo/pipelines/azure-dev.yml)
-  - **Step 2**: Run `azd pipeline config` to configure secure Azure connection
-  - **Priority**: High - needed for automated deployments
+- [ ] **Confirm Azure CI/CD credentials and variables**
+  - **Impact**: `.github/workflows/azure-dev.yml` expects Azure variables or
+    secrets configured outside the repository.
+  - **Action**: Run `azd pipeline config` or verify `AZURE_CLIENT_ID`,
+    `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `AZURE_ENV_NAME`, and
+    `AZURE_LOCATION` in GitHub repository variables/secrets.
+  - **Verify**: Trigger the workflow manually and confirm both provisioning and
+    smoke tests complete successfully.
 
-### 🏗️ Azure Infrastructure Overview
+### Medium Priority
 
-The following infrastructure was added by `azd init`:
+- [ ] **Validate Azure database connection variables end-to-end**
+  - **Current state**: `infra/app/src.bicep` injects `DB_HOST`, `DB_USERNAME`,
+    `DB_NAME`, `DB_PASSWORD`, `POSTGRES_PORT`, and `PORT=8000`.
+  - **Action**: Confirm Django production settings consume these values in Azure
+    and document the expected variable names. Avoid older `POSTGRES_*` wording
+    except where it is specifically used by the database container.
 
-**Core Files:**
-- `azure.yaml` - azd project configuration
-- `infra/` - Infrastructure as Code (Bicep) files
-  - `main.bicep` - main deployment module
-  - `app/` - Application resource modules
-  - `shared/` - Shared resource modules
-  - `modules/` - Library modules
+- [ ] **Add Azure cost monitoring and budget alerts**
+  - **Action**: Configure Cost Management budgets and alerts in Azure Portal.
+  - **Reference**: [Azure billing overview](https://learn.microsoft.com/azure/developer/intro/azure-developer-billing).
 
-**Azure Resources:**
-- [app/src.bicep](./infra/app/src.bicep) - Azure Container Apps for 'src' service
-- [app/db-postgre.bicep](./infra/app/db-postgre.bicep) - PostgreSQL Flexible Server for 'barodydb'
-- [shared/keyvault.bicep](./infra/shared/keyvault.bicep) - Azure KeyVault for secrets
-- [shared/monitoring.bicep](./infra/shared/monitoring.bicep) - Log Analytics and Application Insights
-- [shared/registry.bicep](./infra/shared/registry.bicep) - Container Registry for Docker images
+- [ ] **Add Azure deployment smoke-test runbook**
+  - **Action**: Document the expected `azd provision`, `azd deploy`, workflow
+    dispatch, and rollback checks in one place.
+  - **Include**: Portal links to Container Apps revisions, log streams,
+    Application Insights, and PostgreSQL diagnostics.
 
-### 🐳 Container Build Configuration
+### Infrastructure Overview
 
-**Build with Buildpacks using Oryx** (if no Dockerfile present):
-- Uses [Buildpacks](https://buildpacks.io/) with [Oryx](https://github.com/microsoft/Oryx/blob/main/doc/README.md)
-- Local testing:
-  1. Run `azd package` to build image
-  2. Copy the Image Tag shown
-  3. Run `docker run -it <Image Tag>` to test locally
+Core Azure files:
 
-**Port Configuration:**
-- Oryx sets `PORT` to default `80` (`8080` for Java)
-- Auto-configures web servers (gunicorn, ASP.NET Core)
-- If app uses different port: Update `targetPort` in `.bicep` files under `infra/app/`
+- `azure.yaml`: Azure Developer CLI project configuration.
+- `infra/main.bicep`: Main Bicep deployment entry point.
+- `infra/main.parameters.json`: Parameter defaults used by deployments.
+- `infra/app/src.bicep`: Azure Container Apps module for the Django service.
+- `infra/app/db-postgres.bicep`: PostgreSQL Flexible Server module.
+- `infra/app/db-postgres-minimal.bicep`: Lower-cost PostgreSQL variant.
+- `infra/shared/keyvault.bicep`: Azure Key Vault module.
+- `infra/shared/monitoring.bicep`: Log Analytics and Application Insights.
+- `infra/shared/registry.bicep`: Azure Container Registry module.
 
-### 💰 Cost Management
+Container build notes:
 
-- [ ] **Setup cost monitoring**
-  - **Action**: Visit *Cost Management + Billing* in Azure Portal
-  - **Monitor**: Track current spend and set up alerts
-  - **Reference**: [Azure billing overview](https://learn.microsoft.com/azure/developer/intro/azure-developer-billing)
-
-### 🔧 Azure Troubleshooting
-
-**Common Issue: Blank page, welcome page, or error page**
-
-**Diagnostic Steps:**
-1. Run `azd show` and click "View in Azure Portal"
-2. Navigate to failing Container App service
-3. Click failing revision under "Revisions with Issues"
-4. Review "Status details" for failure information
-5. Check Console log stream and System log stream for errors
-6. Use *Console* navigation to connect to shell in running container
-
-**Additional Resources:**
-- [Container Apps troubleshooting](https://learn.microsoft.com/azure/container-apps/troubleshooting)
-- [Azure Developer CLI docs](https://learn.microsoft.com/azure/developer/azure-developer-cli/make-azd-compatible?pivots=azd-convert)
+- The application currently builds from `src/Dockerfile`, not Oryx buildpacks.
+- `src/Dockerfile` exposes port `8000`.
+- `infra/app/src.bicep` configures Container Apps ingress `targetPort: 8000`.
 
 ---
 
 ## Configuration & Setup Issues
 
-### 🔴 Critical
+### Critical
 
-- [ ] **License Inconsistency** - `pyproject.toml` specifies GPL-3.0-or-later but `LICENSE` file contains MIT License. Need to choose one and update accordingly.
-  - **Impact**: Legal ambiguity for contributors and users
-  - **Recommendation**: Stick with MIT (more permissive) and update pyproject.toml
-  - **Files**: `LICENSE`, `pyproject.toml`
+- [ ] **License inconsistency**
+  - **Impact**: `pyproject.toml` declares `GPL-3.0-or-later`, while `LICENSE`
+    contains the MIT License.
+  - **Recommendation**: Choose one license and update both the classifier and
+    license metadata. The previous recommendation was to use MIT.
+  - **Files**: `LICENSE`, `pyproject.toml`.
 
-- [ ] **Missing .env.example File** - No template file for environment variables
-  - **Impact**: New developers don't know what environment variables are needed
-  - **Action**: Create `.env.example` with all required variables (with dummy values)
-  - **Should include**: All variables from setup instructions in README
+### Medium Priority
 
-### 🟡 Medium Priority
+- [ ] **Duplicate dependency management**
+  - **Impact**: Runtime and development dependencies are split across
+    `src/requirements.txt`, `requirements-dev.txt`, and `pyproject.toml`.
+  - **Action**: Decide on a source of truth. If keeping requirements files for
+    Docker compatibility, document the sync workflow and regenerate process.
+  - **Files**: `src/requirements.txt`, `requirements-dev.txt`, `pyproject.toml`.
 
-- [ ] **Duplicate Dependency Management** - Dependencies defined in both `requirements.txt` and `pyproject.toml`
-  - **Impact**: Potential version conflicts, maintenance overhead
-  - **Recommendation**: Migrate fully to pyproject.toml with optional groups
-  - **Files**: `src/requirements.txt`, `requirements-dev.txt`, `pyproject.toml`
-
-- [ ] **Virtual Environment Not in .gitignore** - `.venv*` is ignored but specific venv patterns may leak
-  - **Impact**: Could accidentally commit large virtual environment directories
-  - **Action**: Review and ensure all common venv patterns are covered
-  - **File**: `.gitignore`
-
-- [ ] **Production vs Development Settings** - Single settings.py file without clear environment separation
-  - **Impact**: Risk of running with DEBUG=True in production
-  - **Recommendation**: Split into `settings/base.py`, `settings/development.py`, `settings/production.py`
-  - **File**: `src/barodybroject/settings.py`
-
-### 🟢 Low Priority
-
-- [ ] **Database Migration Files Ignored** - `.gitignore` excludes migration files (`src/parodynews/migrations/0*`)
-  - **Impact**: Migration history lost, potential schema inconsistencies
-  - **Recommendation**: Track migration files in version control
-  - **File**: `.gitignore` line 188
+- [ ] **Keep `.env.example` aligned with settings**
+  - **Impact**: A template now exists, but it needs to stay synchronized with
+    split settings, Azure variable names, and production expectations.
+  - **Action**: Review `.env.example` whenever settings or compose variables
+    change.
 
 ---
 
 ## CI/CD & Automation
 
-### 🔴 Critical
+### Critical
 
-- [ ] **Setup Azure CI/CD Pipeline** - No automated deployment to Azure configured
-  - **Impact**: Manual deployments to Azure, higher error risk
-  - **Action**: Configure Azure deployment pipeline:
-    - Use GitHub Actions starter: [azure-dev.yml](https://github.com/Azure-Samples/azd-starter-bicep/blob/main/.github/workflows/azure-dev.yml)
-    - Run `azd pipeline config` for secure Azure connection
-    - Test deployment workflow
-  - **Priority**: Critical for production deployments
+- [ ] **Add Dependabot configuration**
+  - **Impact**: Dependency and GitHub Actions updates are not automated.
+  - **Action**: Add `.github/dependabot.yml` for Python dependencies, Docker,
+    and GitHub Actions.
 
-- [ ] **Missing GitHub Actions Workflows** - No `.github/workflows/` directory found
-  - **Impact**: No automated testing, linting, or deployment
-  - **Action**: Create workflows for:
-    - Pull request validation (linting, testing)
-    - Azure deployment workflow (using azd)
-    - Dependency vulnerability scanning
-    - Docker image building and publishing
+- [ ] **Add pre-commit hooks**
+  - **Impact**: CI enforces several checks, but local commits are not guarded.
+  - **Action**: Add `.pre-commit-config.yaml` for Ruff, Black, isort, secret
+    scanning, and whitespace checks.
 
-- [ ] **No Pre-commit Hooks** - No `.pre-commit-config.yaml` found
-  - **Impact**: Code quality issues and style violations committed
-  - **Action**: Add pre-commit hooks for:
-    - Ruff (linting)
-    - Black (formatting)
-    - isort (import sorting)
-    - Check for secrets
-    - Trailing whitespace removal
+### Medium Priority
 
-### 🟡 Medium Priority
+- [ ] **Add Bicep validation to CI**
+  - **Impact**: Existing workflows validate Docker and run infrastructure tests,
+    but Bicep lint/build validation should be explicit.
+  - **Action**: Add `az bicep build` or an equivalent Azure validation step for
+    files under `infra/`.
 
-- [ ] **No Automated Testing Pipeline** - Tests exist but no CI to run them
-  - **Impact**: Breaking changes can be merged
-  - **Action**: Add GitHub Actions workflow to run pytest on every PR
-  - **Should include**: Coverage reports, test result annotations
-  - **Integration**: Should run before Azure deployment
+- [ ] **Set coverage thresholds and publish coverage results**
+  - **Current state**: pytest-cov is configured in `pyproject.toml`, and CI runs
+    tests with coverage.
+  - **Action**: Add a minimum coverage threshold, publish a coverage artifact or
+    badge, and decide which files count toward the threshold.
 
-- [ ] **Azure Environment Configuration** - No environment-specific deployments
-  - **Impact**: Cannot deploy to staging/production separately
-  - **Action**: Setup multiple Azure environments:
-    - Staging environment for testing
-    - Production environment
-    - Environment-specific parameters
-    - Approval workflows for production
+- [ ] **Audit CI scanner failure behavior**
+  - **Current state**: Quality workflows run Bandit, Safety, pip-audit, Trivy,
+    and a secrets scan.
+  - **Action**: Confirm which scanners are blocking, which only upload reports,
+    and document the intended policy.
 
-- [ ] **No Dependabot Configuration** - No automated dependency updates
-  - **Impact**: Outdated dependencies, security vulnerabilities
-  - **Action**: Add `.github/dependabot.yml` for:
-    - pip dependencies
-    - Docker dependencies
-    - GitHub Actions
-    - Bicep modules (if applicable)
+### Low Priority
 
-- [ ] **Missing Azure Infrastructure Validation** - Bicep files not validated in CI
-  - **Impact**: Infrastructure deployment failures
-  - **Action**: Add Bicep validation to CI:
-    - Bicep linting with `az bicep build`
-    - Infrastructure testing with `azd provision --dry-run`
-    - Template security scanning
-
-### 🟢 Low Priority
-
-- [ ] **No Release Automation** - Manual version bumping and changelog updates
-  - **Impact**: Inconsistent release process
-  - **Action**: Add semantic-release or similar tool
-  - **Related**: `VERSION` file exists but no automation around it
-  - **Integration**: Coordinate with Azure deployments
-
-- [ ] **No Container Image Scanning** - Docker images not scanned for vulnerabilities
-  - **Impact**: Security vulnerabilities in production
-  - **Action**: Add container scanning:
-    - Trivy or Snyk scanning in CI
-    - Azure Container Registry vulnerability scanning
-    - Block deployment of vulnerable images
+- [ ] **Add release automation**
+  - **Impact**: Version bumps and changelog updates remain manual.
+  - **Action**: Add semantic-release, release-please, or a documented manual
+    release checklist tied to the `VERSION` file and `CHANGELOG.md`.
 
 ---
 
 ## Documentation Gaps
 
-### 🔴 Critical
+### Critical
 
-- [ ] **Missing SECURITY.md** - No security vulnerability reporting guidelines
-  - **Impact**: Security issues reported publicly or not at all
-  - **Action**: Create `SECURITY.md` with:
-    - Supported versions
-    - Vulnerability reporting process
-    - Security update policy
-  - **Template**: Use GitHub's security policy template
+- [ ] **Missing root `SECURITY.md`**
+  - **Impact**: Security reporting guidance is not visible in GitHub's standard
+    security policy location.
+  - **Current state**: `docs/SECURITY_DOCUMENTATION.md` exists, but root
+    `SECURITY.md` does not.
+  - **Action**: Add root `SECURITY.md` with supported versions, reporting
+    process, and security update policy.
 
-### 🟡 Medium Priority
+- [ ] **Missing root `CODE_OF_CONDUCT.md`**
+  - **Impact**: `CONTRIBUTING.md` references community standards that are not
+    present at the expected root path.
+  - **Action**: Add `CODE_OF_CONDUCT.md`, preferably based on Contributor
+    Covenant.
 
-- [ ] **Missing CODE_OF_CONDUCT.md** - Referenced in CONTRIBUTING.md but doesn't exist
-  - **Impact**: Broken link, unclear community standards
-  - **Action**: Add `CODE_OF_CONDUCT.md` (use Contributor Covenant)
-  - **File**: `CONTRIBUTING.md` line 141
+### Medium Priority
 
-- [ ] **Missing CHANGELOG.md** - No change history tracking
-  - **Impact**: Users don't know what changed between versions
-  - **Action**: Create `CHANGELOG.md` following Keep a Changelog format
-  - **Should track**: Breaking changes, new features, bug fixes
+- [ ] **Add OpenAPI documentation**
+  - **Impact**: REST API consumers do not have interactive endpoint docs.
+  - **Action**: Install and configure drf-spectacular or another OpenAPI
+    generator, then expose schema, Swagger UI, and ReDoc URLs.
 
-- [ ] **No API Documentation** - REST API exists but no documentation
-  - **Impact**: API consumers don't know available endpoints
-  - **Action**: Add Swagger/OpenAPI documentation using drf-spectacular
-  - **Alternative**: Use Django REST Framework's built-in documentation
+- [ ] **Create a development guide**
+  - **Impact**: There is no root `docs/DEVELOPMENT.md` that explains the current
+    container-first workflow.
+  - **Action**: Document dev container startup, debugpy behavior, Django command
+    execution, tests, migrations, and common troubleshooting.
 
-- [ ] **Missing Database Schema Documentation** - No ER diagrams or model documentation
-  - **Impact**: Hard to understand data relationships
-  - **Action**: Generate with django-extensions graph_models or document manually
-  - **Tools**: graphviz, django-extensions
+- [ ] **Consolidate deployment documentation**
+  - **Impact**: Deployment information exists across multiple docs and Azure
+    files, which makes it easy for runbooks to drift.
+  - **Action**: Create or update a single deployment runbook that links to the
+    deeper Azure, Docker, database, and troubleshooting documents.
 
-- [ ] **No Architecture Diagrams** - Text description only in README
-  - **Impact**: Harder to understand system architecture
-  - **Action**: Create diagrams for:
-    - System architecture
-    - Deployment architecture
-    - Data flow
-  - **Tools**: draw.io, mermaid, PlantUML
+- [ ] **Add architecture diagrams**
+  - **Impact**: The system architecture is still mostly text-based.
+  - **Action**: Add diagrams for application architecture, Azure deployment,
+    request flow, and content generation/data flow.
 
-### 🟢 Low Priority
+### Low Priority
 
-- [ ] **Too Many Scattered README Files** - 133 README.md files throughout the project
-  - **Impact**: Outdated or duplicate information, maintenance burden
-  - **Action**: Consolidate or remove unnecessary READMEs
-  - **Keep**: Main README, infra/README, src/parodynews/README
-  - **Consider**: Single docs/ directory with organized documentation
+- [ ] **Consolidate scattered README files**
+  - **Impact**: Many directory-level READMEs can become stale or duplicative.
+  - **Action**: Keep high-value directory READMEs, remove obsolete ones, and link
+    common material back to `docs/`.
 
-- [ ] **Missing Development Guide** - No detailed guide for setting up development environment
-  - **Impact**: Harder for new contributors to get started
-  - **Action**: Create `docs/DEVELOPMENT.md` with:
-    - IDE setup recommendations
-    - Debugging tips
-    - Common issues and solutions
-    - Development workflow
-
-- [ ] **No Deployment Runbook** - Deployment steps scattered
-  - **Impact**: Deployment inconsistencies, knowledge loss
-  - **Action**: Create `docs/DEPLOYMENT.md` with detailed procedures
+- [ ] **Keep database schema docs current**
+  - **Current state**: `src/parodynews/docs/source/reference/database-schema.rst`
+    exists.
+  - **Action**: Add generation instructions and optional ER diagrams so schema
+    docs stay synchronized with migrations.
 
 ---
 
 ## Code Quality & Testing
 
-### 🔴 Critical
+### Medium Priority
 
-- [ ] **Test Code in Production** - `src/parodynews/foobar/` directory appears to be test code
-  - **Impact**: Unnecessary code in production, potential security risk
-  - **Action**: Review and remove foobar directory or move to tests
-  - **Location**: `src/parodynews/foobar/`
+- [ ] **Document integration and E2E testing procedures**
+  - **Impact**: Tests exist, but contributors need clearer guidance on when and
+    how to run integration, infrastructure, and Playwright suites.
+  - **Action**: Add testing guidance to `CONTRIBUTING.md` or a dedicated
+    development guide.
 
-### 🟡 Medium Priority
+- [ ] **Add dedicated accessibility tests**
+  - **Impact**: Accessibility tooling is listed in development dependencies, but
+    regular accessibility checks are not documented or enforced.
+  - **Action**: Add axe/Playwright examples and decide which routes are covered
+    in CI.
 
-- [ ] **Missing Test Coverage Reporting** - pytest-cov installed but no coverage requirements
-  - **Impact**: Unknown code coverage, potential untested code paths
-  - **Action**: 
-    - Set minimum coverage threshold (e.g., 80%)
-    - Add coverage badge to README
-    - Enforce in CI pipeline
+- [ ] **Add performance and load testing**
+  - **Impact**: Container workflows include basic performance checks, but there
+    are no load-test baselines.
+  - **Action**: Add Locust, k6, or a documented benchmark script for critical
+    pages and API endpoints.
 
-- [ ] **Ruff Configured But Not Enforced** - Linter configured in pyproject.toml but no automation
-  - **Impact**: Code style inconsistencies
-  - **Action**: 
-    - Add ruff to pre-commit hooks
-    - Add ruff check to CI pipeline
-    - Run `ruff check --fix` on codebase
+### Low Priority
 
-- [ ] **No Code Formatting Tool Enforced** - Black configured but not enforced
-  - **Impact**: Inconsistent code style across files
-  - **Action**: 
-    - Add Black to pre-commit hooks
-    - Run Black on entire codebase
-    - Enforce in CI
-
-- [ ] **Missing Integration Tests Documentation** - Tests exist but no guide on running/writing them
-  - **Impact**: Contributors don't know testing expectations
-  - **Action**: Add testing guide to CONTRIBUTING.md or separate doc
-
-### 🟢 Low Priority
-
-- [ ] **No Performance Testing** - No load testing or performance benchmarks
-  - **Impact**: Unknown performance characteristics
-  - **Action**: Add locust or similar for load testing
-  - **Document**: Performance baselines and requirements
-
-- [ ] **No Accessibility Testing** - axe-playwright-python installed but unclear usage
-  - **Impact**: Potential accessibility issues
-  - **Action**: Document accessibility testing procedures
-  - **Add**: Accessibility test examples
+- [ ] **Review lint/type-check coverage**
+  - **Current state**: Workflows run Black, isort, Ruff, Flake8, Pylint, MyPy,
+    Xenon, and Radon.
+  - **Action**: Confirm the overlap is intentional and trim redundant checks if
+    maintenance cost becomes high.
 
 ---
 
 ## Security & Best Practices
 
-### 🔴 Critical
+### Critical
 
-- [ ] **No Security Scanning in CI/CD** - No automated security checks
-  - **Impact**: Vulnerabilities may go undetected
-  - **Action**: Add to CI pipeline:
-    - Bandit (Python security linter)
-    - Safety (dependency vulnerability scanner)
-    - Trivy or Snyk (container scanning)
+- [ ] **Remove insecure Azure secret defaults**
+  - **Impact**: `infra/app/src.bicep` contains a literal insecure Django
+    `SECRET_KEY` fallback.
+  - **Action**: Use Key Vault or secure Container Apps secrets for production
+    values, and fail deployment when required values are missing.
 
-- [ ] **Secrets in Environment Variables** - SECRET_KEY and API keys in .env
-  - **Impact**: Risk of secrets in version control if .env committed
-  - **Action**: 
-    - Add .env to .gitignore (already done, but verify)
-    - Document using Azure Key Vault for production
-    - Add pre-commit hook to check for secrets
+- [ ] **Add repository security policy**
+  - **Impact**: Automated scanners exist, but vulnerability reporting still needs
+    a standard process.
+  - **Action**: Add root `SECURITY.md` and link it from `README.md` and
+    `CONTRIBUTING.md`.
 
-- [ ] **Missing Rate Limiting** - No rate limiting on API endpoints
-  - **Impact**: API abuse, DDoS vulnerability
-  - **Action**: Implement django-ratelimit or throttling in DRF
+### Medium Priority
 
-### 🟡 Medium Priority
+- [ ] **Document CORS and trusted-origin policy**
+  - **Impact**: CSRF trusted origins are configured, but CORS expectations for
+    external frontends are not documented.
+  - **Action**: Document whether cross-origin API use is supported and add
+    `django-cors-headers` only if needed.
 
-- [ ] **No Dependency Vulnerability Scanning** - Dependencies not regularly scanned
-  - **Impact**: Known vulnerabilities in dependencies
-  - **Action**: 
-    - Add GitHub Dependabot security alerts
-    - Add pip-audit to CI pipeline
-    - Regular manual audits
+- [ ] **Review CSP requirements**
+  - **Current state**: Security headers are configured, and `django-csp` is in
+    optional dependencies, but no CSP policy is enforced by default.
+  - **Action**: Decide whether to enable CSP for production and document any
+    required exceptions for Jekyll assets, admin pages, and third-party services.
 
-- [ ] **Django DEBUG=True in Examples** - Setup instructions use DEBUG=True
-  - **Impact**: Debug mode might accidentally run in production
-  - **Action**: 
-    - Emphasize DEBUG=False for production
-    - Add check in settings.py to prevent DEBUG in production
-    - Document proper production settings
-
-- [ ] **Missing CORS Configuration Documentation** - No CORS settings documented
-  - **Impact**: API may not work with frontend apps
-  - **Action**: Document django-cors-headers configuration if needed
-
-### 🟢 Low Priority
-
-- [ ] **No Security Headers Documentation** - Missing CSP, HSTS, etc. documentation
-  - **Impact**: Potential security vulnerabilities
-  - **Action**: Document required security headers for production
-  - **Tool**: django-csp or django-security
-
-- [ ] **No Input Validation Documentation** - Form validation exists but not documented
-  - **Impact**: Developers may not follow validation best practices
-  - **Action**: Document validation patterns and examples
+- [ ] **Verify DRF throttling coverage**
+  - **Current state**: Global DRF throttling exists for anonymous and user
+    requests.
+  - **Action**: Confirm custom API views and non-DRF endpoints have appropriate
+    rate limiting or abuse protection.
 
 ---
 
 ## Infrastructure & Deployment
 
-### 🔴 Critical
+### Critical
 
-- [ ] **Complete Azure Deployment Setup** - Infrastructure provisioned but not fully configured
-  - **Impact**: Application not running in production environment
-  - **Action**: Complete Azure deployment next steps:
-    - Run `azd up` to provision and deploy
-    - Configure environment variables in `main.parameters.json`
-    - Setup CI/CD pipeline with `azd pipeline config`
-  - **Reference**: See [Azure Deployment Next Steps](#azure-deployment-next-steps) section
+- [ ] **Add root health/readiness/liveness endpoints or configure probes**
+  - **Current state**: `/setup/health/` exists, but root `/health/`,
+    `/readiness/`, and `/liveness/` routes are not defined.
+  - **Impact**: Container Apps probes may need stable unauthenticated endpoints.
+  - **Action**: Add root probe endpoints or explicitly configure Azure to use
+    `/setup/health/`.
 
-- [ ] **No Production Configuration Documented** - README focuses on development
-  - **Impact**: Unclear how to configure for production
-  - **Action**: Document production settings:
-    - Required environment variables
-    - Scaling considerations
-    - Performance tuning
-    - Database connection pooling
+- [ ] **Document production configuration in one place**
+  - **Impact**: Production settings and deployment docs exist, but environment
+    variables, scaling, logging, and database settings need one authoritative
+    runbook.
+  - **Action**: Consolidate production configuration guidance and link to Azure
+    deployment docs.
 
-- [ ] **Configure PostgreSQL Connection Variables** - Database variables need proper configuration
-  - **Impact**: Application cannot connect to Azure PostgreSQL
-  - **Action**: Update `POSTGRES_*` environment variables in [src.bicep](./infra/app/src.bicep)
-  - **Variables needed**: POSTGRES_HOST, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
-  - **Reference**: Azure Flexible Server connection strings
+### Medium Priority
 
-### 🟡 Medium Priority
+- [ ] **Optimize Docker image build**
+  - **Current state**: `src/Dockerfile` is single-stage and installs build tools
+    in the final image.
+  - **Action**: Consider a multi-stage build, smaller runtime image, and improved
+    layer caching.
 
-- [ ] **Docker Image Not Optimized** - No multi-stage build apparent
-  - **Impact**: Larger image sizes, slower deployments
-  - **Action**: Review Dockerfile and optimize:
-    - Multi-stage build
-    - Layer caching optimization
-    - Remove unnecessary dependencies
-  - **File**: `src/Dockerfile`
-  - **Note**: Consider using Oryx buildpacks for optimized builds
+- [ ] **Align logging with Azure runtime expectations**
+  - **Current state**: Django logging exists, including file logging and Azure
+    Monitor initialization when an Application Insights connection string is set.
+  - **Action**: Ensure production logs reach stdout/stderr or Azure Monitor
+    reliably, and document JSON logging expectations.
 
-- [ ] **No Health Check Endpoints** - No documented health/readiness endpoints
-  - **Impact**: Container orchestration may not work properly
-  - **Action**: Add health check endpoints:
-    - `/health` - basic health check
-    - `/ready` - readiness check (DB connectivity, etc.)
-  - **Document**: In deployment section
-  - **Azure**: Configure in Container Apps health probes
+- [ ] **Add monitoring and alert runbook**
+  - **Current state**: Application Insights and Log Analytics infrastructure
+    modules exist.
+  - **Action**: Document alerts, dashboards, log queries, and incident response
+    checks.
 
-- [ ] **Missing Monitoring Setup Documentation** - Azure Application Insights mentioned but not configured
-  - **Impact**: No production monitoring
-  - **Action**: Document and configure:
-    - Application Insights setup (already in infra/shared/monitoring.bicep)
-    - Log aggregation configuration
-    - Alert configuration
-    - Dashboard setup
-    - Custom metrics and traces
+- [ ] **Document backup and recovery procedures**
+  - **Impact**: PostgreSQL recovery steps are not captured in a runbook.
+  - **Action**: Document retention, point-in-time restore, restore testing, and
+    disaster recovery expectations for Azure PostgreSQL Flexible Server.
 
-- [ ] **No Backup and Recovery Procedures** - Database backups not documented
-  - **Impact**: Data loss risk
-  - **Action**: Document:
-    - Azure PostgreSQL Flexible Server backup procedures
-    - Point-in-time restore procedures
-    - Backup retention policy
-    - Disaster recovery plan
+### Low Priority
 
-- [ ] **Azure Port Configuration** - Application port may not match Azure expectations
-  - **Impact**: Application may not be accessible
-  - **Action**: Verify port configuration:
-    - Check if app listens to `PORT` environment variable
-    - Update `targetPort` in bicep files if needed
-    - Test with `azd package` and local Docker run
+- [ ] **Document CDN/static-file strategy**
+  - **Impact**: Static files are served by the app today.
+  - **Action**: Decide whether Azure CDN or Blob Storage is needed for production.
 
-### 🟢 Low Priority
+- [ ] **Document caching strategy**
+  - **Current state**: Production settings include Redis cache configuration with
+    a fallback.
+  - **Action**: Document whether Azure Cache for Redis is required, how to set
+    `REDIS_URL`, and how cache invalidation should work.
 
-- [ ] **No CDN Configuration** - Static files served from app
-  - **Impact**: Slower static file delivery
-  - **Action**: Document Azure CDN or Blob Storage setup for static files
-  - **Azure**: Use Azure CDN with Container Apps
+- [ ] **Document scaling and traffic strategy**
+  - **Impact**: Container Apps scale bounds exist, but operational guidance is
+    thin.
+  - **Action**: Document autoscaling triggers, minimum replicas, traffic
+    splitting, and rollback procedures.
 
-- [ ] **No Caching Strategy Documented** - No Redis or caching documented
-  - **Impact**: Potential performance issues at scale
-  - **Action**: Document caching strategy:
-    - Azure Cache for Redis setup
-    - Cache configuration
-    - Cache invalidation
-    - Integration with Django caching framework
-
-- [ ] **No Load Balancing Configuration** - Single instance deployment
-  - **Impact**: No high availability or load distribution
-  - **Action**: Document Azure Container Apps scaling:
-    - Horizontal Pod Autoscaler configuration
-    - CPU and memory-based scaling
-    - Custom metrics scaling
-    - Traffic splitting for blue-green deployments
-
-- [ ] **No SSL/TLS Certificate Management** - HTTPS configuration unclear
-  - **Impact**: Security and SEO issues
-  - **Action**: Document SSL setup:
-    - Azure Container Apps custom domains
-    - Let's Encrypt certificate automation
-    - Certificate renewal procedures
+- [ ] **Document SSL/TLS and custom-domain management**
+  - **Action**: Document Azure Container Apps custom domains, certificate
+    ownership, renewal, and DNS expectations.
 
 ---
 
 ## Project Organization
 
-### 🔴 Critical
+### Medium Priority
 
-- [ ] **Clean Up Test Directories** - Multiple test directories and files in production code
-  - **Impact**: Bloated deployment, potential confusion
-  - **Action**: 
-    - Remove or consolidate test data
-    - Move test utilities to proper test directories
-  - **Locations**: Various `tests/` subdirectories with READMEs
+- [ ] **Rationalize root test directories**
+  - **Impact**: The repository has `test/`, workflow-driven tests, and
+    application tests under `src/parodynews/tests/`.
+  - **Action**: Document the purpose of each location or consolidate where
+    practical.
 
-### 🟡 Medium Priority
+- [ ] **Document Jekyll integration**
+  - **Impact**: The Django app includes a Jekyll site under `src/pages/`, but the
+    architecture boundary is easy to miss.
+  - **Action**: Document why Jekyll is used, how it is built, and when content
+    belongs in Django versus Jekyll.
 
-- [ ] **Archive Directory Not Documented** - `/archive/` contains old Dockerfiles
-  - **Impact**: Confusion about which files to use
-  - **Action**: 
-    - Document purpose in `archive/README.md`
-    - Consider removing if no longer needed
-  - **Location**: `/archive/`
+### Low Priority
 
-- [ ] **Virtual Environment Committed** - `src/src_env/` appears to be a virtual environment
-  - **Impact**: Unnecessary files in repository
-  - **Action**: 
-    - Remove from repository
-    - Add to .gitignore
-  - **Location**: `src/src_env/`
+- [ ] **Document version management strategy**
+  - **Impact**: `VERSION`, `pyproject.toml`, and changelog files need a clear
+    release relationship.
+  - **Action**: Define when to bump versions, how versions relate to deployments,
+    and where release notes are maintained.
 
-- [x] **Unclear Events Directory** - `/events/` with single event.json file ✅ RESOLVED
-  - **Resolution**: Removed unused AWS Lambda sample data directory (2025-11-26)
-
-### 🟢 Low Priority
-
-- [ ] **Version Management Strategy** - VERSION file exists but no clear versioning strategy
-  - **Impact**: Unclear versioning scheme
-  - **Action**: Document versioning strategy:
-    - Semantic versioning (major.minor.patch)
-    - When to bump versions
-    - How versions relate to deployments
-
-- [ ] **Multiple Configuration Files** - Several config formats (YAML, TOML, JSON)
-  - **Impact**: Maintenance complexity
-  - **Action**: Document why each format is used and when to use each
-
-- [ ] **Jekyll Integration Purpose Unclear** - Jekyll pages in Django app unclear purpose
-  - **Impact**: Confusion about architecture
-  - **Action**: Document:
-    - Why Jekyll is used
-    - How it integrates with Django
-    - When to use Django vs Jekyll for content
+- [ ] **Document configuration file roles**
+  - **Impact**: The project uses YAML, TOML, JSON, Bicep, and requirements files.
+  - **Action**: Document which files are source-of-truth configuration versus
+    generated or environment-specific files.
 
 ---
 
 ## Feature Enhancements
 
-### 🟡 Medium Priority
+### Medium Priority
 
-- [ ] **Add Swagger/OpenAPI Documentation** - REST API needs interactive documentation
-  - **Impact**: Better API discoverability
-  - **Action**: Install drf-spectacular and configure
-  - **Benefit**: Auto-generated, interactive API docs
+- [ ] **Add OpenAPI/Swagger UI**
+  - **Impact**: API discoverability remains limited.
+  - **Action**: Configure schema generation and interactive documentation for the
+    Django REST Framework endpoints.
 
-- [ ] **Add Django Debug Toolbar** - For development debugging
-  - **Impact**: Easier debugging and optimization
-  - **Action**: Install django-debug-toolbar for development
-  - **Benefit**: SQL query inspection, timing information
+- [ ] **Improve Azure-oriented logging**
+  - **Impact**: Logging exists, but production observability should be verified
+    against Azure Container Apps and Application Insights.
+  - **Action**: Prefer structured stdout logging for containers, keep file logs
+    only if there is a clear retention plan, and document expected log fields.
 
-- [ ] **Add Django Extensions** - Useful management commands
-  - **Impact**: Better development experience
-  - **Action**: Already listed in comments, install and configure
-  - **Features**: shell_plus, graph_models, runserver_plus
+### Low Priority
 
-- [ ] **Implement Proper Logging** - Structured logging not configured
-  - **Impact**: Harder to debug production issues
-  - **Action**: Configure Python logging:
-    - Structured JSON logs
-    - Log levels per module
-    - Separate log files by severity
+- [ ] **Document admin actions**
+  - **Impact**: Admin users may not know which bulk actions and custom admin
+    features exist.
+  - **Action**: Add admin interface documentation.
 
-### 🟢 Low Priority
+- [ ] **Document management commands**
+  - **Impact**: Custom Django commands are discoverable only by reading source.
+  - **Action**: Document commands under `src/parodynews/management/commands/`
+    and `src/setup/management/commands/`.
 
-- [ ] **Add Admin Actions Documentation** - Custom admin actions not documented
-  - **Impact**: Admins don't know available bulk actions
-  - **Action**: Document admin interface features
+- [ ] **Add webhook support**
+  - **Impact**: Integration capabilities remain limited.
+  - **Action**: Add webhook handlers for GitHub events, OpenAI callbacks, or
+    other third-party integrations when product requirements are defined.
 
-- [ ] **Add Management Commands Documentation** - Custom commands exist but undocumented
-  - **Impact**: Developers don't know available commands
-  - **Action**: Document all custom management commands
-  - **Location**: `src/parodynews/management/commands/`
+- [ ] **Add HTML email templates**
+  - **Impact**: Plain text email output is less polished for production use.
+  - **Action**: Add responsive HTML templates with text fallbacks.
 
-- [ ] **Add Webhooks** - For GitHub and other integrations
-  - **Impact**: Limited integration capabilities
-  - **Action**: Add webhook handlers for:
-    - GitHub events
-    - OpenAI callbacks
-    - Other third-party integrations
+- [ ] **Add Celery for background tasks**
+  - **Impact**: Long-running work can block request/response flows.
+  - **Action**: Add Celery and Redis for AI content generation, email delivery,
+    report generation, or other slow tasks once workload justifies it.
 
-- [ ] **Add Email Templates** - Plain text emails only
-  - **Impact**: Less professional appearance
-  - **Action**: Create HTML email templates with inline CSS
+---
 
-- [ ] **Add Celery for Background Tasks** - Long-running tasks block requests
-  - **Impact**: Poor user experience for slow operations
-  - **Action**: Add Celery + Redis for:
-    - AI content generation
-    - Email sending
-    - Report generation
+## Resolved Since Previous Review
+
+- [x] **Created root `.env.example`**
+  - **Evidence**: `.env.example` exists and includes Django, database, Docker,
+    Azure, OpenAI, email, Jekyll, E2E, and production variables.
+
+- [x] **Split Django settings by environment**
+  - **Evidence**: `src/barodybroject/settings/base.py`, `development.py`,
+    `production.py`, and `testing.py` exist.
+
+- [x] **Tracked Django migration files**
+  - **Evidence**: `src/parodynews/migrations/0001_initial.py` exists and
+    `.gitignore` no longer ignores `src/parodynews/migrations/0*`.
+
+- [x] **Added GitHub Actions workflows**
+  - **Evidence**: `.github/workflows/ci.yml`, `quality.yml`, `container.yml`,
+    `infrastructure-test.yml`, and `azure-dev.yml` exist.
+
+- [x] **Added automated testing workflow**
+  - **Evidence**: CI runs Django checks, migrations, pytest, Docker Compose
+    validation, and infrastructure tests.
+
+- [x] **Added security scanning workflows**
+  - **Evidence**: Quality/container workflows include Bandit, Safety,
+    pip-audit, Trivy, and a secrets scan.
+
+- [x] **Added container image scanning**
+  - **Evidence**: Trivy runs in both quality/container-related workflows.
+
+- [x] **Created changelog files**
+  - **Evidence**: Root `CHANGELOG.md` and `docs/changelog/CHANGELOG.md` exist.
+
+- [x] **Removed `src/parodynews/foobar/` test code directory**
+  - **Evidence**: No `src/parodynews/foobar/` directory was found.
+
+- [x] **Removed committed `src/src_env/` virtual environment**
+  - **Evidence**: No `src/src_env/` directory was found, and `.gitignore`
+    covers common virtual environment patterns.
+
+- [x] **Resolved root archive directory concern**
+  - **Evidence**: No root `/archive/` directory was found. Archived workflow
+    material is under `.github/workflows/archive/` with a README.
+
+- [x] **Configured DRF throttling defaults**
+  - **Evidence**: `REST_FRAMEWORK` includes anonymous and user throttles in
+    `src/barodybroject/settings/base.py`.
+
+- [x] **Added optional Django Debug Toolbar configuration**
+  - **Evidence**: `ENABLE_DEBUG_TOOLBAR` support exists in settings and docs.
+
+- [x] **Added django-extensions dependency**
+  - **Evidence**: `django-extensions` is listed in `requirements-dev.txt` and
+    `pyproject.toml` optional monitoring dependencies.
+
+- [x] **Added baseline logging configuration**
+  - **Evidence**: `LOGGING` is configured in `src/barodybroject/settings/base.py`.
+
+- [x] **Verified Azure/Docker port alignment**
+  - **Evidence**: `src/Dockerfile` exposes `8000`, and `infra/app/src.bicep`
+    uses `targetPort: 8000`.
 
 ---
 
 ## Priority Summary
 
-### Immediate Actions (Do First)
-1. **Complete Azure deployment**: Run `azd up` and configure environment variables
-2. **Setup Azure CI/CD pipeline**: Use GitHub Actions starter and run `azd pipeline config`
-3. Fix license inconsistency
-4. Create .env.example file
-5. Remove/clean up test code from production (foobar directory)
-6. Configure PostgreSQL connection variables in Azure
+### Immediate Actions
 
-### Short Term (Next Sprint)
-1. Add SECURITY.md
-2. Setup GitHub Actions for CI/CD (non-Azure workflows)
-3. Add pre-commit hooks
-4. Setup automated testing pipeline
-5. Create CHANGELOG.md and CODE_OF_CONDUCT.md
-6. Add security scanning to CI
-7. Configure Azure monitoring and alerts
+1. Remove the insecure Azure `SECRET_KEY` fallback and correct production flags.
+2. Verify Azure deployment state and Azure workflow secrets/variables.
+3. Fix the license inconsistency between `LICENSE` and `pyproject.toml`.
+4. Add root `SECURITY.md` and `CODE_OF_CONDUCT.md`.
+5. Add Dependabot and pre-commit configuration.
+6. Add or configure stable health/readiness/liveness probes.
 
-### Medium Term (Next Month)
-1. Document production configuration and deployment procedures
-2. Setup test coverage reporting
-3. API documentation with Swagger
-4. Consolidate scattered documentation
-5. Add monitoring and logging documentation
-6. Implement rate limiting
-7. Optimize Docker images and Azure container configuration
+### Short Term
 
-### Long Term (Future Releases)
-1. Add performance testing
-2. Implement caching strategy with Azure Cache for Redis
-3. Add Celery for background tasks
-4. Create architecture diagrams
-5. Enhance email templates
-6. Add webhook support
-7. Setup Azure CDN and advanced scaling
+1. Add OpenAPI/Swagger documentation.
+2. Add explicit Bicep validation to CI.
+3. Set coverage thresholds and publish coverage output.
+4. Consolidate development and deployment runbooks.
+5. Document production monitoring, alerts, backups, and restore procedures.
+6. Review scanner failure behavior and document security gates.
+
+### Medium Term
+
+1. Optimize the Docker image build.
+2. Document Jekyll integration and root test directory organization.
+3. Add architecture diagrams and keep schema docs generated/current.
+4. Add accessibility and performance/load testing.
+5. Document CDN, cache, scaling, SSL/TLS, and custom-domain strategies.
+
+### Long Term
+
+1. Add Celery and Redis-backed background tasks when workload requires it.
+2. Add webhook support for external integrations.
+3. Improve email templates with HTML and text alternatives.
+4. Add release automation or a documented release checklist.
+5. Continue reducing duplicated or stale documentation.
 
 ---
 
 ## Contributing to This TODO
 
-This TODO is a living document. If you identify additional issues or complete items:
+This TODO is a living document. When you complete an item or discover a new one:
 
-1. Update this file with your changes
-2. Move completed items to CHANGELOG.md
-3. Add new issues as they're discovered
-4. Update priorities as project needs change
+1. Update this file with the current status.
+2. Move completed work into the resolved section with evidence.
+3. Add new issues with impact, action, and file references.
+4. Update priorities as project needs change.
+5. Keep dates current during each review.
 
-**Note**: This document consolidates information from the previous `next-steps.md` file (generated by `azd init`) to provide a comprehensive project roadmap.
-
-**Last Review**: October 26, 2025  
-**Next Review**: November 2025
-
+**Note**: This document originally consolidated information from the Azure
+Developer CLI `next-steps.md` output and the previous project roadmap.
