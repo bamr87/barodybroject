@@ -69,4 +69,3 @@ def delete_schema(request, pk):
         messages.success(request, "Schema deleted successfully.")
         return redirect("list_schemas")
     return redirect("list_schemas")
-

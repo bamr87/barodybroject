@@ -185,4 +185,3 @@ def openai_list_messages(client, thread_id):
         for message in thread_messages
     ]
     return formatted_messages
-

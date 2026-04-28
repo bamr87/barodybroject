@@ -17,20 +17,17 @@ from django.urls import path
 
 from setup import views
 
-app_name = 'setup'
+app_name = "setup"
 
 urlpatterns = [
     # Main setup wizard entry point
-    path('', views.SetupWizardView.as_view(), name='wizard'),
-    
+    path("", views.SetupWizardView.as_view(), name="wizard"),
     # Admin user creation
-    path('create-admin/', views.CreateAdminView.as_view(), name='create_admin'),
-    
+    path("create-admin/", views.CreateAdminView.as_view(), name="create_admin"),
     # Setup status and health endpoints
-    path('status/', views.SetupStatusView.as_view(), name='status'),
-    path('health/', views.SetupHealthCheckView.as_view(), name='health'),
-    
+    path("status/", views.SetupStatusView.as_view(), name="status"),
+    path("health/", views.SetupHealthCheckView.as_view(), name="health"),
     # Completion and redirect views
-    path('complete/', views.CompletionView.as_view(), name='completion'),
-    path('redirect/', views.SetupRedirectView.as_view(), name='redirect'),
+    path("complete/", views.CompletionView.as_view(), name="completion"),
+    path("redirect/", views.SetupRedirectView.as_view(), name="redirect"),
 ]

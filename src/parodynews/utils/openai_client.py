@@ -24,4 +24,3 @@ def load_openai_client(client):
         The validated OpenAI client instance
     """
     return client
-

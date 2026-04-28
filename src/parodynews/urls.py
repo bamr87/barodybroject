@@ -5,13 +5,30 @@ from django.urls import include, path
 from rest_framework import routers
 
 from .views import (
-    AssistantGroupViewSet, AssistantViewSet, ContentDetailViewSet,
-    ContentItemViewSet, FooterView, JSONSchemaViewSet,
-    ManageAssistantGroupsView, ManageAssistantsView, ManageContentView,
-    ManageMessageView, ManagePostView, MessageViewSet,
-    PostFrontMatterViewSet, PostViewSet, PoweredByViewSet,
-    ProcessContentView, ThreadViewSet, create_schema, delete_schema,
-    edit_schema, export_schema, get_assistant_details, list_schemas)
+    AssistantGroupViewSet,
+    AssistantViewSet,
+    ContentDetailViewSet,
+    ContentItemViewSet,
+    FooterView,
+    JSONSchemaViewSet,
+    ManageAssistantGroupsView,
+    ManageAssistantsView,
+    ManageContentView,
+    ManageMessageView,
+    ManagePostView,
+    MessageViewSet,
+    PostFrontMatterViewSet,
+    PostViewSet,
+    PoweredByViewSet,
+    ProcessContentView,
+    ThreadViewSet,
+    create_schema,
+    delete_schema,
+    edit_schema,
+    export_schema,
+    get_assistant_details,
+    list_schemas,
+)
 
 router = routers.DefaultRouter()
 # Register the viewsets

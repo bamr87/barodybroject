@@ -32,9 +32,16 @@ def browser_context_args(e2e_base_url: str) -> dict:
 
 
 @pytest.fixture
-def logged_in_page(page: Page, e2e_base_url: str, e2e_credentials: dict[str, str]) -> Page:
+def logged_in_page(
+    page: Page, e2e_base_url: str, e2e_credentials: dict[str, str]
+) -> Page:
     # Allauth is configured for email-based authentication.
-    ok = login_user(page, e2e_credentials["email"], e2e_credentials["password"], base_url=e2e_base_url)
+    ok = login_user(
+        page,
+        e2e_credentials["email"],
+        e2e_credentials["password"],
+        base_url=e2e_base_url,
+    )
     assert ok, (
         "E2E login failed. Ensure the user exists (recommended: run "
         "`python src/manage.py ensure_e2e_user`)."

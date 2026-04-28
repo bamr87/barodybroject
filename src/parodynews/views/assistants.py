@@ -275,4 +275,3 @@ class ManageAssistantGroupsView(LoginRequiredMixin, ModelFieldsMixin, View):
         assistant_group.delete()
         messages.success(request, "Assistant Group deleted successfully.")
         return redirect("manage_assistant_groups")
-

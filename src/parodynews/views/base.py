@@ -40,4 +40,3 @@ class UserLoginView(LoginView):
 def index(request):
     """Home page view function."""
     return render(request, "parodynews/index.html", {})
-

@@ -6,7 +6,7 @@ command=${1:-lint}
 case "$command" in
   lint)
     black --check --diff src/
-    isort --check-only --diff src/
+    isort --profile=black --check-only --diff src/
     ruff check src/
     flake8 src/ --max-line-length=88 --extend-ignore=E203,W503
     bandit -r src/ -f json -o bandit-report.json || true

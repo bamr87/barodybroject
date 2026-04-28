@@ -23,11 +23,11 @@ from django.utils import timezone
 
 class Thread(models.Model):
     """Conversation thread for multi-turn content generation.
-    
+
     Represents a persistent conversation context for interacting with
     assistant groups. Threads maintain conversation history and can be
     associated with users and assistant groups.
-    
+
     Attributes:
         id (str): Unique thread identifier (primary key, max 255 chars)
         name (str): Human-readable thread name (default: 'New Thread', max 100 chars)
@@ -37,7 +37,7 @@ class Thread(models.Model):
         user (User): User who owns this thread
         messages (RelatedManager): Messages in this thread (reverse relation)
         posts (RelatedManager): Posts generated from this thread (reverse relation)
-    
+
     Examples:
         >>> from parodynews.models import Thread, AssistantGroup
         >>> from django.contrib.auth.models import User
@@ -52,17 +52,18 @@ class Thread(models.Model):
         ... )
         >>> print(thread.get_display_fields())
         ['name', 'description', 'assistant_group', 'created_at']
-    
+
     Note:
         Thread IDs should be unique and descriptive. Consider using prefixes
         like 'thread_' for clarity.
     """
+
     id = models.CharField(max_length=255, primary_key=True)
     name = models.CharField(max_length=100, default="New Thread")
     description = models.TextField(blank=True)
 
     assistant_group = models.ForeignKey(
-        'parodynews.AssistantGroup',
+        "parodynews.AssistantGroup",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -74,18 +75,18 @@ class Thread(models.Model):
     )
 
     class Meta:
-        app_label = 'parodynews'
-        verbose_name = 'Thread'
-        verbose_name_plural = 'Threads'
-        ordering = ['-created_at']
+        app_label = "parodynews"
+        verbose_name = "Thread"
+        verbose_name_plural = "Threads"
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['-created_at']),
-            models.Index(fields=['user']),
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["user"]),
         ]
 
     def get_display_fields(self):
         """Return list of fields to display in admin and list views.
-        
+
         Returns:
             list: Field names ['name', 'description', 'assistant_group', 'created_at']
         """
@@ -93,7 +94,7 @@ class Thread(models.Model):
 
     def __str__(self):
         """Return the thread name.
-        
+
         Returns:
             str: The name field value
         """
@@ -102,10 +103,10 @@ class Thread(models.Model):
 
 class Message(models.Model):
     """Individual message in a conversation thread.
-    
+
     Represents a single message exchange in an OpenAI conversation thread.
     Messages track the assistant used, content generated, and processing status.
-    
+
     Attributes:
         id (str): Unique message identifier (primary key, max 255 chars)
         created_at (datetime): Timestamp when message was created
@@ -115,7 +116,7 @@ class Message(models.Model):
         status (str): Processing status (default: 'initial', max 100 chars)
         run_id (str): OpenAI run ID for tracking API execution (max 255 chars)
         posts (RelatedManager): Posts created from this message (reverse relation)
-    
+
     Examples:
         >>> from parodynews.models import Message, Thread, Assistant, ContentItem
         >>> thread = Thread.objects.get(name="Cat Independence Article")
@@ -133,22 +134,23 @@ class Message(models.Model):
         completed
         >>> print(message.get_display_fields())
         ['contentitem', 'assistant', 'created_at', 'status']
-    
+
     Status Values:
         - initial: Message created but not processed
         - queued: Message queued for processing
         - in_progress: Currently being processed
         - completed: Successfully processed
         - failed: Processing failed
-    
+
     See Also:
         https://platform.openai.com/docs/api-reference/messages
     """
+
     id = models.CharField(max_length=255, primary_key=True)
 
     created_at = models.DateTimeField(default=timezone.now)
     contentitem = models.ForeignKey(
-        'parodynews.ContentItem',
+        "parodynews.ContentItem",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -158,7 +160,7 @@ class Message(models.Model):
         Thread, on_delete=models.SET_NULL, null=True, related_name="messages"
     )
     assistant = models.ForeignKey(
-        'parodynews.Assistant',
+        "parodynews.Assistant",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -168,19 +170,19 @@ class Message(models.Model):
     run_id = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
-        app_label = 'parodynews'
-        verbose_name = 'Message'
-        verbose_name_plural = 'Messages'
-        ordering = ['-created_at']
+        app_label = "parodynews"
+        verbose_name = "Message"
+        verbose_name_plural = "Messages"
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['-created_at']),
-            models.Index(fields=['thread', '-created_at']),
-            models.Index(fields=['status']),
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["thread", "-created_at"]),
+            models.Index(fields=["status"]),
         ]
 
     def get_display_fields(self):
         """Return list of fields to display in admin and list views.
-        
+
         Returns:
             list: Field names ['contentitem', 'assistant', 'created_at', 'status']
         """
@@ -188,9 +190,8 @@ class Message(models.Model):
 
     def __str__(self):
         """Return the message ID.
-        
+
         Returns:
             str: The id field value
         """
         return self.id
-

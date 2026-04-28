@@ -28,7 +28,9 @@ class Command(BaseCommand):
     help = "Create/update an E2E user for Playwright login."
 
     def add_arguments(self, parser):
-        parser.add_argument("--username", default=os.environ.get("E2E_USERNAME", "e2e_user"))
+        parser.add_argument(
+            "--username", default=os.environ.get("E2E_USERNAME", "e2e_user")
+        )
         parser.add_argument(
             "--email",
             default=os.environ.get("E2E_EMAIL", "e2e_user@example.com"),
@@ -50,7 +52,9 @@ class Command(BaseCommand):
             )
 
         User = get_user_model()
-        user, created = User.objects.get_or_create(username=username, defaults={"email": email})
+        user, created = User.objects.get_or_create(
+            username=username, defaults={"email": email}
+        )
         changed = False
 
         if user.email != email:

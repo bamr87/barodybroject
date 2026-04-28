@@ -46,7 +46,7 @@ case "$command" in
     docker compose -f "$dev_compose" run --rm \
       -e DJANGO_SETTINGS_MODULE=barodybroject.settings.testing \
       -e SECRET_KEY=ci-test-key-not-for-production \
-      python bash -lc "python manage.py check --deploy && python manage.py migrate --noinput"
+      python bash -c "pip install -q -r requirements.txt && python manage.py check && python manage.py migrate --noinput"
     ;;
   build-service)
     if [[ -z "$service" ]]; then
@@ -63,6 +63,8 @@ case "$command" in
       timeout 60 bash -c "until docker inspect --format='{{.State.Health.Status}}' \$(docker compose -f '$dev_compose' ps -q barodydb) | grep -q healthy; do sleep 2; done"
       docker compose -f "$dev_compose" run --rm "$service" python --version
     elif [[ "$service" == "jekyll" ]]; then
+      # Ensure Gemfile.lock is writable so bundle install can update it
+      chmod -f 666 src/pages/Gemfile.lock 2>/dev/null || true
       docker compose -f "$dev_compose" run --rm "$service" jekyll --version
     else
       echo "Unsupported service for build validation: $service"

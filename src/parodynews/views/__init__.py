@@ -12,28 +12,6 @@ Dependencies:
 Usage: from parodynews.views.base import index
 """
 
-# Base views
-from .base import FooterView, UserLoginView, index
-
-# Content management views
-from .content import ManageContentView
-
-# Thread and message views
-from .threads import ManageMessageView, ProcessContentView
-
-# Assistant management views
-from .assistants import (
-    ManageAssistantGroupsView,
-    ManageAssistantsView,
-    get_assistant_details,
-)
-
-# Post management views
-from .posts import ManagePostView, push_to_github_and_create_pr
-
-# Schema management views
-from .schemas import create_schema, delete_schema, edit_schema, export_schema, list_schemas
-
 # REST API ViewSets
 from .api import (
     AssistantGroupViewSet,
@@ -47,6 +25,34 @@ from .api import (
     PoweredByViewSet,
     ThreadViewSet,
 )
+
+# Assistant management views
+from .assistants import (
+    ManageAssistantGroupsView,
+    ManageAssistantsView,
+    get_assistant_details,
+)
+
+# Base views
+from .base import FooterView, UserLoginView, index
+
+# Content management views
+from .content import ManageContentView
+
+# Post management views
+from .posts import ManagePostView, push_to_github_and_create_pr
+
+# Schema management views
+from .schemas import (
+    create_schema,
+    delete_schema,
+    edit_schema,
+    export_schema,
+    list_schemas,
+)
+
+# Thread and message views
+from .threads import ManageMessageView, ProcessContentView
 
 # Utility views and functions
 from .utils import post_detail, send_welcome_email
@@ -89,4 +95,3 @@ __all__ = [
     "post_detail",
     "send_welcome_email",
 ]
-

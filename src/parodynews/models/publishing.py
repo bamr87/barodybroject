@@ -23,14 +23,14 @@ from martor.models import MartorField
 
 class PostPageConfigModel(models.Model):
     """Configuration for post pagination settings.
-    
+
     Manages pagination settings for different post namespaces, allowing
     customized page sizes for different sections or post types.
-    
+
     Attributes:
         namespace (str): Unique identifier for this config (max 255 chars, unique)
         paginated_by (int): Number of posts per page (default: 5)
-    
+
     Examples:
         >>> from parodynews.models import PostPageConfigModel
         >>> config = PostPageConfigModel.objects.create(
@@ -43,11 +43,12 @@ class PostPageConfigModel(models.Model):
         ... )
         >>> print(config.namespace)
         news
-    
+
     Note:
         Namespace must be unique. Use descriptive names that match your
         post categories or sections (e.g., 'news', 'blog', 'articles').
     """
+
     namespace = models.CharField(
         _("instance namespace"), default=None, max_length=255, unique=True
     )
@@ -55,9 +56,9 @@ class PostPageConfigModel(models.Model):
     paginated_by = models.IntegerField(_("paginate size"), blank=False, default=5)
 
     class Meta:
-        app_label = 'parodynews'
-        verbose_name = 'Post Page Config'
-        verbose_name_plural = 'Post Page Configs'
+        app_label = "parodynews"
+        verbose_name = "Post Page Config"
+        verbose_name_plural = "Post Page Configs"
 
     def __str__(self):
         return f"{self.namespace} ({self.paginated_by} per page)"
@@ -65,11 +66,11 @@ class PostPageConfigModel(models.Model):
 
 class Post(models.Model):
     """Published content post with markdown support.
-    
+
     Represents a complete, publishable post with content, metadata, and
     relationships to content generation components. Supports markdown
     formatting via Martor field.
-    
+
     Attributes:
         content_detail (ContentDetail): Metadata for this post
         thread (Thread): Conversation thread that generated this post
@@ -82,7 +83,7 @@ class Post(models.Model):
         status (str): Publication status (default: 'draft', max 100 chars)
         postfrontmatter (PostFrontMatter): Front matter metadata for this post
         user (User): User who owns this post
-    
+
     Examples:
         >>> from parodynews.models import Post, ContentDetail, Assistant
         >>> from django.contrib.auth.models import User
@@ -101,29 +102,36 @@ class Post(models.Model):
         /post/1/
         >>> print(post.get_display_fields())
         ['id', 'content_detail', 'thread', 'message', 'assistant', 'created_at', 'status']
-    
+
     Status Values:
         - draft: Not published, work in progress
         - review: Ready for review
         - published: Publicly visible
         - archived: No longer active but preserved
-    
+
     Note:
         updated_at is automatically set on every save(). The MartorField
         provides a rich markdown editor in the Django admin.
     """
+
     content_detail = models.ForeignKey(
-        'parodynews.ContentDetail', on_delete=models.SET_NULL, null=True, related_name="posts"
+        "parodynews.ContentDetail",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="posts",
     )
     thread = models.ForeignKey(
-        'parodynews.Thread', on_delete=models.SET_NULL, null=True, related_name="posts"
+        "parodynews.Thread", on_delete=models.SET_NULL, null=True, related_name="posts"
     )
     message = models.ForeignKey(
-        'parodynews.Message', on_delete=models.SET_NULL, null=True, related_name="posts"
+        "parodynews.Message", on_delete=models.SET_NULL, null=True, related_name="posts"
     )
     post_content = MartorField()
     assistant = models.ForeignKey(
-        'parodynews.Assistant', on_delete=models.SET_NULL, null=True, related_name="posts"
+        "parodynews.Assistant",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="posts",
     )
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -141,19 +149,19 @@ class Post(models.Model):
     )
 
     class Meta:
-        app_label = 'parodynews'
-        verbose_name = 'Post'
-        verbose_name_plural = 'Posts'
-        ordering = ['-created_at']
+        app_label = "parodynews"
+        verbose_name = "Post"
+        verbose_name_plural = "Posts"
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['-created_at']),
-            models.Index(fields=['status']),
-            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["status"]),
+            models.Index(fields=["user", "-created_at"]),
         ]
 
     def get_display_fields(self):
         """Return list of fields to display in admin and list views.
-        
+
         Returns:
             list: Field names for display
         """
@@ -169,7 +177,7 @@ class Post(models.Model):
 
     def get_absolute_url(self):
         """Return the canonical URL for this post.
-        
+
         Returns:
             str: URL path to post detail view
         """
@@ -177,7 +185,7 @@ class Post(models.Model):
 
     def __str__(self):
         """Return the post title from content_detail.
-        
+
         Returns:
             str: The title from the related ContentDetail
         """
@@ -188,10 +196,10 @@ class Post(models.Model):
 
 class PostFrontMatter(models.Model):
     """YAML front matter metadata for post export.
-    
+
     Stores metadata that will be included as YAML front matter when
     exporting posts to markdown files (Jekyll, Hugo, etc.).
-    
+
     Attributes:
         post (Post): One-to-one relationship to parent post
         title (str): Post title for front matter (max 255 chars)
@@ -199,7 +207,7 @@ class PostFrontMatter(models.Model):
         author (str): Author name (max 100 chars)
         published_at (datetime): Publication date (default: now)
         slug (str): URL slug (max 255 chars, non-unique)
-    
+
     Examples:
         >>> from parodynews.models import Post, PostFrontMatter
         >>> post = Post.objects.first()
@@ -214,7 +222,7 @@ class PostFrontMatter(models.Model):
         Cat Independence Day
         >>> print(frontmatter.get_display_fields())
         ['post', 'title', 'author', 'published_at', 'slug']
-    
+
     YAML Output Format:
         ---
         title: "Cat Independence Day"
@@ -223,11 +231,12 @@ class PostFrontMatter(models.Model):
         date: "2024-01-15 10:30:00"
         slug: "cat-independence-day"
         ---
-    
+
     Note:
         One-to-one relationship with Post ensures each post has at most
         one front matter configuration.
     """
+
     post = models.OneToOneField(
         Post, on_delete=models.CASCADE, related_name="front_matter"
     )
@@ -238,13 +247,13 @@ class PostFrontMatter(models.Model):
     slug = models.SlugField(max_length=255, unique=False, default="slug")
 
     class Meta:
-        app_label = 'parodynews'
-        verbose_name = 'Post Front Matter'
-        verbose_name_plural = 'Post Front Matters'
+        app_label = "parodynews"
+        verbose_name = "Post Front Matter"
+        verbose_name_plural = "Post Front Matters"
 
     def get_display_fields(self):
         """Return list of fields to display in admin and list views.
-        
+
         Returns:
             list: Field names ['post', 'title', 'author', 'published_at', 'slug']
         """
@@ -252,7 +261,7 @@ class PostFrontMatter(models.Model):
 
     def __str__(self):
         """Return the front matter title.
-        
+
         Returns:
             str: The title field value
         """
@@ -261,17 +270,17 @@ class PostFrontMatter(models.Model):
 
 class PostVersion(models.Model):
     """Version history for posts.
-    
+
     Tracks changes to post content and front matter over time, allowing
     rollback and audit trail functionality.
-    
+
     Attributes:
         post (Post): Foreign key to the parent post
         version_number (int): Sequential version number
         content (str): Post content at this version
         created_at (datetime): Timestamp when version was created
         frontmatter (str): Front matter at this version (JSON or YAML string)
-    
+
     Examples:
         >>> from parodynews.models import Post, PostVersion
         >>> post = Post.objects.first()
@@ -284,6 +293,7 @@ class PostVersion(models.Model):
         >>> print(version)
         Version 1 of Post 1
     """
+
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="versions")
     version_number = models.PositiveIntegerField()
     content = models.TextField()
@@ -291,15 +301,14 @@ class PostVersion(models.Model):
     frontmatter = models.TextField()
 
     class Meta:
-        app_label = 'parodynews'
-        verbose_name = 'Post Version'
-        verbose_name_plural = 'Post Versions'
-        ordering = ['post', '-version_number']
-        unique_together = [['post', 'version_number']]
+        app_label = "parodynews"
+        verbose_name = "Post Version"
+        verbose_name_plural = "Post Versions"
+        ordering = ["post", "-version_number"]
+        unique_together = [["post", "version_number"]]
         indexes = [
-            models.Index(fields=['post', '-version_number']),
+            models.Index(fields=["post", "-version_number"]),
         ]
 
     def __str__(self):
         return f"Version {self.version_number} of Post {self.post.id}"
-

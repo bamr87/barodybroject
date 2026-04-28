@@ -13,12 +13,6 @@ Dependencies:
 Usage: import from parodynews.utils.<module>
 """
 
-# Configuration utilities
-from .config import get_config_value, get_openai_client, table_exists_and_fields_populated
-
-# OpenAI client utilities
-from .openai_client import load_openai_client
-
 # Assistant management utilities
 from .assistants import (
     create_or_update_assistant,
@@ -30,17 +24,15 @@ from .assistants import (
     save_assistant,
 )
 
+# Configuration utilities
+from .config import (
+    get_config_value,
+    get_openai_client,
+    table_exists_and_fields_populated,
+)
+
 # Content generation utilities
 from .content import generate_content, generate_content_detail
-
-# Thread and message utilities
-from .threads import create_run, openai_create_message, openai_delete_message, openai_list_messages
-
-# Schema utilities
-from .schemas import load_schemas, resolve_refs
-
-# Markdown utilities
-from .markdown import generate_markdown_file, json_to_markdown
 
 # Defaults utilities
 from .defaults import (
@@ -52,6 +44,23 @@ from .defaults import (
 
 # Keep dkim_backend accessible
 from .dkim_backend import DKIMEmailBackend
+
+# Markdown utilities
+from .markdown import generate_markdown_file, json_to_markdown
+
+# OpenAI client utilities
+from .openai_client import load_openai_client
+
+# Schema utilities
+from .schemas import load_schemas, resolve_refs
+
+# Thread and message utilities
+from .threads import (
+    create_run,
+    openai_create_message,
+    openai_delete_message,
+    openai_list_messages,
+)
 
 __all__ = [
     # Config
@@ -89,4 +98,3 @@ __all__ = [
     "generate_unique_id",
     "DKIMEmailBackend",
 ]
-

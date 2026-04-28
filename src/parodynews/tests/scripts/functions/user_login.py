@@ -20,7 +20,9 @@ from urllib.parse import urlparse
 from playwright.sync_api import Page
 
 
-def login_user(page: Page, username: str, password: str, *, base_url: str = "http://localhost:8000") -> bool:
+def login_user(
+    page: Page, username: str, password: str, *, base_url: str = "http://localhost:8000"
+) -> bool:
     """
     Performs the login process using Playwright.
     Returns True if the login was successful, False otherwise.

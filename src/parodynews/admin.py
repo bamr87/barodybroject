@@ -109,7 +109,9 @@ class AssistantAdmin(ImportExportModelAdmin):
             # Fetch assistants from OpenAI API
             response = client.beta.assistants.list(limit="100")
 
-            for assistant_data in (
+            for (
+                assistant_data
+            ) in (
                 response.data
             ):  # Changed from response.get('data', []) to response.data
                 assistant_id = (

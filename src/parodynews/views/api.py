@@ -120,4 +120,3 @@ class PoweredByViewSet(viewsets.ModelViewSet):
 
     queryset = PoweredBy.objects.all()
     serializer_class = PoweredBySerializer
-

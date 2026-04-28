@@ -200,4 +200,3 @@ def run_assistant(assistant, input_content):
     )
     output_content = response.choices[0].message.content
     return output_content
-

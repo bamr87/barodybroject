@@ -125,4 +125,3 @@ def generate_content_detail(client, content):
     logging.info("Response: %s", data)
 
     return data
-

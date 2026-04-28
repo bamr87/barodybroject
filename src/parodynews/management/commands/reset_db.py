@@ -36,4 +36,8 @@ class Command(BaseCommand):
         self.stdout.write("Flushing all data (this is destructive)...")
         call_command("flush", interactive=False, verbosity=kwargs.get("verbosity", 1))
 
-        self.stdout.write(self.style.SUCCESS("Database reset complete (schema preserved, data cleared)."))
+        self.stdout.write(
+            self.style.SUCCESS(
+                "Database reset complete (schema preserved, data cleared)."
+            )
+        )

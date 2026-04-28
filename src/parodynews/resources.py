@@ -1,6 +1,7 @@
 # resources.py
 from import_export import resources
-from .models import Assistant, JSONSchema, Post, OpenAIModel
+
+from .models import Assistant, JSONSchema, OpenAIModel, Post
 
 
 class AssistantResource(resources.ModelResource):

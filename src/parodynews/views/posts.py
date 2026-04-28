@@ -177,6 +177,7 @@ class ManagePostView(LoginRequiredMixin, ModelFieldsMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         from django.shortcuts import get_object_or_404
+
         context = super().get_context_data(**kwargs)
         post_id = self.kwargs.get("post_id")
         post = get_object_or_404(Post, id=post_id)
@@ -247,4 +248,3 @@ def push_to_github_and_create_pr(post, post_version, app_config):
         base=base_branch,
     )
     return pr.html_url
-

@@ -1,9 +1,11 @@
 import datetime
-from django.core.management.base import BaseCommand
+
 from django.apps import apps
-from parodynews.models import FieldDefaults
-from django.db.models import NOT_PROVIDED
+from django.core.management.base import BaseCommand
 from django.db import models  # Needed for type checking
+from django.db.models import NOT_PROVIDED
+
+from parodynews.models import FieldDefaults
 
 
 def make_json_serializable(obj):

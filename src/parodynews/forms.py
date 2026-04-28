@@ -114,17 +114,17 @@ class AssistantForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             # self.fields['assistant_group_memberships'].queryset = memberships
-            self.fields[
-                "assistant_group_memberships"
-            ].queryset = AssistantGroup.objects.filter(
-                assistantgroupmembership__assistants=self.instance
+            self.fields["assistant_group_memberships"].queryset = (
+                AssistantGroup.objects.filter(
+                    assistantgroupmembership__assistants=self.instance
+                )
             )
 
         else:
             # No memberships for new assistants
-            self.fields[
-                "assistant_group_memberships"
-            ].queryset = AssistantGroup.objects.all()
+            self.fields["assistant_group_memberships"].queryset = (
+                AssistantGroup.objects.all()
+            )
 
 
 class AssistantGroupMembershipForm(forms.ModelForm):

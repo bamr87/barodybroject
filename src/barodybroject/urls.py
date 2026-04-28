@@ -29,7 +29,6 @@ router = routers.DefaultRouter()
 urlpatterns = [
     # Installation wizard (must be first to handle redirects properly)
     path("setup/", include("setup.urls")),
-    
     # Home page and admin page
     path("", TemplateView.as_view(template_name="index.html")),
     path("accounts/", include("allauth.urls")),

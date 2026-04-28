@@ -69,4 +69,3 @@ def load_schemas():
         pass
 
     return schemas
-

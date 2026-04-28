@@ -12,9 +12,10 @@ Dependencies:
 Usage: {% load custom_filters %}
 """
 
-from django import template
 import ast
 import json
+
+from django import template
 
 register = template.Library()
 
@@ -24,7 +25,7 @@ register = template.Library()
 def get_field_value(instance, field_name):
     """
     Dynamically access a field value from a model instance
-    
+
     Usage: {{ object|get_field_value:"field_name" }}
     """
     try:
@@ -38,7 +39,7 @@ def get_field_value(instance, field_name):
 def truncate_chars(value, max_length):
     """
     Truncate string to specified length with ellipsis
-    
+
     Usage: {{ text|truncate_chars:100 }}
     Note: Django provides built-in truncatechars filter - consider using that instead
     """
@@ -52,7 +53,7 @@ def truncate_chars(value, max_length):
 def dict_to_text_list(value):
     """
     Convert dictionary or JSON string to formatted text list
-    
+
     Usage: {{ data|dict_to_text_list }}
     Security: Fixed to use json.loads instead of ast.literal_eval
     """
@@ -76,26 +77,26 @@ def dict_to_text_list(value):
     return value
 
 
-@register.inclusion_tag('includes/status_badge.html')
+@register.inclusion_tag("includes/status_badge.html")
 def status_badge(status, label=None):
     """
     Render a status badge with appropriate styling
-    
+
     Usage: {% status_badge object.status "Custom Label" %}
     """
     return {
-        'status': status,
-        'label': label or status,
+        "status": status,
+        "label": label or status,
     }
 
 
-@register.inclusion_tag('includes/model_table.html')
+@register.inclusion_tag("includes/model_table.html")
 def render_model_table(objects, fields, display_fields, detail_url, table_label=None):
     """
     Render a sortable, filterable table for any model listing
-    
+
     Usage: {% render_model_table objects fields display_fields 'edit_content' 'Content List' %}
-    
+
     Parameters:
         objects: QuerySet of model instances
         fields: List of model field objects from model._meta.get_fields()
@@ -104,21 +105,21 @@ def render_model_table(objects, fields, display_fields, detail_url, table_label=
         table_label: Optional ARIA label for accessibility
     """
     return {
-        'objects': objects,
-        'fields': fields,
-        'display_fields': display_fields,
-        'detail_url': detail_url,
-        'table_label': table_label or 'Data table',
+        "objects": objects,
+        "fields": fields,
+        "display_fields": display_fields,
+        "detail_url": detail_url,
+        "table_label": table_label or "Data table",
     }
 
 
-@register.inclusion_tag('includes/crud_buttons.html')
+@register.inclusion_tag("includes/crud_buttons.html")
 def crud_buttons(object_id=None, save_url=None, delete_url=None, create_url=None):
     """
     Render standard CRUD button group (Save/Delete/Create)
-    
+
     Usage: {% crud_buttons object.id 'edit_content' 'delete_content' 'manage_content' %}
-    
+
     Parameters:
         object_id: ID of object being edited (None for create mode)
         save_url: URL name for save/update action
@@ -126,10 +127,10 @@ def crud_buttons(object_id=None, save_url=None, delete_url=None, create_url=None
         create_url: URL name for create action
     """
     return {
-        'object_id': object_id,
-        'save_url': save_url,
-        'delete_url': delete_url,
-        'create_url': create_url,
+        "object_id": object_id,
+        "save_url": save_url,
+        "delete_url": delete_url,
+        "create_url": create_url,
     }
 
 
@@ -137,10 +138,10 @@ def crud_buttons(object_id=None, save_url=None, delete_url=None, create_url=None
 def get_field_display(instance, field_name):
     """
     Get the display value for a field (useful for choices fields)
-    
+
     Usage: {% get_field_display object 'status' %}
     """
-    get_display_method = f'get_{field_name}_display'
+    get_display_method = f"get_{field_name}_display"
     if hasattr(instance, get_display_method):
         return getattr(instance, get_display_method)()
     return getattr(instance, field_name, None)
@@ -150,18 +151,17 @@ def get_field_display(instance, field_name):
 def add_class(field, css_class):
     """
     Add CSS class to form field widget
-    
+
     Usage: {{ form.field|add_class:"form-control" }}
     """
-    return field.as_widget(attrs={'class': css_class})
+    return field.as_widget(attrs={"class": css_class})
 
 
 @register.filter
 def field_type(field):
     """
     Get the type of a form field widget
-    
+
     Usage: {% if form.field|field_type == 'textarea' %}
     """
     return field.field.widget.__class__.__name__.lower()
-

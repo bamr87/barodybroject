@@ -219,9 +219,7 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         message_content = message.contentitem.content_text
         thread_id = request.POST.get("thread_id")
         assistant_id = message.assistant_id
-        assistant = (
-            Assistant.objects.get(id=assistant_id) if assistant_id else None
-        )
+        assistant = Assistant.objects.get(id=assistant_id) if assistant_id else None
 
         generated_content_detail = json.loads(
             generate_content_detail(client, message_content)
@@ -355,4 +353,3 @@ class ManageMessageView(LoginRequiredMixin, View):
                 "thread_message_detail", thread_id=thread_id, message_id=message_id
             )
         return redirect("message_detail", message_id=message_id)
-

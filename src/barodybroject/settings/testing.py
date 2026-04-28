@@ -5,7 +5,9 @@ from pathlib import Path
 
 os.environ["RUNNING_IN_PRODUCTION"] = "False"
 os.environ["DEBUG"] = "True"
-os.environ.setdefault("SECRET_KEY", "test-secret-key-for-installation-wizard-testing-only")
+os.environ.setdefault(
+    "SECRET_KEY", "test-secret-key-for-installation-wizard-testing-only"
+)
 os.environ["SKIP_INSTALLATION_CHECK"] = "true"
 
 from .base import *  # noqa: F403

@@ -35,4 +35,3 @@ def send_welcome_email(user_email):
     email_from = settings.DEFAULT_FROM_EMAIL
     recipient_list = [user_email]
     send_mail(subject, message, email_from, recipient_list)
-

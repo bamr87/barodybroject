@@ -18,16 +18,16 @@ from django.utils import timezone
 
 class JSONSchema(models.Model):
     """JSON schema definitions for structured data validation.
-    
+
     Stores JSON Schema specifications used to validate and structure AI-generated
     content. These schemas can be attached to assistants to ensure consistent
     output formats.
-    
+
     Attributes:
         name (str): Unique identifier for the schema (max 255 chars)
         description (str): Human-readable description of schema purpose
         schema (dict): JSON Schema specification following JSON Schema standard
-    
+
     Examples:
         >>> schema = JSONSchema.objects.create(
         ...     name="article_schema",
@@ -43,22 +43,23 @@ class JSONSchema(models.Model):
         ... )
         >>> str(schema)
         'article_schema'
-    
+
     See Also:
         https://json-schema.org/ for JSON Schema specification
     """
+
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
     schema = models.JSONField()
 
     class Meta:
-        app_label = 'parodynews'
-        verbose_name = 'JSON Schema'
-        verbose_name_plural = 'JSON Schemas'
+        app_label = "parodynews"
+        verbose_name = "JSON Schema"
+        verbose_name_plural = "JSON Schemas"
 
     def __str__(self):
         """Return the schema name.
-        
+
         Returns:
             str: The name field value
         """
@@ -67,16 +68,16 @@ class JSONSchema(models.Model):
 
 class OpenAIModel(models.Model):
     """OpenAI model configuration and metadata.
-    
+
     Represents an OpenAI model (e.g., GPT-4, GPT-3.5-turbo) that can be used
     by assistants for content generation. Tracks model availability and metadata.
-    
+
     Attributes:
         model_id (str): Unique OpenAI model identifier (e.g., 'gpt-4', 'gpt-3.5-turbo')
         description (str): Detailed description of model capabilities and use cases
         created_at (datetime): Timestamp when model was added to the system
         updated_at (datetime): Timestamp of last model metadata update
-    
+
     Examples:
         >>> model = OpenAIModel.objects.create(
         ...     model_id="gpt-4",
@@ -85,24 +86,25 @@ class OpenAIModel(models.Model):
         >>> str(model)
         'gpt-4'
         >>> assistants_using_gpt4 = model.assistant_set.all()
-    
+
     See Also:
         https://platform.openai.com/docs/models for available models
     """
+
     model_id = models.CharField(max_length=255, unique=True)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        app_label = 'parodynews'
-        verbose_name = 'OpenAI Model'
-        verbose_name_plural = 'OpenAI Models'
-        ordering = ['model_id']
+        app_label = "parodynews"
+        verbose_name = "OpenAI Model"
+        verbose_name_plural = "OpenAI Models"
+        ordering = ["model_id"]
 
     def __str__(self):
         """Return the model identifier.
-        
+
         Returns:
             str: The model_id field value
         """
@@ -111,11 +113,11 @@ class OpenAIModel(models.Model):
 
 class Assistant(models.Model):
     """AI assistant configuration for content generation.
-    
+
     Represents an OpenAI assistant with custom instructions, tools, and behavior
     settings. Assistants can be organized into groups and used for generating
     various types of content.
-    
+
     Attributes:
         id (str): OpenAI assistant ID (primary key, max 225 chars)
         name (str): Human-readable name for the assistant
@@ -132,7 +134,7 @@ class Assistant(models.Model):
         response_format (dict): Desired output format specification
         json_schema (JSONSchema): Optional schema for structured output validation
         assistant_group_memberships (ManyToMany): Groups this assistant belongs to
-    
+
     Examples:
         >>> from parodynews.models import Assistant, OpenAIModel
         >>> model = OpenAIModel.objects.get(model_id="gpt-4")
@@ -147,15 +149,16 @@ class Assistant(models.Model):
         News Writer
         >>> assistant.get_display_fields()
         ['name', 'description', 'model', 'json_schema']
-    
+
     Note:
         Temperature controls randomness: lower values (0.0-0.5) are more focused,
         higher values (0.7-1.0) are more creative. Default model behavior is used
         if not specified.
-    
+
     See Also:
         https://platform.openai.com/docs/api-reference/assistants for API details
     """
+
     id = models.CharField(max_length=225, blank=True, primary_key=True)
     name = models.CharField(
         max_length=256, null=True, blank=True, default="system default"
@@ -189,14 +192,14 @@ class Assistant(models.Model):
     )
 
     class Meta:
-        app_label = 'parodynews'
-        verbose_name = 'Assistant'
-        verbose_name_plural = 'Assistants'
-        ordering = ['name']
+        app_label = "parodynews"
+        verbose_name = "Assistant"
+        verbose_name_plural = "Assistants"
+        ordering = ["name"]
 
     def get_display_fields(self):
         """Return list of fields to display in admin and list views.
-        
+
         Returns:
             list: Field names to display ['name', 'description', 'model', 'json_schema']
         """
@@ -204,7 +207,7 @@ class Assistant(models.Model):
 
     def __str__(self):
         """Return the assistant name.
-        
+
         Returns:
             str: The name field value
         """
@@ -213,10 +216,10 @@ class Assistant(models.Model):
 
 class AssistantGroup(models.Model):
     """Group of assistants for workflow orchestration.
-    
+
     Organizes multiple assistants into sequential or parallel workflows.
     Groups can be activated/deactivated and prioritized for different use cases.
-    
+
     Attributes:
         name (str): Human-readable name for the group (max 256 chars)
         assistants (ManyToMany): Assistants in this group (through AssistantGroupMembership)
@@ -226,7 +229,7 @@ class AssistantGroup(models.Model):
         priority (int): Priority level for conflict resolution (default: 0)
         created_at (datetime): Timestamp when group was created
         threads (RelatedManager): Threads using this assistant group (reverse relation)
-    
+
     Examples:
         >>> from parodynews.models import AssistantGroup, Assistant
         >>> group = AssistantGroup.objects.create(
@@ -246,11 +249,12 @@ class AssistantGroup(models.Model):
         ... )
         >>> print(group.get_display_fields())
         ['name', 'sequence', 'is_active', 'priority']
-    
+
     Note:
         Use sequence for ordering multiple groups, priority for determining
         which group takes precedence when conflicts arise.
     """
+
     name = models.CharField(max_length=256)
     assistants = models.ManyToManyField(
         Assistant,
@@ -264,14 +268,14 @@ class AssistantGroup(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        app_label = 'parodynews'
-        verbose_name = 'Assistant Group'
-        verbose_name_plural = 'Assistant Groups'
-        ordering = ['sequence', 'name']
+        app_label = "parodynews"
+        verbose_name = "Assistant Group"
+        verbose_name_plural = "Assistant Groups"
+        ordering = ["sequence", "name"]
 
     def get_display_fields(self):
         """Return list of fields to display in admin and list views.
-        
+
         Returns:
             list: Field names ['name', 'sequence', 'is_active', 'priority']
         """
@@ -279,7 +283,7 @@ class AssistantGroup(models.Model):
 
     def __str__(self):
         """Return the group name.
-        
+
         Returns:
             str: The name field value
         """
@@ -288,16 +292,16 @@ class AssistantGroup(models.Model):
 
 class AssistantGroupMembership(models.Model):
     """Many-to-many relationship for assistants in groups.
-    
+
     Defines membership of assistants in groups with positional ordering
     for sequential workflow execution.
-    
+
     Attributes:
         id (int): Auto-incrementing primary key
         assistantgroup (AssistantGroup): Foreign key to the group
         assistant (Assistant): Foreign key to the assistant (renamed from 'assistants')
         position (int): Position in execution order (used for sorting)
-    
+
     Examples:
         >>> from parodynews.models import Assistant, AssistantGroup, AssistantGroupMembership
         >>> group = AssistantGroup.objects.get(name="Content Pipeline")
@@ -313,36 +317,38 @@ class AssistantGroupMembership(models.Model):
         ...     assistant=assistant2,
         ...     position=2
         ... )
-    
+
     Note:
         Lower position values execute first. Use consistent numbering (1, 2, 3...)
         for clarity in multi-assistant workflows.
-        
-        IMPORTANT: The field was renamed from 'assistants' (plural) to 'assistant' 
+
+        IMPORTANT: The field was renamed from 'assistants' (plural) to 'assistant'
         (singular) for clarity. A migration will handle the database column rename.
     """
+
     id = models.AutoField(primary_key=True)
     assistantgroup = models.ForeignKey(
         "AssistantGroup", on_delete=models.SET_NULL, null=True
     )
     # Note: This field is named 'assistants' in the database for backward compatibility
     # but will be renamed to 'assistant' in a migration
-    assistants = models.ForeignKey("Assistant", on_delete=models.SET_NULL, null=True, db_column='assistants_id')
+    assistants = models.ForeignKey(
+        "Assistant", on_delete=models.SET_NULL, null=True, db_column="assistants_id"
+    )
     position = models.PositiveIntegerField()
 
     class Meta:
-        app_label = 'parodynews'
-        verbose_name = 'Assistant Group Membership'
-        verbose_name_plural = 'Assistant Group Memberships'
+        app_label = "parodynews"
+        verbose_name = "Assistant Group Membership"
+        verbose_name_plural = "Assistant Group Memberships"
         ordering = ["position"]
 
     def __str__(self):
         """Return membership description with position.
-        
+
         Returns:
             str: Formatted string showing assistant, group, and position
         """
         assistant_name = self.assistants.name if self.assistants else "Unknown"
         group_name = self.assistantgroup.name if self.assistantgroup else "Unknown"
         return f"{assistant_name} in {group_name} at position {self.position}"
-

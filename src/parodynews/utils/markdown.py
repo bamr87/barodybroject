@@ -61,4 +61,3 @@ def generate_markdown_file(data, filename):
         file.write(data)
 
     return file_path
-

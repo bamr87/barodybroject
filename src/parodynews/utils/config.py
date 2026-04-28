@@ -90,4 +90,3 @@ def get_openai_client():
         client_kwargs["project"] = project_id
 
     return OpenAI(**client_kwargs)
-

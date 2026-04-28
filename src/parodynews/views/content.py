@@ -219,4 +219,3 @@ class ManageContentView(
         contentitem.delete()
         messages.success(request, "Content and its details deleted successfully!")
         return redirect("manage_content")
-

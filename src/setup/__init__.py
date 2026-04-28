@@ -18,4 +18,4 @@ Author: Barodybroject Team
 Version: 1.0.0
 """
 
-default_app_config = 'setup.apps.SetupConfig'
+default_app_config = "setup.apps.SetupConfig"
