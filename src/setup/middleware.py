@@ -17,7 +17,7 @@ Container Requirements:
 - Access to configuration storage and URL routing
 - Installation state persistence
 
-Usage: 
+Usage:
 Add 'setup.middleware.InstallationMiddleware' to MIDDLEWARE in Django settings
 """
 

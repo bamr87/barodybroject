@@ -63,9 +63,17 @@ case "$command" in
       timeout 60 bash -c "until docker inspect --format='{{.State.Health.Status}}' \$(docker compose -f '$dev_compose' ps -q barodydb) | grep -q healthy; do sleep 2; done"
       docker compose -f "$dev_compose" run --rm "$service" python --version
     elif [[ "$service" == "jekyll" ]]; then
-      # Ensure Gemfile.lock is writable so bundle install can update it
+      # Ensure the site dir (and any Gemfile.lock) is writable so bundle
+      # install can create/update the lockfile on the bind mount even when the
+      # container user is not the checkout owner.
+      chmod -f 777 src/pages 2>/dev/null || true
       chmod -f 666 src/pages/Gemfile.lock 2>/dev/null || true
-      docker compose -f "$dev_compose" run --rm "$service" jekyll --version
+      # The site's gems (github-pages, theme) are not baked into the
+      # jekyll/jekyll image, and current tags no longer bundle-install via the
+      # entrypoint, so `jekyll` alone dies with Bundler::GemNotFound. Install
+      # the bundle in the site dir first, then validate through Bundler.
+      docker compose -f "$dev_compose" run --rm "$service" \
+        sh -c "bundle install && bundle exec jekyll --version"
     else
       echo "Unsupported service for build validation: $service"
       exit 1
