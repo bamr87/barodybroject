@@ -15,7 +15,7 @@ Container Requirements:
 - Interactive terminal for non-headless mode
 - Volume persistence for installation state
 
-Usage: 
+Usage:
   python manage.py setup_wizard            # Interactive mode
   python manage.py setup_wizard --headless # Headless mode
 """

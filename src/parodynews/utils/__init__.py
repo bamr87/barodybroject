@@ -1,4 +1,4 @@
-""" 
+"""
 File: __init__.py
 Description: Utility helpers for OpenAI integration, schemas, and content generation
 Author: Barodybroject Team <team@example.com>
