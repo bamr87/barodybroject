@@ -13,8 +13,7 @@ Django 5.1 + OpenAI parody news generator. Container-first, deployed to Azure Co
 
 - **Two compose files**: `docker-compose.yml` (production-like, service `web-prod`) and `.devcontainer/docker-compose_dev.yml` (dev, service `python`). VS Code tasks use the **dev** file. Never run `docker compose up` from the root expecting hot-reload — that's prod mode.
 - **Run Django commands inside the dev container**, not on host:
-  `docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py <cmd>`
-  Or use the workspace tasks (e.g. `🐍 Docker: Development Up`, `📊 Django: Run Migrations (Dev)`).
+`docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage.py <cmd>` Or use the workspace tasks (e.g. `🐍 Docker: Development Up`, `📊 Django: Run Migrations (Dev)`).
 - **Working dir for Django** is `src/` (where `manage.py` lives). `pytest` must be invoked there.
 - **Database is PostgreSQL only** — no SQLite fallback. Older docs may say otherwise; ignore them.
 - **Settings are split by environment** under `src/barodybroject/settings/`: `base.py`, `development.py`, `production.py`, and `testing.py`.

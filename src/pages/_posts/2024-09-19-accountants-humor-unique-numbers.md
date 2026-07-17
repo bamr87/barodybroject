@@ -45,5 +45,4 @@ Peter McGraw's *The Humor Code* posits that humor is an essential ally in facing
 
 Yes, indeed. Jokes about spreadsheets and calculating partners are essential in the grand scheme of accountancy. They’re more than just chuckles—they’re a survival strategy. Humor makes their relentless task of balancing ledgers bearable, transforming mundane number-crunching into a hilarious camaraderie fest. So next time you're near an accountant, drop a number joke; it’s the ultimate bonding currency, even if you don’t quite get the punchline. You see, humor in the world of finance isn't just encouraged—it's strictly by the numbers!
 
-![Accountants laughing](https://example.com/image1.jpg)
-![A comical calculator](https://example.com/image2.jpg)
+![Accountants laughing](https://example.com/image1.jpg) ![A comical calculator](https://example.com/image2.jpg)
