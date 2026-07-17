@@ -8,7 +8,7 @@
 # Version: 1.0.0
 #
 # Dependencies:
-# - docker-compose
+# - docker compose
 # - pytest
 # - Django test environment
 #
@@ -120,7 +120,7 @@ cleanup_on_exit() {
     if [[ "$SKIP_CLEANUP" == "false" && "$CI_MODE" == "false" ]]; then
         log_info "Cleaning up test environment..."
         cd "$PROJECT_ROOT"
-        docker-compose -f "$COMPOSE_FILE" down || true
+        docker compose -f "$COMPOSE_FILE" down || true
         log_info "Cleanup completed"
     fi
 }
@@ -132,9 +132,9 @@ docker_exec() {
     local service="$1"
     shift
     if [[ "$VERBOSE" == "true" ]]; then
-        docker-compose -f "$COMPOSE_FILE" exec "$service" "$@"
+        docker compose -f "$COMPOSE_FILE" exec "$service" "$@"
     else
-        docker-compose -f "$COMPOSE_FILE" exec "$service" "$@" 2>/dev/null
+        docker compose -f "$COMPOSE_FILE" exec "$service" "$@" 2>/dev/null
     fi
 }
 
@@ -170,7 +170,7 @@ main() {
     echo "======================================"
     
     log_info "Starting Docker containers..."
-    if ! docker-compose -f "$COMPOSE_FILE" up -d; then
+    if ! docker compose -f "$COMPOSE_FILE" up -d; then
         log_error "Failed to start Docker containers"
         exit 1
     fi
@@ -179,7 +179,7 @@ main() {
     sleep 10
     
     # Verify containers are running
-    if ! docker-compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
+    if ! docker compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
         log_error "Docker containers are not running properly"
         exit 1
     fi
@@ -190,7 +190,7 @@ main() {
     WAIT_COUNT=0
     LAST_ERROR=""
     while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-        LAST_ERROR=$(docker-compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>&1)
+        LAST_ERROR=$(docker compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>&1)
         if echo "$LAST_ERROR" | grep -q "Django installed"; then
             log_success "Package installation completed"
             break
@@ -216,7 +216,7 @@ main() {
     
     # Test container status
     run_test "Container Status Check" \
-        "docker-compose -f '$COMPOSE_FILE' ps | grep -q 'Up'"
+        "docker compose -f '$COMPOSE_FILE' ps | grep -q 'Up'"
     
     # Test container connectivity
     run_test "Python Container Connectivity" \
