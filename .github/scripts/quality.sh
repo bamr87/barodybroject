@@ -16,7 +16,7 @@ case "$command" in
     ;;
   dependency-scan)
     cd src
-    safety check --json --output safety-report.json || true
+    safety check --json > safety-report.json 2>/dev/null || true
     safety check
     pip-audit --desc --format=json --output=pip-audit-report.json || true
     pip-audit --desc
