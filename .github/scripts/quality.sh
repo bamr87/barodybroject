@@ -16,6 +16,10 @@ case "$command" in
     ;;
   dependency-scan)
     cd src
+    # The audits scan the whole environment, including the runner's
+    # preinstalled setuptools — patch it so env-level advisories
+    # (PYSEC-2026-3447) don't mask project findings.
+    pip install --quiet --upgrade "setuptools>=83.0.0"
     safety check --json > safety-report.json 2>/dev/null || true
     safety check
     pip-audit --desc --format=json --output=pip-audit-report.json || true
