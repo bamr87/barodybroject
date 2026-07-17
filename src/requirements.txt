@@ -23,7 +23,7 @@ fido2==1.2.0
 jsonref==1.1.0
 jsonschema==4.23.0
 jsonschema-specifications==2024.10.1
-Markdown==3.5.2
+Markdown==3.8.1
 PyYAML==6.0.2
 martor==1.6.44
 setuptools==83.0.0
