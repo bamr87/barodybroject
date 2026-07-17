@@ -1,13 +1,8 @@
 # TODO: Project Issues and Enhancements
 
-This document tracks open issues, missing functionality, and enhancements for the
-Barodybroject Django/OpenAI project. It was reviewed against the current repository
-state on April 27, 2026.
+This document tracks open issues, missing functionality, and enhancements for the Barodybroject Django/OpenAI project. It was reviewed against the current repository state on April 27, 2026.
 
-**Version**: 0.4.0
-**Last Updated**: April 27, 2026
-**Last Review**: April 27, 2026
-**Next Review**: May 2026
+**Version**: 0.4.0 **Last Updated**: April 27, 2026 **Last Review**: April 27, 2026 **Next Review**: May 2026
 
 ## Table of Contents
 
@@ -41,18 +36,13 @@ The previous TODO contained several stale findings. The repository now includes:
 - Logging configuration in `src/barodybroject/settings/base.py`.
 - A setup health endpoint at `/setup/health/`.
 
-Known remaining gaps are concentrated around Azure production hardening,
-repository governance files, dependency automation, OpenAPI documentation,
-deployment runbook consolidation, and local developer automation.
+Known remaining gaps are concentrated around Azure production hardening, repository governance files, dependency automation, OpenAPI documentation, deployment runbook consolidation, and local developer automation.
 
 ---
 
 ## Azure Deployment Next Steps
 
-This section tracks Azure Developer CLI (`azd`) and Azure Container Apps follow-up
-work. The deployment workflow exists at `.github/workflows/azure-dev.yml`, so the
-remaining work is verification and production hardening rather than creating the
-pipeline from scratch.
+This section tracks Azure Developer CLI (`azd`) and Azure Container Apps follow-up work. The deployment workflow exists at `.github/workflows/azure-dev.yml`, so the remaining work is verification and production hardening rather than creating the pipeline from scratch.
 
 ### Critical
 
@@ -571,5 +561,4 @@ This TODO is a living document. When you complete an item or discover a new one:
 4. Update priorities as project needs change.
 5. Keep dates current during each review.
 
-**Note**: This document originally consolidated information from the Azure
-Developer CLI `next-steps.md` output and the previous project roadmap.
+**Note**: This document originally consolidated information from the Azure Developer CLI `next-steps.md` output and the previous project roadmap.

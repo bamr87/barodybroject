@@ -130,10 +130,7 @@ We may never know. But in the spirit of open source (be it code, knowledge, or s
 
 #### **Words of Witty Wisdom for the Digital Era**:
 
-Let us not be satisfied with comfort alone,
-For true literacy lies in the courage to code.
-May your terminal always open,
-And may your updates never crash on presentation day.
+Let us not be satisfied with comfort alone, For true literacy lies in the courage to code. May your terminal always open, And may your updates never crash on presentation day.
 
 So, next time you’re asked, “What do you want to do with your computer?”, answer not with a click, but with a script.
 

@@ -32,12 +32,7 @@ The deployment was successfully tested with the following results:
 #### All Services Running:
 ✅ PostgreSQL (db) - Up and running
 ✅ Redis - Up and running  
-✅ ClickHouse - Up and running
-✅ Zookeeper - Up and running
-✅ Kafka - Up and running
-✅ PostHog Worker - Up and running
-✅ PostHog Web - Up and running (accessible on port 8080)
-✅ PostHog Plugins - Up and running
+✅ ClickHouse - Up and running ✅ Zookeeper - Up and running ✅ Kafka - Up and running ✅ PostHog Worker - Up and running ✅ PostHog Web - Up and running (accessible on port 8080) ✅ PostHog Plugins - Up and running
 
 #### Web Service Status:
 - **URL**: http://localhost:8080

@@ -81,8 +81,7 @@ notes: "Additional notes or important considerations"
 
 ### IT-Journey Instruction Files
 
-**Focus**: Educational content creation, quest development, gamified learning
-**Key Extensions**:
+**Focus**: Educational content creation, quest development, gamified learning **Key Extensions**:
 ```yaml
 educational_context:
   target_audience: "skill level and background"
@@ -100,8 +99,7 @@ quest_integration:  # For quest-related instructions
 
 ### Barodybroject Instruction Files
 
-**Focus**: Django/OpenAI development, container-first architecture, Azure deployment
-**Key Extensions**:
+**Focus**: Django/OpenAI development, container-first architecture, Azure deployment **Key Extensions**:
 ```yaml
 django_context:
   apps_affected:
@@ -124,8 +122,7 @@ azure_deployment:
 
 ### Zer0-Mistakes Instruction Files
 
-**Focus**: Jekyll theme development, Bootstrap integration, Docker optimization
-**Key Extensions**:
+**Focus**: Jekyll theme development, Bootstrap integration, Docker optimization **Key Extensions**:
 ```yaml
 jekyll_context:
   layouts_affected:

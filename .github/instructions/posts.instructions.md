@@ -190,9 +190,7 @@ graph TB
 
 ```python
 # models.py
-from django.db import models
-from django.contrib.auth.models import User
-import uuid
+from django.db import models from django.contrib.auth.models import User import uuid
 
 class Article(models.Model):
     """Model for AI-generated parody articles"""
@@ -230,10 +228,7 @@ class Article(models.Model):
 
 ```python
 # services/openai_service.py
-import openai
-import logging
-from django.conf import settings
-from typing import Dict, Any
+import openai import logging from django.conf import settings from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -282,13 +277,7 @@ class OpenAIService:
 
 ```python
 # views.py
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .services.openai_service import OpenAIService
-from .models import Article
-from .serializers import ArticleSerializer
+from rest_framework import viewsets, status from rest_framework.decorators import action from rest_framework.response import Response from rest_framework.permissions import IsAuthenticated from .services.openai_service import OpenAIService from .models import Article from .serializers import ArticleSerializer
 
 class ArticleViewSet(viewsets.ModelViewSet):
     """API viewset for articles with AI generation"""
@@ -330,12 +319,9 @@ class ArticleViewSet(viewsets.ModelViewSet):
 ### Unit Tests for Services
 ```python
 # tests/test_openai_service.py
-import pytest
-from unittest.mock import patch, MagicMock
-from parodynews.services.openai_service import OpenAIService
+import pytest from unittest.mock import patch, MagicMock from parodynews.services.openai_service import OpenAIService
 
-@patch('openai.ChatCompletion.create')
-def test_generate_content_success(mock_create):
+@patch('openai.ChatCompletion.create') def test_generate_content_success(mock_create):
     """Test successful content generation"""
     mock_response = MagicMock()
     mock_response.choices = [
@@ -356,12 +342,9 @@ def test_generate_content_success(mock_create):
 ### Integration Tests for API
 ```python
 # tests/test_api.py
-import pytest
-from rest_framework.test import APIClient
-from django.contrib.auth.models import User
+import pytest from rest_framework.test import APIClient from django.contrib.auth.models import User
 
-@pytest.mark.django_db
-def test_generate_article_endpoint():
+@pytest.mark.django_db def test_generate_article_endpoint():
     """Test article generation API endpoint"""
     client = APIClient()
     user = User.objects.create_user(username='test', password='test')
@@ -389,19 +372,13 @@ def test_generate_article_endpoint():
 ### Environment Configuration
 ```bash
 # Production environment variables
-export DJANGO_SETTINGS_MODULE=barodybroject.settings.production
-export SECRET_KEY=your-production-secret-key
-export DATABASE_URL=postgresql://user:pass@host:5432/db
-export OPENAI_API_KEY=your-openai-api-key
-export ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+export DJANGO_SETTINGS_MODULE=barodybroject.settings.production export SECRET_KEY=your-production-secret-key export DATABASE_URL=postgresql://user:pass@host:5432/db export OPENAI_API_KEY=your-openai-api-key export ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
 ```
 
 ### Azure Container Apps Deployment
 ```yaml
 # azure.yaml
-name: barodybroject
-services:
-  python:
+name: barodybroject services: python:
     project: ./src
     language: python
     host: containerapp
@@ -412,15 +389,11 @@ services:
 # Dockerfile - Production stage
 FROM python:3.8-slim AS production
 
-WORKDIR /app
-COPY src/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+WORKDIR /app COPY src/requirements.txt . RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src/ .
-RUN python manage.py collectstatic --noinput
+COPY src/ . RUN python manage.py collectstatic --noinput
 
-EXPOSE 8000
-CMD ["gunicorn", "barodybroject.wsgi:application", "--bind", "0.0.0.0:8000"]
+EXPOSE 8000 CMD ["gunicorn", "barodybroject.wsgi:application", "--bind", "0.0.0.0:8000"]
 ```
 ```
 

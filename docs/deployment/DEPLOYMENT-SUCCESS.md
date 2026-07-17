@@ -182,8 +182,7 @@ Key metrics to monitor:
 
 ### Common Issues
 
-**Issue**: Application returns 502 Bad Gateway
-**Solution**:
+**Issue**: Application returns 502 Bad Gateway **Solution**:
 ```bash
 # Check container logs
 az containerapp logs show --name src --resource-group rg-barodybroject-test --follow
@@ -192,8 +191,7 @@ az containerapp logs show --name src --resource-group rg-barodybroject-test --fo
 az containerapp replica list --name src --resource-group rg-barodybroject-test
 ```
 
-**Issue**: Database connection errors
-**Solution**:
+**Issue**: Database connection errors **Solution**:
 ```bash
 # Check PostgreSQL firewall rules
 az postgres flexible-server firewall-rule list \
@@ -208,8 +206,7 @@ az containerapp exec \
 # Then: psql -h psql-uzsgj7wa4mxmw.postgres.database.azure.com -U adminuser -d barodydb
 ```
 
-**Issue**: High costs
-**Solution**:
+**Issue**: High costs **Solution**:
 ```bash
 # Scale down to 0 when not in use
 az containerapp update \

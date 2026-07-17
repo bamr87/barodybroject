@@ -83,5 +83,4 @@ docker-compose build --no-cache
 
 ---
 
-**Status**: ✅ Docker debugging fully configured and ready
-**Last Updated**: October 26, 2025
+**Status**: ✅ Docker debugging fully configured and ready **Last Updated**: October 26, 2025
