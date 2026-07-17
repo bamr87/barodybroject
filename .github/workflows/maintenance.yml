@@ -2,7 +2,10 @@ name: Maintenance and Infrastructure
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    # Weekly only (Mondays 08:00 UTC). The former daily 02:00 infrastructure-test
+    # cron failed 69/69 runs before GitHub auto-disabled this workflow; a daily
+    # infra smoke test was waste for this repo's commit rate. All scheduled jobs
+    # now share the single weekly slot.
     - cron: '0 8 * * 1'
   workflow_dispatch:
     inputs:
@@ -47,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     if: >
-      (github.event_name == 'schedule' && github.event.schedule == '0 8 * * 1') ||
+      github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && (inputs.task == 'all' || inputs.task == 'dependency-check' || inputs.task == 'update-dependencies'))
 
     steps:
@@ -80,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     if: >
-      (github.event_name == 'schedule' && github.event.schedule == '0 8 * * 1') ||
+      github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && (inputs.task == 'all' || inputs.task == 'container-environments'))
 
     strategy:
@@ -103,7 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     if: >
-      (github.event_name == 'schedule' && github.event.schedule == '0 2 * * *') ||
+      github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && (inputs.task == 'all' || inputs.task == 'infrastructure-test'))
 
     steps:
@@ -171,7 +174,7 @@ jobs:
           DB_SCHEMA: public
 
       - name: Create pull request for dependency updates
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ github.token }}
           commit-message: "chore: update Python dependencies"

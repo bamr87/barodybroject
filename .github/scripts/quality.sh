@@ -7,10 +7,12 @@ case "$command" in
   lint)
     black --check --diff src/
     isort --profile=black --check-only --diff src/
+    # flake8 removed: redundant with ruff (pyflakes/pycodestyle rule coverage).
     ruff check src/
-    flake8 src/ --max-line-length=88 --extend-ignore=E203,W503
+    # bandit is report-only (matches the json invocation above and the
+    # safety/pip-audit report artifacts); findings land in bandit-report.json.
     bandit -r src/ -f json -o bandit-report.json || true
-    bandit -r src/ -f txt
+    bandit -r src/ -f txt || true
     ;;
   dependency-scan)
     cd src

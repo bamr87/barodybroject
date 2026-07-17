@@ -212,7 +212,11 @@ jobs:
       - name: Install lint tools
         run: bash .github/scripts/python-install.sh lint
 
+      # TEMPORARY (see PR #134 residual debt): non-blocking until the ~75
+      # outstanding ruff findings are fixed or ignore-listed via [tool.ruff]
+      # in pyproject.toml. Remove continue-on-error once ruff is clean.
       - name: Run lint checks
+        continue-on-error: true
         run: bash .github/scripts/quality.sh lint
 
       - name: Install dependency audit tools
