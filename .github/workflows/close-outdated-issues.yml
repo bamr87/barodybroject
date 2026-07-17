@@ -1,0 +1,147 @@
+name: Close Outdated Issues
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/close-outdated-issues.yml'
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  close-test-and-spam-issues:
+    name: Close Test / Spam Issues
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Close test and spam issues
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+
+            // Issues that are clearly test / spam with no actionable content
+            const testAndSpamIssues = [
+              {
+                number: 47,
+                reason: "This issue was a test of the issue-template workflow and contains no actionable content."
+              },
+              {
+                number: 48,
+                reason: "This issue was a test of the issue-template workflow ('test again') and contains no actionable content."
+              },
+              {
+                number: 49,
+                reason: "This AI-generated sub-issue was created from test issue #48, which had no real actionable content."
+              },
+              {
+                number: 50,
+                reason: "This issue was a test of file-inclusion in the issue-template workflow and contains no actionable content."
+              },
+              {
+                number: 51,
+                reason: "This AI-generated sub-issue was created from test issue #50, which had no real actionable content."
+              },
+              {
+                number: 81,
+                reason: "This issue was filed as a test with an empty body. No bug description was provided."
+              },
+              {
+                number: 82,
+                reason: "This issue ('make this work better' / 'this site sucks') does not describe a specific, actionable request and appears to be a test or joke entry."
+              },
+              {
+                number: 92,
+                reason: "This issue was a test of the issue-template workflow and contains no actionable content."
+              },
+              {
+                number: 93,
+                reason: "This issue is an exact duplicate of #92 — another test of the issue-template workflow with no actionable content."
+              },
+              {
+                number: 94,
+                reason: "This AI-generated sub-issue was created from test issue #93, which had no real actionable content."
+              },
+              {
+                number: 114,
+                reason: "This issue contains only a sentence fragment ('Any errors encountered during the publication process are clearly communicated to the user.') with no body, context, or reproduction steps. It appears to have been opened accidentally."
+              },
+            ];
+
+            for (const issue of testAndSpamIssues) {
+              console.log(`Closing test/spam issue #${issue.number}…`);
+              try {
+                await github.rest.issues.createComment({
+                  owner, repo,
+                  issue_number: issue.number,
+                  body: `## Closing — Outdated / No Actionable Content\n\n${issue.reason}\n\nClosing as **not planned**. If this was filed in error or if the topic deserves a real issue, please open a new one with a clear description.`
+                });
+                await github.rest.issues.update({
+                  owner, repo,
+                  issue_number: issue.number,
+                  state: 'closed',
+                  state_reason: 'not_planned'
+                });
+                console.log(`  ✅ Closed #${issue.number}`);
+              } catch (err) {
+                console.error(`  ❌ Failed to close #${issue.number}: ${err.message}`);
+              }
+            }
+
+  close-implemented-issues:
+    name: Close Implemented / Resolved Issues
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Close issues that have been implemented
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+
+            // Issues whose functionality has been implemented in the codebase
+            const implementedIssues = [
+              {
+                number: 3,
+                reason: "The assistant field in `ContentForm` (`src/parodynews/forms.py`) now correctly populates choices from `Assistant.objects.all()` and initializes the field on both new and existing records. This bug has been resolved."
+              },
+              {
+                number: 30,
+                reason: "Thread-message deletion is fully implemented in `src/parodynews/views/threads.py` via `delete_thread_message()` and `delete_message()`. The `_method=delete_thread_message` POST handler routes to this logic. The original error is resolved."
+              },
+              {
+                number: 54,
+                reason: "Table sorting and per-column filtering have been implemented across all list templates (e.g. `thread_detail.html`, `assistant_detail.html`, `assistant_group_detail.html`, `message_detail.html`, `includes/model_table.html`). The feature requested here is delivered; the remaining filter-correctness bugs are tracked in #95 and #96."
+              },
+              {
+                number: 87,
+                reason: "This bug report is superseded by the more-detailed issues #95 ('Filter fields not filtering') and #96 ('[Functional Requirements]: Filter fields not filtering'). Work should continue under those issues."
+              },
+            ];
+
+            for (const issue of implementedIssues) {
+              console.log(`Closing implemented issue #${issue.number}…`);
+              try {
+                await github.rest.issues.createComment({
+                  owner, repo,
+                  issue_number: issue.number,
+                  body: `## Closing — Implemented / Resolved\n\n${issue.reason}\n\nClosing as **completed**. Please open a follow-up issue if any regression or outstanding work remains.`
+                });
+                await github.rest.issues.update({
+                  owner, repo,
+                  issue_number: issue.number,
+                  state: 'closed',
+                  state_reason: 'completed'
+                });
+                console.log(`  ✅ Closed #${issue.number}`);
+              } catch (err) {
+                console.error(`  ❌ Failed to close #${issue.number}: ${err.message}`);
+              }
+            }
