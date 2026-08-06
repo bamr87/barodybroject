@@ -43,7 +43,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configure deployment environment
         id: env-config
@@ -80,7 +80,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Azure Developer CLI
         uses: Azure/setup-azd@v1.0.0
@@ -108,7 +108,7 @@ jobs:
 
       - name: Upload sanitized deployment logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deployment-logs-${{ needs.pre-deployment.outputs.deploy-environment }}
           path: "*.log"
@@ -126,7 +126,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Run smoke tests
         env:
@@ -145,7 +145,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Create deployment summary
         env:
@@ -158,7 +158,7 @@ jobs:
 
       - name: Create GitHub issue on failure
         if: needs.deploy.result == 'failure' || needs.post-deployment.result == 'failure'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.create({
