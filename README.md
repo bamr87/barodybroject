@@ -7,6 +7,7 @@ Barodybroject is a Django 5.1 application for generating and managing parody new
 | Need | Link |
 |---|---|
 | Developer commands and architecture | [.github/README.md](.github/README.md) |
+| AI agent guidance | [CLAUDE.md](CLAUDE.md) |
 | Documentation index | [docs/README.md](docs/README.md) |
 | Deployment guide | [docs/deployment/README.md](docs/deployment/README.md) |
 | Configuration guide | [docs/configuration/README.md](docs/configuration/README.md) |
