@@ -122,11 +122,16 @@ class ProcessContentView(LoginRequiredMixin, ModelFieldsMixin, View):
         return redirect("process_content")
 
     def delete_thread_message(self, request, message_id, thread_id):
-        """Delete a specific message from a thread."""
+        """Delete a specific message from a thread.
+
+        The OpenAI-side delete runs *before* the local row is removed, so a
+        failure upstream leaves the local `Message` intact and the operation
+        stays retryable instead of desynchronising the two stores.
+        """
         message = Message.objects.get(id=message_id)
-        message.delete()
         client = AppConfigClientMixin.get_client(self)
         openai_delete_message(client, message_id, thread_id)
+        message.delete()
         messages.success(request, "Message deleted successfully.")
         return redirect("thread_detail", thread_id=thread_id)
 
