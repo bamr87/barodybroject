@@ -27,15 +27,11 @@ Deleting a message from a thread returned HTTP 500 with:
 TypeError: openai_delete_message() missing 1 required positional argument: 'thread_id'
 ```
 
-The reported traceback came from a deployed container (`/app/parodynews/views.py`) that predates the
-views refactor. The arity defect itself is **already fixed** on `main`: the monolithic
-`parodynews/views.py` was split into the `parodynews/views/` package, and the surviving call site in
-`parodynews/views/threads.py` passes all three arguments. Two problems remained:
+The reported traceback came from a deployed container (`/app/parodynews/views.py`) that predates the views refactor. The arity defect itself is **already fixed** on `main`: the monolithic `parodynews/views.py` was split into the `parodynews/views/` package, and the surviving call site in `parodynews/views/threads.py` passes all three arguments. Two problems remained:
 
 1. **No regression test.** The fix was incidental to a refactor, so nothing pinned the helper's arity.
 2. **Delete ordering.** `delete_thread_message` removed the local `Message` row *before* calling
-   OpenAI, so any upstream failure — including the original `TypeError` — left the local record and
-   the OpenAI thread out of sync from the user's point of view.
+OpenAI, so any upstream failure — including the original `TypeError` — left the local record and the OpenAI thread out of sync from the user's point of view.
 
 ### Affected Components
 
@@ -54,9 +50,7 @@ views refactor. The arity defect itself is **already fixed** on `main`: the mono
 
 ### Root Cause
 
-`openai_delete_message` takes `(client, message_id, thread_id)`. The old call site passed only
-`(message_id, thread_id)`. The refactor corrected the call but added no test, and left the local
-`message.delete()` ahead of the remote call.
+`openai_delete_message` takes `(client, message_id, thread_id)`. The old call site passed only `(message_id, thread_id)`. The refactor corrected the call but added no test, and left the local `message.delete()` ahead of the remote call.
 
 ### Contributing Factors
 
@@ -67,8 +61,7 @@ views refactor. The arity defect itself is **already fixed** on `main`: the mono
 
 ### Fix Description
 
-The remote delete now runs first; the local row is deleted only after it succeeds. On failure the
-local `Message` survives and the operation stays retryable.
+The remote delete now runs first; the local row is deleted only after it succeeds. On failure the local `Message` survives and the operation stays retryable.
 
 ### Code Changes
 
@@ -92,13 +85,10 @@ No configuration or database changes.
 
 ### Test Cases Added
 
-`src/parodynews/tests/test_thread_message_delete.py` — three tests on the real route
-(`POST /threads/<thread_id>/messages/delete/<message_id>/`):
+`src/parodynews/tests/test_thread_message_delete.py` — three tests on the real route (`POST /threads/<thread_id>/messages/delete/<message_id>/`):
 
 - `test_delete_passes_client_message_and_thread` — asserts the helper is called with
-  `(client, message_id, thread_id)`, that the response redirects to `thread_detail`, and that the
-  `Message` row is gone. Patched with `autospec=True`, so the two-argument form from issue #30 raises
-  `TypeError: missing a required argument: 'thread_id'` here rather than passing.
+`(client, message_id, thread_id)`, that the response redirects to `thread_detail`, and that the `Message` row is gone. Patched with `autospec=True`, so the two-argument form from issue #30 raises `TypeError: missing a required argument: 'thread_id'` here rather than passing.
 - `test_openai_delete_runs_before_local_row_is_removed` — asserts the local row still exists at the
   moment the remote delete is invoked. This is the test that fails without the reordering.
 - `test_local_row_survives_when_openai_delete_fails` — a raising remote delete leaves the local
@@ -113,12 +103,16 @@ DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -m pytest \
   parodynews/tests/test_thread_message_delete.py
 ```
 
-These tests need the project's PostgreSQL test database (`base.py` rejects SQLite outright). They were
-authored and collected locally (`3 tests collected`), and the ordering invariant was verified by
-executing the real `delete_thread_message` against mocked collaborators — failing on the pre-fix
-ordering (`['local_delete', 'remote_delete']`) and passing after (`['remote_delete', 'local_delete']`).
-The DB-backed run happens in the `tests` job of `.github/workflows/ci.yml`, which provides a
-`postgres:15-alpine` service.
+These tests need the project's PostgreSQL test database (`base.py` rejects SQLite outright), so the DB-backed run happens in the `tests` job of `.github/workflows/ci.yml`, which provides a `postgres:15-alpine` service. All three pass there on Python 3.10, 3.11, and 3.12:
+
+```
+parodynews/tests/test_thread_message_delete.py::DeleteThreadMessageTests::test_delete_passes_client_message_and_thread PASSED [ 95%]
+parodynews/tests/test_thread_message_delete.py::DeleteThreadMessageTests::test_local_row_survives_when_openai_delete_fails PASSED [ 97%]
+parodynews/tests/test_thread_message_delete.py::DeleteThreadMessageTests::test_openai_delete_runs_before_local_row_is_removed PASSED [100%]
+======================= 41 passed, 1 deselected in 8.40s =======================
+```
+
+The ordering invariant was additionally verified by executing the real `delete_thread_message` against mocked collaborators — failing on the pre-fix ordering (`['local_delete', 'remote_delete']`) and passing after (`['remote_delete', 'local_delete']`).
 
 `ruff check` and `ruff format --check` pass on both changed files.
 
