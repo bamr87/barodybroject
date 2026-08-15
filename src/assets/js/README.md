@@ -30,11 +30,7 @@ Key functionality:
 
 ### table_utils.js markup contract
 
-`table_utils.js` binds by selector on `DOMContentLoaded`, so a table only gets
-sorting and filtering if its markup satisfies all of the following. Getting one
-of these wrong fails silently — no console error, just a control that does
-nothing. (`includes/model_table.html` satisfies the contract; anything hand-rolling
-a table must too.)
+`table_utils.js` binds by selector on `DOMContentLoaded`, so a table only gets sorting and filtering if its markup satisfies all of the following. Getting one of these wrong fails silently — no console error, just a control that does nothing. (`includes/model_table.html` satisfies the contract; anything hand-rolling a table must too.)
 
 | Requirement | Why |
 | --- | --- |
@@ -53,9 +49,7 @@ Behaviour notes:
 - Binding happens once, at `DOMContentLoaded`. Tables inserted into the DOM later
   are **not** wired up.
 
-In Django templates the `data-type` value comes from the `sort_data_type` filter
-in `parodynews/templatetags/custom_filters.py`, which maps a model field's
-internal type to `number`, `date`, or `""`.
+In Django templates the `data-type` value comes from the `sort_data_type` filter in `parodynews/templatetags/custom_filters.py`, which maps a model field's internal type to `number`, `date`, or `""`.
 
 ## Container Configuration
 JavaScript files are served as static assets:
