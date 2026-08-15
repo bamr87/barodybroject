@@ -87,6 +87,19 @@ def visible_usernames(page):
     )
 
 
+def click_header_label(page, index):
+    """Click a header's label area — the part of the cell that sorts.
+
+    The filter input is a full-width `.form-control` sitting below the label, so
+    it covers the middle of the cell. A default Playwright click lands on the
+    input and is (correctly) ignored by the sort handler, so target the top-left
+    of the cell, where the label and its padding are.
+    """
+    header = page.locator("th.sortable").nth(index)
+    header.click(position={"x": 4, "y": 4})
+    return header
+
+
 @pytest.mark.e2e
 def test_list_page_headers_are_sortable(logged_in_page):
     """The running server must send headers the sort handler can bind to."""
@@ -103,21 +116,31 @@ def test_list_page_headers_are_sortable(logged_in_page):
 @pytest.mark.e2e
 def test_clicking_a_header_sorts_and_toggles_direction(page):
     mount(page)
-    header = page.locator("th.sortable").nth(1)  # username, a text column
 
-    header.click()
+    header = click_header_label(page, 1)  # username, a text column
     assert visible_usernames(page) == ["alpha", "bravo", "charlie"]
     assert header.get_attribute("aria-sort") == "ascending"
 
-    header.click()
+    click_header_label(page, 1)
     assert visible_usernames(page) == ["charlie", "bravo", "alpha"]
     assert header.get_attribute("aria-sort") == "descending"
 
 
 @pytest.mark.e2e
+def test_sorting_a_second_column_clears_the_first(page):
+    mount(page)
+
+    first = click_header_label(page, 1)
+    second = click_header_label(page, 0)
+
+    assert first.get_attribute("aria-sort") == "none"
+    assert second.get_attribute("aria-sort") == "ascending"
+
+
+@pytest.mark.e2e
 def test_numeric_columns_sort_numerically_not_lexicographically(page):
     mount(page)
-    page.locator("th.sortable").first.click()  # id, data-type="number"
+    click_header_label(page, 0)  # id, data-type="number"
 
     # Lexicographic ordering would give 1, 10, 2.
     assert column_values(page, 0) == ["1", "2", "10"]
