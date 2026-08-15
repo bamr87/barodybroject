@@ -165,3 +165,49 @@ def field_type(field):
     Usage: {% if form.field|field_type == 'textarea' %}
     """
     return field.field.widget.__class__.__name__.lower()
+
+
+# Django internal field types whose values must sort numerically or
+# chronologically rather than lexicographically. table_utils.js reads the
+# `data-type` attribute these produce to pick its comparator; a column with no
+# data-type sorts as text, which is the right default for everything else.
+NUMERIC_FIELD_TYPES = frozenset(
+    {
+        "AutoField",
+        "BigAutoField",
+        "SmallAutoField",
+        "IntegerField",
+        "BigIntegerField",
+        "SmallIntegerField",
+        "PositiveIntegerField",
+        "PositiveBigIntegerField",
+        "PositiveSmallIntegerField",
+        "FloatField",
+        "DecimalField",
+        "DurationField",
+    }
+)
+DATE_FIELD_TYPES = frozenset({"DateField", "DateTimeField"})
+
+
+@register.filter
+def sort_data_type(field):
+    """
+    Map a model field to the sort type table_utils.js understands.
+
+    Usage: <th data-type="{{ field|sort_data_type }}">
+
+    Returns "number" for numeric fields, "date" for date/datetime fields, and
+    "" for anything else — including reverse relations and other pseudo-fields
+    from ``Model._meta.get_fields()``, which have no ``get_internal_type``.
+    """
+    get_internal_type = getattr(field, "get_internal_type", None)
+    if not callable(get_internal_type):
+        return ""
+
+    internal_type = get_internal_type()
+    if internal_type in NUMERIC_FIELD_TYPES:
+        return "number"
+    if internal_type in DATE_FIELD_TYPES:
+        return "date"
+    return ""

@@ -3,12 +3,23 @@ File: model_table.html
 Description: Reusable dynamic table for displaying model lists with sorting and filtering
 Author: Barodybroject Team
 Created: 2025-11-25
-Last Modified: 2025-11-25
-Version: 1.0.0
+Last Modified: 2026-08-15
+Version: 1.1.0
 
 Dependencies:
 - custom_filters template tag library
 - table_utils.js for sorting/filtering functionality
+
+Contract with table_utils.js (both halves must hold, or the feature is dead):
+- Every sortable header carries `class="sortable"` — that is the exact selector
+  table_utils.js binds its click handler to. Without it no listener is attached
+  and clicking a column header does nothing at all.
+- A header whose values are not plain text carries `data-type="number"` or
+  `data-type="date"` (emitted by the `sort_data_type` filter), which selects
+  sortTable's comparator. A header with no data-type sorts lexicographically.
+- The per-column filter is an `input.filter` nested inside its `<th>`;
+  table_utils.js maps it back to a column via `input.closest('th').cellIndex`,
+  and ignores clicks originating inside it so typing never re-sorts.
 
 Usage: {% include "includes/model_table.html" with objects=content_list fields=fields display_fields=display_fields detail_url='edit_content' %}
 {% endcomment %}
@@ -21,13 +32,18 @@ Usage: {% include "includes/model_table.html" with objects=content_list fields=f
             <tr>
                 {% for field in fields %}
                     {% if field.name in display_fields %}
-                        <th scope="col">
+                        {% with sort_type=field|sort_data_type %}
+                        <th scope="col"
+                            class="sortable"
+                            aria-sort="none"
+                            {% if sort_type %}data-type="{{ sort_type }}"{% endif %}>
                             {{ field.verbose_name }}
-                            <input type="text" 
-                                   class="form-control form-control-sm filter" 
+                            <input type="text"
+                                   class="form-control form-control-sm filter"
                                    placeholder="Filter {{ field.verbose_name }}..."
                                    aria-label="Filter {{ field.verbose_name }}"/>
                         </th>
+                        {% endwith %}
                     {% endif %}
                 {% endfor %}
             </tr>

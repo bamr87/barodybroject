@@ -28,6 +28,35 @@ Key functionality:
 - **halfmoon.js**: UI component library for consistent interface styling
 - **issue_submission.js**: Form validation and submission handling
 
+### table_utils.js markup contract
+
+`table_utils.js` binds by selector on `DOMContentLoaded`, so a table only gets
+sorting and filtering if its markup satisfies all of the following. Getting one
+of these wrong fails silently — no console error, just a control that does
+nothing. (`includes/model_table.html` satisfies the contract; anything hand-rolling
+a table must too.)
+
+| Requirement | Why |
+| --- | --- |
+| The table carries `class="table"` | the script's entry selector is `document.querySelectorAll('.table')` |
+| Each sortable header carries `class="sortable"` | the click handler binds to `th.sortable`; without the class no listener is attached and clicking the header does nothing |
+| Non-text columns carry `data-type="number"` or `data-type="date"` | `sortTable` reads `dataset.type` to choose its comparator; with no type it compares with `localeCompare`, so `10` sorts before `2` |
+| Each filter is an `input.filter` nested inside its own `<th>` | `filterTable` maps the input back to a column via `input.closest('th').cellIndex` |
+| An empty-state row is a single `<td>` with `colspan` > 1 | `filterTable` special-cases that shape so "No items found" is never filtered away |
+
+Behaviour notes:
+
+- Clicks originating inside an `input`, `textarea`, `select`, or `label` are
+  ignored by the sort handler, so typing in a column's filter does not re-sort it.
+- Sorting is single-column: activating one header clears `data-order`/`aria-sort`
+  on the others.
+- Binding happens once, at `DOMContentLoaded`. Tables inserted into the DOM later
+  are **not** wired up.
+
+In Django templates the `data-type` value comes from the `sort_data_type` filter
+in `parodynews/templatetags/custom_filters.py`, which maps a model field's
+internal type to `number`, `date`, or `""`.
+
 ## Container Configuration
 JavaScript files are served as static assets:
 - Collected with `python manage.py collectstatic`

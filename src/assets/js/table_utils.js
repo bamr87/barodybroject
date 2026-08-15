@@ -4,11 +4,30 @@
 document.addEventListener('DOMContentLoaded', () => {
     const tables = document.querySelectorAll('.table');
     tables.forEach(table => {
-        table.querySelectorAll('th.sortable').forEach(header => {
-            header.addEventListener('click', () => {
+        const headers = table.querySelectorAll('th.sortable');
+        headers.forEach(header => {
+            header.addEventListener('click', event => {
+                // The column's filter input lives inside this header. Clicking it
+                // (or dragging to select its text) must focus/edit the input, not
+                // re-sort the column.
+                if (event.target.closest('input, textarea, select, label')) {
+                    return;
+                }
+
                 const columnIndex = header.cellIndex;
                 const newOrder = header.dataset.order === 'asc' ? 'desc' : 'asc';
+
+                // Only one column is sorted at a time — clear the others so their
+                // aria-sort doesn't lie and so returning to one starts from asc.
+                headers.forEach(other => {
+                    if (other !== header) {
+                        delete other.dataset.order;
+                        other.setAttribute('aria-sort', 'none');
+                    }
+                });
+
                 header.dataset.order = newOrder;
+                header.setAttribute('aria-sort', newOrder === 'asc' ? 'ascending' : 'descending');
                 sortTable(table, columnIndex, newOrder);
             });
         });
