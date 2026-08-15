@@ -84,14 +84,20 @@ class SortDataTypeFilterTests(SimpleTestCase):
         self.assertEqual(sort_data_type(User._meta.get_field("is_staff")), "")
 
     def test_pseudo_fields_without_get_internal_type_are_tolerated(self):
-        # Model._meta.get_fields() also yields reverse relations, which have no
-        # get_internal_type(). They must degrade to text, not raise.
-        reverse_rels = [
-            f for f in User._meta.get_fields() if not hasattr(f, "get_internal_type")
-        ]
-        self.assertTrue(reverse_rels, "expected at least one reverse relation on User")
-        for rel in reverse_rels:
-            self.assertEqual(sort_data_type(rel), "")
+        # Model._meta.get_fields() can yield reverse relations and other
+        # pseudo-fields with no get_internal_type(). model_table.html iterates
+        # that list verbatim, so the filter must degrade to text, not raise.
+        # (Whether any such field exists depends on which apps are installed —
+        # this asserts the tolerance, not the presence.)
+        class PseudoField:
+            name = "logentry"
+
+        self.assertEqual(sort_data_type(PseudoField()), "")
+        self.assertEqual(sort_data_type(None), "")
+
+    def test_no_field_on_a_real_model_raises(self):
+        for field in User._meta.get_fields():
+            self.assertIn(sort_data_type(field), {"", "number", "date"})
 
 
 class ModelTableMarkupTests(SimpleTestCase):
