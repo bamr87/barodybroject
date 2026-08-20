@@ -7,6 +7,7 @@ This directory contains the comprehensive test suite for the parodynews Django a
 ## Contents
 - `conftest.py`: pytest configuration file with shared fixtures, test setup, and common test utilities
 - `__init__.py`: Python package initialization file making the directory a Python module
+- `test_thread_message_delete.py`: regression tests for the thread-message delete route — pins the `openai_delete_message` arity and the remote-before-local delete ordering (issue #30)
 - `data/`: Test data directory containing sample data, fixtures, and mock responses (has its own README)
 - `scripts/`: Test scripts directory containing testing utilities and automation scripts (has its own README)
 - `.pytest_cache/`: Subdirectory for pytest cache files (auto-generated)
