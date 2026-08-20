@@ -192,6 +192,10 @@ plugins:
   - jekyll-seo-tag
   - jekyll-paginate
   - jekyll-relative-links
+  # Required by the bamr87/zer0-mistakes remote theme: its _layouts/root.html
+  # renders `{% include_cached components/svg.html %}`. Without this plugin the
+  # GitHub Pages build dies with "Unknown tag 'include_cached'".
+  - jekyll-include-cache
 
 ## Gisgus Plugin #################################################################
 
