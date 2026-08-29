@@ -28,6 +28,7 @@ from .views import (
     export_schema,
     get_assistant_details,
     list_schemas,
+    markdown_preview,
 )
 
 router = routers.DefaultRouter()
@@ -81,6 +82,9 @@ urlpatterns = [
         get_assistant_details,
         name="get_assistant_details",
     ),
+    # Re-renders a Markdown field when the editor loses focus. Placed after the
+    # `content/<int:...>` routes above, which cannot match a non-integer segment.
+    path("content/markdown-preview/", markdown_preview, name="markdown_preview"),
     # Content Processing
     path("threads/", ProcessContentView.as_view(), name="process_content"),
     path(
