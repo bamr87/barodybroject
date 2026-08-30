@@ -1,8 +1,13 @@
 <!-- content_detail.html -->
 {% extends "base.html" %}
 {% block title %}{{ content_detail.title|default:"Content Detail" }}{% endblock %}
+{% comment %}
+`markdownify` is loaded by _markdown_field.html, which is where the filter is
+actually applied — template tag libraries are per-template, not inherited, so
+loading it here as well would leave an unused load behind (which is exactly the
+state that hid this bug: the library was loaded and the filter never called).
+{% endcomment %}
 {% load custom_filters %}
-{% load markdownify %}
 {% load django_bootstrap5 %}
 {% load static %}
 
@@ -13,7 +18,7 @@ TODO: Add button to create post directly (automating thread step)
 {% endcomment %}
 
 <!-- Content and Detail Form -->
-<div class="container" id="content-form">
+<div class="container" id="content-form" data-markdown-preview-url="{% url 'markdown_preview' %}">
     <h2><i class="bi bi-pencil-square"></i> Content Prompt and Detail</h2>
     
     <form method="post" action="{% url 'manage_content' %}" class="needs-validation" data-loading>
@@ -26,7 +31,21 @@ TODO: Add button to create post directly (automating thread step)
                         <h3 class="mb-0">Content Form</h3>
                     </div>
                     <div class="card-body">
-                        {% bootstrap_form content_form %}
+                        {% comment %}
+                        Rendered field by field rather than with
+                        `{% bootstrap_form %}`, so the Markdown-bearing fields
+                        can be displayed as HTML instead of raw source in a
+                        widget. Everything else keeps the identical bootstrap
+                        rendering it had before.
+                        {% endcomment %}
+                        {% bootstrap_form_errors content_form type='non_fields' %}
+                        {% for field in content_form %}
+                            {% if field.name in content_form.markdown_fields %}
+                                {% include "parodynews/_markdown_field.html" with field=field %}
+                            {% else %}
+                                {% bootstrap_field field %}
+                            {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
             </div>

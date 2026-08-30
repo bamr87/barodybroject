@@ -37,7 +37,7 @@ from .assistants import (
 from .base import FooterView, UserLoginView, index
 
 # Content management views
-from .content import ManageContentView
+from .content import ManageContentView, markdown_preview
 
 # Post management views
 from .posts import ManagePostView, push_to_github_and_create_pr
@@ -64,6 +64,7 @@ __all__ = [
     "index",
     # Content
     "ManageContentView",
+    "markdown_preview",
     # Threads
     "ProcessContentView",
     "ManageMessageView",
