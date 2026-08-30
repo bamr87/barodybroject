@@ -1,31 +1,18 @@
 # Automatic GitHub issue reporting
 
-Unhandled Django exceptions can be filed automatically as **deduplicated GitHub
-issues**, so runtime errors become tracked work without manual transcription.
+Unhandled Django exceptions can be filed automatically as **deduplicated GitHub issues**, so runtime errors become tracked work without manual transcription.
 
-**It is off by default and stays off until you configure a target.** Read the
-[Data handling](#data-handling) section before enabling it — what gets sent is a
-data-handling decision before it is an engineering one.
+**It is off by default and stays off until you configure a target.** Read the [Data handling](#data-handling) section before enabling it — what gets sent is a data-handling decision before it is an engineering one.
 
 ## Before you enable it
 
-Consider a hosted error tracker (Sentry, Rollbar) first. It solves this problem
-with redaction, deduplication, rate limiting and release tracking already built
-and audited, and it would not put application error data in an issue tracker at
-all. This feature exists because [#59](https://github.com/bamr87/barodybroject/issues/59)
-asked specifically for the GitHub flow; if a hosted tracker is acceptable, it is
-less work and lower risk.
+Consider a hosted error tracker (Sentry, Rollbar) first. It solves this problem with redaction, deduplication, rate limiting and release tracking already built and audited, and it would not put application error data in an issue tracker at all. This feature exists because [#59](https://github.com/bamr87/barodybroject/issues/59) asked specifically for the GitHub flow; if a hosted tracker is acceptable, it is less work and lower risk.
 
 ## How it works
 
-A `logging` handler on the `django.request` logger — the same hook Django's
-built-in `AdminEmailHandler` uses. Not middleware: a handler also catches
-exceptions that never traverse the middleware chain (management commands,
-background tasks, and errors raised while rendering a response).
+A `logging` handler on the `django.request` logger — the same hook Django's built-in `AdminEmailHandler` uses. Not middleware: a handler also catches exceptions that never traverse the middleware chain (management commands, background tasks, and errors raised while rendering a response).
 
-Filing happens on a background worker, never on the request path. A GitHub
-outage cannot turn a 500 into a timeout, and a failure inside the reporter is
-logged locally and never surfaces to a user.
+Filing happens on a background worker, never on the request path. A GitHub outage cannot turn a 500 into a timeout, and a failure inside the reporter is logged locally and never surfaces to a user.
 
 | Concern | Behaviour |
 | --- | --- |
@@ -68,40 +55,25 @@ export GITHUB_ISSUE_REPORTER_TOKEN="ghp_..."
 
 ### The target should be private
 
-`bamr87/barodybroject` is **public**. Filing application errors into a public
-issue tracker publishes them to anyone. The reporter therefore **refuses a public
-target repository** unless you also set `ALLOW_PUBLIC_REPO`, and logs a warning
-for as long as that override is active. The safe target is a private tracker.
+`bamr87/barodybroject` is **public**. Filing application errors into a public issue tracker publishes them to anyone. The reporter therefore **refuses a public target repository** unless you also set `ALLOW_PUBLIC_REPO`, and logs a warning for as long as that override is active. The safe target is a private tracker.
 
 ### Redaction is an allowlist, not a denylist
 
-Only fields named in `ALLOWED_REQUEST_HEADERS` / `ALLOWED_REQUEST_FIELDS` /
-`ALLOWED_USER_ATTRIBUTES` are ever transmitted. `Authorization`, `Cookie`, the
-session, the query string and every form field are absent because they were
-never added — not because a rule removed them.
+Only fields named in `ALLOWED_REQUEST_HEADERS` / `ALLOWED_REQUEST_FIELDS` / `ALLOWED_USER_ATTRIBUTES` are ever transmitted. `Authorization`, `Cookie`, the session, the query string and every form field are absent because they were never added — not because a rule removed them.
 
-That distinction matters: a denylist fails open on the field nobody thought of,
-and this application handles OpenAI keys and user accounts. A header invented
-next year is safe under an allowlist and leaky under a denylist.
+That distinction matters: a denylist fails open on the field nobody thought of, and this application handles OpenAI keys and user accounts. A header invented next year is safe under an allowlist and leaky under a denylist.
 
 ### Frame locals are excluded
 
-Django's traceback machinery can surface settings values and credentials through
-frame locals. `INCLUDE_FRAME_LOCALS` is `False` and should stay that way; turning
-it on adds a warning banner to every issue body.
+Django's traceback machinery can surface settings values and credentials through frame locals. `INCLUDE_FRAME_LOCALS` is `False` and should stay that way; turning it on adds a warning banner to every issue body.
 
 ### Scrubbing is defence in depth
 
-Values named in `SCRUB_SETTINGS` (and the reporter's own token) are replaced
-wherever they appear in the body. This is a backstop for a credential arriving
-by a route nobody predicted — for example inside an exception message — not a
-substitute for the allowlist.
+Values named in `SCRUB_SETTINGS` (and the reporter's own token) are replaced wherever they appear in the body. This is a backstop for a credential arriving by a route nobody predicted — for example inside an exception message — not a substitute for the allowlist.
 
 ### Adding a field to the allowlist
 
-Adding a key to `ALLOWED_REQUEST_FIELDS` transmits that field's value verbatim
-for every reported error. Confirm it can never hold a credential, a token, or
-personal data before you add it.
+Adding a key to `ALLOWED_REQUEST_FIELDS` transmits that field's value verbatim for every reported error. Confirm it can never hold a credential, a token, or personal data before you add it.
 
 ## Testing
 
@@ -109,15 +81,11 @@ personal data before you add it.
 cd src && pytest parodynews/tests/test_error_reporting.py -v
 ```
 
-No test makes a network call; every one injects a fake client, and one test
-replaces the `github` module with a booby trap that fails if the real client is
-ever constructed.
+No test makes a network call; every one injects a fake client, and one test replaces the `github` module with a booby trap that fails if the real client is ever constructed.
 
 ## Related
 
 - [`src/parodynews/utils/error_reporting.py`](../../src/parodynews/utils/error_reporting.py) — the implementation
 - [`docs/SECURITY_DOCUMENTATION.md`](../SECURITY_DOCUMENTATION.md)
 - Existing auto-filer precedent and its failure mode: the unattended
-  `Deployment failure: <sha>` issues (#139, #141, #145, #148, #150, #152, #153,
-  #163). Deduplication and rate limiting exist so this feature does not repeat
-  that.
+`Deployment failure: <sha>` issues (#139, #141, #145, #148, #150, #152, #153, #163). Deduplication and rate limiting exist so this feature does not repeat that.
