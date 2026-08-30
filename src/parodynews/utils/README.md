@@ -6,6 +6,7 @@ This directory contains utility modules and helper functions for the parodynews 
 
 ## Contents
 - `dkim_backend.py`: Custom Django email backend that implements DKIM (DomainKeys Identified Mail) signing for email authentication and deliverability
+- `error_reporting.py`: `logging` handler that files unhandled exceptions as deduplicated GitHub issues. **Off by default**, with no default target repository and no fallback to this repository. Redaction is allowlist-based and frame locals are excluded — see [docs/configuration/error-reporting.md](../../../docs/configuration/error-reporting.md) before enabling it
 
 ## Usage
 Utility modules are imported and used throughout the application:
