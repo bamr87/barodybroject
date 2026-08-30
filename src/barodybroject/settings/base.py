@@ -817,6 +817,75 @@ CKEDITOR_CONFIGS = {
 }
 
 # ==============================================================================
+# MARKDOWNIFY (MARKDOWN -> SANITIZED HTML) CONFIGURATION
+# ==============================================================================
+#
+# This is the allow-list for the app's ONE renderer. `parodynews.utils.markdown.
+# render_markdown` and the `|markdownify` filter used by `message_detail.html`,
+# `thread_detail.html`, `content_processing.html` and `pages_post_detail.html`
+# all resolve here, so a tag is either rendered everywhere or nowhere.
+#
+# Without this block django-markdownify falls back to `bleach.sanitizer.
+# ALLOWED_TAGS`, which is a comment-thread allow-list: a, abbr, acronym, b,
+# blockquote, code, em, i, li, ol, strong, ul. It contains no `h1`-`h6` and no
+# `p`, so every heading and every paragraph Markdown produced was silently
+# deleted and the reader saw a wall of unstructured text — "the html output
+# format should be rendered" (#56/#57) was only half-true.
+#
+# `img` is deliberately absent. Content here is AI-generated and user-editable,
+# and an allowed `<img>` is a remote-resource beacon that fires on view. It was
+# already excluded by the bleach default; keeping it out is a decision, not an
+# oversight.
+#
+# STRIP stays at its default (True): a disallowed tag is removed and its text
+# kept. That is the behaviour the four templates above already shipped, and
+# changing it is not in scope for #57.
+MARKDOWNIFY = {
+    "default": {
+        "WHITELIST_TAGS": [
+            # Block structure — the half the bleach default was missing.
+            "p",
+            "br",
+            "hr",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "blockquote",
+            "pre",
+            # Lists.
+            "ul",
+            "ol",
+            "li",
+            # Inline.
+            "a",
+            "abbr",
+            "acronym",
+            "b",
+            "code",
+            "del",
+            "em",
+            "i",
+            "ins",
+            "strong",
+            "sub",
+            "sup",
+        ],
+        # `href`/`title` only. No `style`, no `class`, no event handlers.
+        "WHITELIST_ATTRS": {
+            "a": ["href", "title"],
+            "abbr": ["title"],
+            "acronym": ["title"],
+        },
+        # No inline CSS survives sanitization.
+        "WHITELIST_STYLES": [],
+        "WHITELIST_PROTOCOLS": ["http", "https", "mailto"],
+    }
+}
+
+# ==============================================================================
 # MARTOR (MARKDOWN EDITOR) CONFIGURATION
 # ==============================================================================
 

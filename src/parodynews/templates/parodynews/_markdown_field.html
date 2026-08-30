@@ -30,10 +30,16 @@ Expects: `field` (a BoundField).
   {% comment %}
   `markdownify` sanitizes and returns a SafeString, so no `|safe` here — adding
   one would only disable autoescaping for output that is already cleaned.
+
+  And no `|linebreaksbr` either, unlike the older templates. This div's contents
+  are replaced on blur by the response from `markdown_preview`, which is plain
+  `render_markdown` output; appending a filter here would make the field reflow
+  the first time the user focused and left it. `MARKDOWNIFY["default"]` allows
+  `p` and `br`, so Markdown's own paragraphing already does this job.
   {% endcomment %}
   <div class="markdown-rendered form-control"
        data-markdown-rendered
-       {% if not field.field.widget.attrs.readonly %}tabindex="0" role="button" aria-label="{{ field.label }} — click to edit"{% endif %}>{{ field.value|default:""|markdownify|linebreaksbr }}</div>
+       {% if not field.field.widget.attrs.readonly %}tabindex="0" role="button" aria-label="{{ field.label }} — click to edit"{% endif %}>{{ field.value|default:""|markdownify }}</div>
 
   {% if field.field.widget.attrs.readonly %}
     <input type="hidden" name="{{ field.html_name }}" id="{{ field.id_for_label }}" value="{{ field.value|default:'' }}">

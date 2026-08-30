@@ -33,20 +33,20 @@ def assistant_detail(request, assistant_id):
 
 ### Markdown rendering
 
-Markdown is rendered **server-side, in exactly one place**:
-`parodynews.utils.markdown.render_markdown`, which delegates to
+Markdown is rendered **server-side, in exactly one place**: `parodynews.utils.markdown.render_markdown`, which delegates to
 `django-markdownify`'s `|markdownify` filter (bleach-sanitized). The templates
-apply the filter directly; `content_detail.js` re-renders a field on blur by
-POSTing to the `markdown_preview` view, which calls the same function.
+apply the filter directly; `content_detail.js` re-renders a field on blur by POSTing to the `markdown_preview` view, which calls the same function.
 
-Do **not** add a client-side Markdown library. It would bypass that sanitizer
-and inject unsanitized HTML into the DOM — a stored-XSS path in an app whose
-content is AI-generated and user-editable — and it would render the same content
-differently from every other page. `test_markdown_rendering.py` asserts both.
+Do **not** add a client-side Markdown library. It would bypass that sanitizer and inject unsanitized HTML into the DOM — a stored-XSS path in an app whose content is AI-generated and user-editable — and it would render the same content differently from every other page. `test_markdown_rendering.py` asserts both.
 
 Do not append `|safe` after `|markdownify`: the filter already returns a
 sanitized `SafeString`, so `|safe` is a no-op that reads like a deliberate
 escape-hatch.
+
+Do not append `|linebreaksbr` either. `_markdown_field.html`'s rendered div is
+replaced on blur by the raw body of `markdown_preview`, so any filter applied only in the template makes the field reflow the moment the user touches it. Markdown's own `<p>`/`<br>` output does this job. (`message_detail.html`, `thread_detail.html` and `content_processing.html` still carry the filter; they are static views with no blur round trip, and changing them is a separate change.)
+
+The sanitizer's allow-list is `MARKDOWNIFY["default"]` in `barodybroject/settings/base.py` — one allow-list for every page. Without it django-markdownify falls back to `bleach.sanitizer.ALLOWED_TAGS`, which has no `h1`-`h6` and no `p`, so headings and paragraphs are silently deleted after being rendered. `img` is excluded on purpose: an allowed `<img>` in AI-generated, user-editable content is a remote-resource beacon that fires on view.
 
 Template features:
 - **Content Generation Interface**: Forms and controls for AI content creation

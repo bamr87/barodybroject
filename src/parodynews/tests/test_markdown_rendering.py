@@ -44,6 +44,24 @@ def markdownify_via_template(text):
     )
 
 
+def rendered_region(html):
+    """Return the inner HTML of `_markdown_field.html`'s rendered div.
+
+    The partial deliberately emits the raw Markdown a second time — in a hidden
+    input for a read-only field, in the textarea for an editable one — because
+    that is the value that submits and the source the editor reveals on focus.
+    So "the field displays rendered HTML" is a claim about *this* div, and an
+    assertion over the whole partial would be asserting the feature away: it
+    could only pass if the field stopped round-tripping its own value.
+    `markdownify` emits no `div`, so the first `</div>` closes this one.
+    """
+    match = re.search(
+        r"data-markdown-rendered[^>]*>(.*?)</div>", html, flags=re.DOTALL
+    )
+    assert match is not None, f"no [data-markdown-rendered] div in:\n{html}"
+    return match.group(1)
+
+
 class RenderMarkdownTests(SimpleTestCase):
     """The one renderer: correctness, sanitization, graceful degradation."""
 
@@ -59,11 +77,38 @@ class RenderMarkdownTests(SimpleTestCase):
         self.assertEqual(render_markdown(None), "")
 
     def test_script_tag_is_inert(self):
+        """The tag is removed; the words it wrapped survive as plain text.
+
+        `MARKDOWNIFY["default"]` leaves bleach's `STRIP` at its default (True),
+        so a disallowed element is deleted and its text content kept. That is
+        what the four templates that already shipped `|markdownify` have always
+        done, so asserting it here is asserting the app's real, single policy —
+        the alternative (`STRIP: False`, which escapes to `&lt;script&gt;`) is
+        equally inert but would change the output of every one of those pages,
+        which #57 does not ask for.
+        """
         html = render_markdown("Hello <script>alert(1)</script> world")
-        self.assertNotIn("<script>", html)
-        self.assertNotIn("</script>", html)
-        # The text may survive as escaped content; the executable tag may not.
-        self.assertIn("&lt;script&gt;", html)
+        self.assertNotIn("<script", html)
+        self.assertNotIn("</script", html)
+        # Nothing is silently swallowed: the prose around it is untouched and
+        # the payload survives only as inert text, never as markup.
+        self.assertIn("Hello", html)
+        self.assertIn("world", html)
+        self.assertIn("alert(1)", html)
+
+    def test_headings_and_paragraphs_survive_sanitization(self):
+        """Guards `MARKDOWNIFY["default"]["WHITELIST_TAGS"]`.
+
+        With no `MARKDOWNIFY` setting, django-markdownify falls back to
+        `bleach.sanitizer.ALLOWED_TAGS`, which has no `h1`-`h6` and no `p`.
+        Every heading and paragraph Markdown produced was deleted before it
+        reached the page — the renderer ran, and its structural output was
+        thrown away. Delete the settings block and this test fails.
+        """
+        html = str(render_markdown("# H1\n\n## H2\n\nA paragraph.\n\n- one\n- two"))
+        for tag in ("<h1", "<h2", "<p", "<ul", "<li"):
+            with self.subTest(tag=tag):
+                self.assertIn(tag, html)
 
     def test_event_handler_attribute_is_inert(self):
         html = render_markdown('An image: <img src=x onerror="alert(1)">')
@@ -179,9 +224,30 @@ class MarkdownFieldTemplateTests(TestCase):
         )
 
     def test_readonly_field_is_rendered_as_html(self):
-        html = self._render_field("instructions", self.MARKDOWN)
-        self.assertIn("<strong>bold</strong>", html)
-        self.assertNotIn("**bold**", html)
+        rendered = rendered_region(self._render_field("instructions", self.MARKDOWN))
+        self.assertIn("<h1", rendered)
+        self.assertIn("<strong>bold</strong>", rendered)
+        # No raw Markdown syntax anywhere the user is looking.
+        self.assertNotIn("**bold**", rendered)
+        self.assertNotIn("# Heading", rendered)
+
+    def test_blur_round_trip_reproduces_the_server_rendered_field(self):
+        """Focusing and blurring a field must not change how it looks.
+
+        `content_detail.js` replaces the rendered div's innerHTML with the body
+        of `markdown_preview` on blur. If the template applied a filter the
+        endpoint does not — `|linebreaksbr` did exactly this — the field
+        silently reflowed the first time the user touched it, and the same
+        content had two renderings on one page.
+        """
+        user = User.objects.create_user(
+            username="blur", password="blurpass123", email="blur@example.com"
+        )
+        self.client.force_login(user)
+        response = self.client.post(reverse("markdown_preview"), {"text": self.MARKDOWN})
+        from_endpoint = response.content.decode()
+        from_template = rendered_region(self._render_field("content_text", self.MARKDOWN))
+        self.assertEqual(from_template, from_endpoint)
 
     def test_readonly_field_has_no_editor_to_reveal_raw_source(self):
         """A read-only field must never expose its Markdown source.
@@ -214,11 +280,36 @@ class MarkdownFieldTemplateTests(TestCase):
         self.assertNotIn("d-none", html)
 
     def test_script_payload_in_a_field_value_is_inert(self):
-        html = self._render_field(
-            "content_text", "<script>alert(1)</script><img src=x onerror=alert(1)>"
-        )
-        self.assertNotIn("<script>", html)
-        self.assertNotIn("onerror=", html.lower())
+        """A payload stored in a field never becomes markup on the page.
+
+        It has to appear twice — rendered, and again as the raw source the
+        editor edits — so "inert" is checked in both places rather than by
+        forbidding the substring outright. The source copy is inside a
+        `<textarea>` and Django-escaped (`&lt;img … onerror=…&gt;`): the browser
+        parses it as text, and the literal `onerror=` inside it is not an
+        attribute of anything. What must never happen is a live `<script>` or a
+        live `<img>` element, anywhere in the partial.
+        """
+        payload = "<script>alert(1)</script><img src=x onerror=alert(1)>"
+        html = self._render_field("content_text", payload)
+
+        # No live element in the partial at all — the escaped copy reads
+        # `&lt;script&gt;` / `&lt;img`, which does not match these.
+        self.assertNotIn("<script", html.lower())
+        self.assertNotIn("<img", html.lower())
+
+        # The rendered half carries no event handler and nothing outside the
+        # sanitizer's allow-list — checked against the setting itself, so
+        # widening the allow-list cannot quietly widen this test.
+        rendered = rendered_region(html)
+        self.assertNotIn("onerror", rendered.lower())
+        allowed = {t.lower() for t in settings.MARKDOWNIFY["default"]["WHITELIST_TAGS"]}
+        emitted = {t.lower() for t in re.findall(r"</?([a-zA-Z0-9]+)", rendered)}
+        self.assertEqual(emitted - allowed, set())
+
+        # The source half is present, escaped, and confined to the textarea.
+        self.assertIn("&lt;script&gt;", html)
+        self.assertIn("&lt;img", html)
 
 
 class MarkdownSourceHygieneTests(SimpleTestCase):
