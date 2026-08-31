@@ -145,6 +145,59 @@ class ModelTableMarkupTests(SimpleTestCase):
         self.assertIn("No items found", html)
 
 
+class FilterEmptyStateMarkupTests(SimpleTestCase):
+    """The filter-empty row (issue #96).
+
+    table_utils.js never *builds* this message — it only toggles a row the
+    template rendered. Delete the row and the reported symptom returns: the
+    body empties in silence. These run in the default suite (`-m "not e2e"`),
+    so the markup half is covered even where a browser is not available.
+    """
+
+    def setUp(self):
+        self.html = render_table(
+            [User(id=2, username="bravo"), User(id=10, username="alpha")]
+        )
+
+    def test_the_filter_empty_row_is_rendered(self):
+        self.assertIn("data-filter-empty", self.html)
+        self.assertIn("No matching records", self.html)
+
+    def test_it_starts_hidden(self):
+        # Shown on load it would claim "no matching records" over a full table.
+        # Hidden via style.display specifically: that is the property
+        # filterTable toggles, and what keeps it out of visible-row queries.
+        row = re.search(r"<tr[^>]*data-filter-empty[^>]*>", self.html).group(0)
+        self.assertRegex(row, r'style="display:\s*none;?"')
+
+    def test_it_spans_the_displayed_columns(self):
+        cell = re.search(
+            r"<tr[^>]*data-filter-empty[^>]*>\s*(<td\b[^>]*>)", self.html
+        ).group(1)
+        self.assertIn(f'colspan="{len(DISPLAY_FIELDS)}"', cell)
+
+    def test_it_is_announced_to_assistive_technology(self):
+        # It replaces content that otherwise vanishes silently, so appearing
+        # without an announcement is the same bug for a screen-reader user.
+        cell = re.search(
+            r"<tr[^>]*data-filter-empty[^>]*>\s*(<td\b[^>]*>)", self.html
+        ).group(1)
+        self.assertIn('role="status"', cell)
+        self.assertIn('aria-live="polite"', cell)
+
+    def test_exactly_one_is_rendered_per_table(self):
+        # Two would let two active filters produce two stacked messages.
+        self.assertEqual(self.html.count("data-filter-empty"), 1)
+
+    def test_it_is_rendered_alongside_the_server_empty_state(self):
+        # The two rows are independent: this one is always present (a filter
+        # can only hide rows that exist), the {% empty %} one only when the
+        # server returned nothing. table_utils.js decides which is shown.
+        html = render_table([])
+        self.assertIn("data-filter-empty", html)
+        self.assertIn("No items found", html)
+
+
 class ModelTablePageTests(TestCase):
     """The contract must hold on a real page, not only in isolated renders."""
 

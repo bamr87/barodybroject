@@ -3,8 +3,8 @@ File: model_table.html
 Description: Reusable dynamic table for displaying model lists with sorting and filtering
 Author: Barodybroject Team
 Created: 2025-11-25
-Last Modified: 2026-08-15
-Version: 1.1.0
+Last Modified: 2026-08-31
+Version: 1.2.0
 
 Dependencies:
 - custom_filters template tag library
@@ -20,6 +20,13 @@ Contract with table_utils.js (both halves must hold, or the feature is dead):
 - The per-column filter is an `input.filter` nested inside its `<th>`;
   table_utils.js maps it back to a column via `input.closest('th').cellIndex`,
   and ignores clicks originating inside it so typing never re-sorts.
+- There are TWO empty states, and they mean different things. The `{% empty %}`
+  row ("No items found") means the SERVER returned nothing. The
+  `tr[data-filter-empty]` row ("No matching records") means rows exist but the
+  active filters match none of them; it ships hidden and filterTable() toggles
+  it. Without that row the table body just empties in silence, which is what
+  issue #96 reported. Remove it and the message disappears — the JS never
+  builds one.
 
 Usage: {% include "includes/model_table.html" with objects=content_list fields=fields display_fields=display_fields detail_url='edit_content' %}
 {% endcomment %}
@@ -74,6 +81,23 @@ Usage: {% include "includes/model_table.html" with objects=content_list fields=f
                 </td>
             </tr>
             {% endfor %}
+            {% comment %}
+            Filter-empty state: rows EXIST but no active column filter matches any
+            of them. Distinct from the {% empty %} row above, which means the
+            server returned nothing.
+
+            Rendered here rather than string-built in JS so the message stays in
+            the template (translatable, and the colspan tracks display_fields).
+            table_utils.js finds it by `data-filter-empty` and toggles it via
+            style.display — the same mechanism it uses for data rows, which is
+            what keeps it out of "visible row" queries while hidden.
+            {% endcomment %}
+            <tr data-filter-empty style="display: none;">
+                <td colspan="{{ display_fields|length }}" class="text-center text-muted"
+                    role="status" aria-live="polite">
+                    No matching records
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>

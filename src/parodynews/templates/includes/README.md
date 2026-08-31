@@ -11,6 +11,26 @@ Contains reusable Django template components designed to eliminate code duplicat
 - `status_badge.html` - Status indicator badges
 - `confirm_modal.html` - Confirmation dialog for destructive actions
 
+## `model_table.html` — the two empty states
+
+`model_table.html` is the shared partial behind **every** model list in the app,
+so a defect in it affects all of them at once. It renders two visually similar
+rows that mean different things, and both are part of its contract with
+[`table_utils.js`](../../../assets/js/README.md#table_utilsjs-markup-contract):
+
+| Row | Means | Visibility |
+| --- | --- | --- |
+| "No items found" — the `{% empty %}` branch | the **server** returned no objects | rendered only when `objects` is empty; `filterTable` never hides it |
+| "No matching records" — `<tr data-filter-empty>` | rows exist, but no **active column filter** matches any of them | always rendered, ships `style="display: none;"`; `table_utils.js` toggles it |
+
+The filter-empty row lives here, in the template, rather than being built as a
+string in JavaScript: that keeps the message translatable and lets its `colspan`
+track `display_fields`. `table_utils.js` only ever **toggles** it — delete the
+row and there is no message at all, which is the defect reported in
+[#96](https://github.com/bamr87/barodybroject/issues/96) (the table body just
+emptied in silence). Its cell carries `role="status"` and `aria-live="polite"`
+because it replaces content that otherwise disappears unannounced.
+
 ## Usage
 
 ### Common Include Patterns

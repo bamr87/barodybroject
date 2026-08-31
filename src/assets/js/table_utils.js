@@ -33,14 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         table.querySelectorAll('input.filter').forEach(input => {
-            input.addEventListener('input', () => {
-                const header = input.closest('th');
-                if (!header) {
-                    return;
-                }
-
-                filterTable(table, header.cellIndex, input.value);
-            });
+            // filterTable re-reads every filter, so one handler per input is
+            // enough and the column this input belongs to is worked out there.
+            input.addEventListener('input', () => filterTable(table));
         });
     });
 });
@@ -68,21 +63,65 @@ function sortTable(table, columnIndex, order) {
 }
 
 
-function filterTable(table, columnIndex, query) {
-    const rows = Array.from(table.querySelectorAll('tbody tr'));
-    rows.forEach(row => {
+// Every active column filter, as {columnIndex, query}. Blank inputs are dropped
+// so they impose no constraint.
+function activeFilters(table) {
+    return Array.from(table.querySelectorAll('input.filter'))
+        .map(input => ({
+            columnIndex: input.closest('th')?.cellIndex,
+            query: input.value.trim().toLowerCase(),
+        }))
+        .filter(({ columnIndex, query }) => query !== '' && columnIndex !== undefined);
+}
+
+// Re-evaluate the whole table against ALL of its filters at once.
+//
+// Reading every filter on each keystroke — rather than only the one that just
+// changed — is what makes several active filters combine (a row must match all
+// of them) and what makes CLEARING one filter re-apply the rest instead of
+// revealing rows the others still exclude.
+function filterTable(table) {
+    const body = table.querySelector('tbody');
+    if (!body) {
+        return;
+    }
+
+    const filters = activeFilters(table);
+    const noMatchRow = body.querySelector('tr[data-filter-empty]');
+    let dataRows = 0;
+    let matches = 0;
+
+    Array.from(body.rows).forEach(row => {
+        // The filter-empty row is a message about the table, not a row of it.
+        if (row === noMatchRow) {
+            return;
+        }
+
+        // The server-side "No items found" row — a single cell spanning the
+        // table. Not data, so it is never filtered away.
         if (row.cells.length === 1 && row.cells[0].colSpan > 1) {
             row.style.display = '';
             return;
         }
 
-        const cell = row.querySelector(`td:nth-child(${columnIndex + 1})`);
-        if (!cell) {
-            row.style.display = '';
-            return;
-        }
+        dataRows += 1;
+        const visible = filters.every(({ columnIndex, query }) => {
+            const cell = row.cells[columnIndex];
+            // A row with no cell in that column cannot contradict the filter.
+            return !cell || cell.textContent.trim().toLowerCase().includes(query);
+        });
 
-        const cellText = cell.textContent.trim();
-        row.style.display = cellText.toLowerCase().includes(query.toLowerCase()) ? '' : 'none';
+        row.style.display = visible ? '' : 'none';
+        if (visible) {
+            matches += 1;
+        }
     });
+
+    if (noMatchRow) {
+        // Only when the table HAS rows and the filters have hidden all of them.
+        // With no rows at all the server's own empty state is already saying
+        // so, and showing both would be two empty states stacked.
+        const filteredToNothing = filters.length > 0 && dataRows > 0 && matches === 0;
+        noMatchRow.style.display = filteredToNothing ? '' : 'none';
+    }
 }
