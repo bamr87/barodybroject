@@ -197,7 +197,17 @@ admin.site.register(Assistant, AssistantAdmin)
 
 
 class OpenAIModelAdmin(ImportExportModelAdmin, admin.ModelAdmin):
-    list_display = ("model_id", "created_at", "updated_at")
+    # `is_available` is the field that decides whether a model is still offered
+    # in the assistant form, so it belongs on the changelist rather than only in
+    # the detail view.
+    list_display = (
+        "model_id",
+        "is_available",
+        "description",
+        "created_at",
+        "updated_at",
+    )
+    list_filter = ("is_available",)
 
     actions = ["fetch_openai_models"]
     resource_class = OpenAIModelResource

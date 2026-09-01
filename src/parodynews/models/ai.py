@@ -75,6 +75,10 @@ class OpenAIModel(models.Model):
     Attributes:
         model_id (str): Unique OpenAI model identifier (e.g., 'gpt-4', 'gpt-3.5-turbo')
         description (str): Detailed description of model capabilities and use cases
+        is_available (bool): Whether OpenAI still lists this model. Delisted models
+            are marked unavailable rather than deleted, because `Assistant.model`
+            uses `on_delete=SET_NULL` — deleting the row would silently strip the
+            model from every live assistant that referenced it.
         created_at (datetime): Timestamp when model was added to the system
         updated_at (datetime): Timestamp of last model metadata update
 
@@ -93,6 +97,15 @@ class OpenAIModel(models.Model):
 
     model_id = models.CharField(max_length=255, unique=True)
     description = models.TextField()
+    is_available = models.BooleanField(
+        default=True,
+        help_text=(
+            "Still listed by the OpenAI models endpoint. Cleared by "
+            "`manage.py fetch_models` when a model is delisted; unavailable "
+            "models are hidden from the assistant form but keep their rows so "
+            "existing assistants are not silently unassigned."
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

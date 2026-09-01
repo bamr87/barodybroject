@@ -11,6 +11,7 @@ This directory contains the comprehensive test suite for the parodynews Django a
 - `test_model_table.py`: regression tests for the `model_table.html` ↔ `table_utils.js` markup contract (the `sortable` class and `data-type` a column needs for sorting to bind and order correctly)
 - `e2e/`: Playwright end-to-end specs, marked `@pytest.mark.e2e` and deselected by default (`pytest.ini` sets `-m "not e2e"`); run them with `pytest -m e2e --browser chromium` against a running server
 - `test_thread_message_delete.py`: regression tests for the thread-message delete route — pins the `openai_delete_message` arity and the remote-before-local delete ordering (issue #30)
+- `test_fetch_models.py`: tests for `manage.py fetch_models` — the assistant-capable model filter, populated descriptions, retiring delisted models without unassigning their assistants, and failing loudly on an API error (issue #110). The OpenAI client is faked in every case via `Command.get_client`, so nothing here contacts the live API; the `IsAssistantModelTests` class is a `SimpleTestCase` and needs no database
 - `data/`: Test data directory containing sample data, fixtures, and mock responses (has its own README)
 - `scripts/`: Test scripts directory containing testing utilities and automation scripts (has its own README)
 - `.pytest_cache/`: Subdirectory for pytest cache files (auto-generated)

@@ -20,6 +20,7 @@ from .models import (  # AI models; Content models; Publishing models; Conversat
     ContentDetail,
     ContentItem,
     JSONSchema,
+    OpenAIModel,
     Post,
     PostFrontMatter,
     Thread,
@@ -112,6 +113,10 @@ class AssistantForm(forms.ModelForm):
     # Set the assistant field choices to the names of all Assistant objects. Needed for AJAX request
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Only models OpenAI still lists can back an assistant. Delisted models
+        # keep their rows (see `OpenAIModel.is_available`) so existing
+        # assistants are not unassigned, but they must not be offered again.
+        self.fields["model"].queryset = OpenAIModel.objects.filter(is_available=True)
         if self.instance.pk:
             # self.fields['assistant_group_memberships'].queryset = memberships
             self.fields["assistant_group_memberships"].queryset = (
