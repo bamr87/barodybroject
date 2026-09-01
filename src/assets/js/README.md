@@ -39,6 +39,18 @@ Key functionality:
 | Non-text columns carry `data-type="number"` or `data-type="date"` | `sortTable` reads `dataset.type` to choose its comparator; with no type it compares with `localeCompare`, so `10` sorts before `2` |
 | Each filter is an `input.filter` nested inside its own `<th>` | `filterTable` maps the input back to a column via `input.closest('th').cellIndex` |
 | An empty-state row is a single `<td>` with `colspan` > 1 | `filterTable` special-cases that shape so "No items found" is never filtered away |
+| A filter-empty row is `<tr data-filter-empty style="display: none;">` with one full-width `<td>` | `filterTable` **toggles** this row; it never builds one. Omit it and filtering to zero matches empties the table body in silence — the defect in [#96](https://github.com/bamr87/barodybroject/issues/96) |
+
+### The two empty states
+
+They look alike and mean different things. Both must be present for the table to explain itself in every state:
+
+| Row | Means | Rendered by | Visibility |
+| --- | --- | --- | --- |
+| "No items found" (`{% empty %}`) | the **server** returned no objects | Django, only when `objects` is empty | always visible; `filterTable` never hides it |
+| "No matching records" (`tr[data-filter-empty]`) | rows exist, but no **active filter** matches any of them | Django, always | ships `display: none`; `filterTable` shows it only when `dataRows > 0 && matches === 0` |
+
+The second row carries `role="status"` / `aria-live="polite"` on its cell, because it replaces content that would otherwise disappear with no announcement. It stays in the template rather than being string-built in JS so the message is translatable and its `colspan` tracks `display_fields`.
 
 Behaviour notes:
 
@@ -46,6 +58,7 @@ Behaviour notes:
   ignored by the sort handler, so typing in a column's filter does not re-sort it.
 - Sorting is single-column: activating one header clears `data-order`/`aria-sort`
   on the others.
+- **Filtering is multi-column and conjunctive.** `filterTable(table)` takes only the table and re-reads *every* `input.filter` on each keystroke, so a row must match all active filters. Re-reading is also what makes clearing one filter re-apply the others instead of revealing rows they still exclude.
 - Binding happens once, at `DOMContentLoaded`. Tables inserted into the DOM later
   are **not** wired up.
 

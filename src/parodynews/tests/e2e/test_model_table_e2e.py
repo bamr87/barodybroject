@@ -72,19 +72,30 @@ def mount(page, objects=ROWS):
 
 
 def column_values(page, column_index):
+    # Data rows only — the two empty-state rows are single full-width cells and
+    # would otherwise contribute their message text to every column.
     return page.eval_on_selector_all(
-        f"tbody tr td:nth-child({column_index + 1})",
-        "cells => cells.map(c => c.textContent.trim())",
+        "tbody tr",
+        f"""rows => rows
+            .filter(r => r.cells.length > 1)
+            .map(r => r.cells[{column_index}].textContent.trim())""",
     )
 
 
 def visible_usernames(page):
+    # Skip rows that aren't data: the server-side "No items found" row and the
+    # filter-empty row are single full-width cells with no username column.
     return page.eval_on_selector_all(
         "tbody tr",
         """rows => rows
-            .filter(r => r.style.display !== 'none')
+            .filter(r => r.style.display !== 'none' && r.cells.length > 1)
             .map(r => r.cells[1].textContent.trim())""",
     )
+
+
+def no_match_row(page):
+    """The filter-empty row: rows exist, but no active filter matches any."""
+    return page.locator("tbody tr[data-filter-empty]")
 
 
 def click_header_label(page, index):
@@ -186,3 +197,90 @@ def test_the_empty_state_row_is_never_hidden_by_filtering(page):
     empty_row = page.locator("tbody tr").first
     assert empty_row.is_visible()
     assert "No items found" in empty_row.text_content()
+
+
+# --------------------------------------------------------------------------- #
+# Issue #96: filtering to zero matches emptied the table in silence.
+#
+# The template renders the message row hidden and table_utils.js toggles it —
+# the JS never builds one, so both halves are needed. Each test below is red on
+# a build missing either half.
+# --------------------------------------------------------------------------- #
+@pytest.mark.e2e
+def test_filtering_to_zero_matches_shows_a_message(page):
+    """The reported defect: rows vanish with no explanation."""
+    mount(page)
+    assert not no_match_row(page).is_visible(), "message must start hidden"
+
+    page.locator("th.sortable").nth(1).locator("input.filter").fill("zzzzzz")
+
+    assert visible_usernames(page) == []
+    assert no_match_row(page).is_visible()
+    assert "No matching records" in no_match_row(page).text_content()
+
+
+@pytest.mark.e2e
+def test_the_message_clears_when_the_filter_is_relaxed_or_cleared(page):
+    mount(page)
+    filter_input = page.locator("th.sortable").nth(1).locator("input.filter")
+
+    filter_input.fill("zzzzzz")
+    assert no_match_row(page).is_visible()
+
+    filter_input.fill("al")  # relaxed to something that matches
+    assert visible_usernames(page) == ["alpha"]
+    assert not no_match_row(page).is_visible()
+
+    filter_input.fill("")  # cleared entirely
+    assert sorted(visible_usernames(page)) == ["alpha", "bravo", "charlie"]
+    assert not no_match_row(page).is_visible()
+
+
+@pytest.mark.e2e
+def test_two_active_filters_combine_and_show_one_message(page):
+    """Filters are conjunctive, and there is exactly one message however many."""
+    mount(page)
+    # username "alpha" is id 1; filtering id to "2" leaves nothing.
+    page.locator("th.sortable").nth(1).locator("input.filter").fill("alpha")
+    page.locator("th.sortable").nth(0).locator("input.filter").fill("2")
+
+    assert visible_usernames(page) == []
+    assert no_match_row(page).count() == 1
+    assert no_match_row(page).is_visible()
+
+
+@pytest.mark.e2e
+def test_clearing_one_of_two_filters_re_evaluates_the_rest(page):
+    """Clearing a filter must not reveal rows the OTHER filter still excludes."""
+    mount(page)
+    username = page.locator("th.sortable").nth(1).locator("input.filter")
+    ident = page.locator("th.sortable").nth(0).locator("input.filter")
+
+    username.fill("alpha")
+    ident.fill("2")
+    assert visible_usernames(page) == []
+
+    ident.fill("")
+
+    assert visible_usernames(page) == ["alpha"], "the username filter still applies"
+    assert not no_match_row(page).is_visible()
+
+
+@pytest.mark.e2e
+def test_the_message_is_announced_to_assistive_technology(page):
+    mount(page)
+    page.locator("th.sortable").nth(1).locator("input.filter").fill("zzzzzz")
+
+    cell = no_match_row(page).locator("td")
+    assert cell.get_attribute("role") == "status"
+    assert cell.get_attribute("aria-live") == "polite"
+
+
+@pytest.mark.e2e
+def test_an_empty_server_response_does_not_stack_two_empty_states(page):
+    """"No items found" already says it; "No matching records" must stay hidden."""
+    mount(page, objects=[])
+    page.locator("th.sortable").nth(1).locator("input.filter").fill("zzz-no-match")
+
+    assert page.locator("tbody tr").first.is_visible()
+    assert not no_match_row(page).is_visible()
