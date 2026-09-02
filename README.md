@@ -66,6 +66,29 @@ docker compose -f .devcontainer/docker-compose_dev.yml exec -e DJANGO_SETTINGS_M
 
 E2E tests are marked `e2e` and are excluded by default.
 
+## In-app feedback
+
+Every page rendered from `base.html` carries an "Improve this page" control that files a **prefilled GitHub issue** without leaving the app. It is the `<fleet-feedback>` web component from the [bamr87/bamr87 feedback kit](https://github.com/bamr87/bamr87/blob/main/templates/feedback/README.md) (spec: [UPS-FB](https://github.com/bamr87/bamr87/blob/main/specs/FEEDBACK.md)), vendored into this repository rather than hot-linked.
+
+Choosing a request type and writing a description opens a GitHub issue form that already contains the page URL and view name, the browser and OS, and any console errors captured before the dialog was opened. The issue is labelled `page-feedback` plus a type label, and ends with a `<!-- fleet-feedback v1 ... -->` marker.
+
+**No credential is involved.** The widget runs in its default `url` mode: it builds a `github.com/.../issues/new?...` link and lets GitHub's own session authenticate the reporter. No token is served to the browser and there is no server-side proxy. It also degrades gracefully — with JavaScript disabled, the inline anchor still links to the [`page_feedback.yml`](.github/ISSUE_TEMPLATE/page_feedback.yml) issue form.
+
+| Piece | Path |
+| --- | --- |
+| Component (vendored, do not edit in place) | `src/assets/js/fleet-feedback.js` |
+| Vendor provenance / kit version | `src/assets/js/fleet-feedback.VERSION` |
+| Template include | `src/parodynews/templates/includes/fleet_feedback.html` |
+| No-JS issue form | `.github/ISSUE_TEMPLATE/page_feedback.yml` |
+| Settings | `FLEET_REPO`, `FLEET_BRANCH` in `src/barodybroject/settings/base.py` |
+
+`FLEET_REPO` and `FLEET_BRANCH` default to `bamr87/barodybroject` and `main`, and can be overridden per environment with the environment variables of the same name — useful when running a fork so feedback lands on your own repository.
+
+> Every label the widget applies must exist in the target repository:
+> `page-feedback`, `bug`, `docs`, `feature`, `question`, `area:a11y`, `area:perf`.
+> GitHub **silently drops** unknown labels from a prefilled URL, so a missing one
+> fails invisibly. Check with `gh label list`.
+
 ## Cleanup Status
 
 This repository previously contained generated README mirrors, one-shot AI implementation reports, disabled Django CMS shims, and placeholder models. Those artifacts have been removed so the codebase reflects the current Django/OpenAI/Azure application.

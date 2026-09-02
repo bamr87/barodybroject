@@ -10,6 +10,7 @@ Contains reusable Django template components designed to eliminate code duplicat
 - `form_wrapper.html` - Bootstrap 5 form with error handling
 - `status_badge.html` - Status indicator badges
 - `confirm_modal.html` - Confirmation dialog for destructive actions
+- `fleet_feedback.html` - Mounts the `<fleet-feedback>` in-app feedback / feature-request widget (included once from `base.html`; vendored from the bamr87/bamr87 feedback kit — see `src/assets/js/fleet-feedback.VERSION`)
 
 ## Usage
 
