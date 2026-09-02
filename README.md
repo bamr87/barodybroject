@@ -68,25 +68,11 @@ E2E tests are marked `e2e` and are excluded by default.
 
 ## In-app feedback
 
-Every page rendered from `base.html` carries an "Improve this page" control that
-files a **prefilled GitHub issue** without leaving the app. It is the
-`<fleet-feedback>` web component from the
-[bamr87/bamr87 feedback kit](https://github.com/bamr87/bamr87/blob/main/templates/feedback/README.md)
-(spec: [UPS-FB](https://github.com/bamr87/bamr87/blob/main/specs/FEEDBACK.md)),
-vendored into this repository rather than hot-linked.
+Every page rendered from `base.html` carries an "Improve this page" control that files a **prefilled GitHub issue** without leaving the app. It is the `<fleet-feedback>` web component from the [bamr87/bamr87 feedback kit](https://github.com/bamr87/bamr87/blob/main/templates/feedback/README.md) (spec: [UPS-FB](https://github.com/bamr87/bamr87/blob/main/specs/FEEDBACK.md)), vendored into this repository rather than hot-linked.
 
-Choosing a request type and writing a description opens a GitHub issue form that
-already contains the page URL and view name, the browser and OS, and any console
-errors captured before the dialog was opened. The issue is labelled
-`page-feedback` plus a type label, and ends with a `<!-- fleet-feedback v1 ... -->`
-marker.
+Choosing a request type and writing a description opens a GitHub issue form that already contains the page URL and view name, the browser and OS, and any console errors captured before the dialog was opened. The issue is labelled `page-feedback` plus a type label, and ends with a `<!-- fleet-feedback v1 ... -->` marker.
 
-**No credential is involved.** The widget runs in its default `url` mode: it
-builds a `github.com/.../issues/new?...` link and lets GitHub's own session
-authenticate the reporter. No token is served to the browser and there is no
-server-side proxy. It also degrades gracefully — with JavaScript disabled, the
-inline anchor still links to the
-[`page_feedback.yml`](.github/ISSUE_TEMPLATE/page_feedback.yml) issue form.
+**No credential is involved.** The widget runs in its default `url` mode: it builds a `github.com/.../issues/new?...` link and lets GitHub's own session authenticate the reporter. No token is served to the browser and there is no server-side proxy. It also degrades gracefully — with JavaScript disabled, the inline anchor still links to the [`page_feedback.yml`](.github/ISSUE_TEMPLATE/page_feedback.yml) issue form.
 
 | Piece | Path |
 | --- | --- |
@@ -96,9 +82,7 @@ inline anchor still links to the
 | No-JS issue form | `.github/ISSUE_TEMPLATE/page_feedback.yml` |
 | Settings | `FLEET_REPO`, `FLEET_BRANCH` in `src/barodybroject/settings/base.py` |
 
-`FLEET_REPO` and `FLEET_BRANCH` default to `bamr87/barodybroject` and `main`, and
-can be overridden per environment with the environment variables of the same
-name — useful when running a fork so feedback lands on your own repository.
+`FLEET_REPO` and `FLEET_BRANCH` default to `bamr87/barodybroject` and `main`, and can be overridden per environment with the environment variables of the same name — useful when running a fork so feedback lands on your own repository.
 
 > Every label the widget applies must exist in the target repository:
 > `page-feedback`, `bug`, `docs`, `feature`, `question`, `area:a11y`, `area:perf`.

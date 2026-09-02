@@ -18,22 +18,14 @@ This directory contains GitHub issue templates that standardize the process of r
 
 ## In-app feedback vs. a hand-filed issue
 
-`page_feedback.yml` is the only template here that is normally reached from
-*inside the running application* rather than from GitHub's "New issue" screen.
-It exists in two forms:
+`page_feedback.yml` is the only template here that is normally reached from *inside the running application* rather than from GitHub's "New issue" screen. It exists in two forms:
 
 - **With JavaScript** — the `<fleet-feedback>` widget builds a prefilled issue
-  URL that already contains the page URL and view name, the reporter's browser
-  and OS, and any console errors captured before the dialog was opened. The
-  reporter only writes the description.
+URL that already contains the page URL and view name, the reporter's browser and OS, and any console errors captured before the dialog was opened. The reporter only writes the description.
 - **Without JavaScript** — the inline "Improve this page" anchor links straight
   to this form, which asks for the same information by hand.
 
-Either way the issue is labelled `page-feedback` plus a type label, and its body
-ends with a `<!-- fleet-feedback v1 type=... -->` marker. That marker and label
-are what distinguish it from a hand-filed issue: the context is machine-collected
-rather than remembered, so it is usually reproducible without a follow-up
-question. See the repository README's "In-app feedback" section.
+Either way the issue is labelled `page-feedback` plus a type label, and its body ends with a `<!-- fleet-feedback v1 type=... -->` marker. That marker and label are what distinguish it from a hand-filed issue: the context is machine-collected rather than remembered, so it is usually reproducible without a follow-up question. See the repository README's "In-app feedback" section.
 
 ## Usage
 Templates are automatically presented when creating new GitHub issues:
