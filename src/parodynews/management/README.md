@@ -25,12 +25,7 @@ python manage.py help
 python manage.py help <command_name>
 ```
 
-`fetch_models` refreshes the `OpenAIModel` table that backs the assistant form's
-model dropdown. It filters OpenAI's full catalogue down to the assistant-capable
-ids (an explicit allowlist — the endpoint returns image, speech, transcription
-and embedding models too), writes a description for each, marks delisted models
-unavailable instead of deleting them, and fails non-zero on an API error without
-touching the table. See `commands/README.md` for the filter itself.
+`fetch_models` refreshes the `OpenAIModel` table that backs the assistant form's model dropdown. It filters OpenAI's full catalogue down to the assistant-capable ids (an explicit allowlist — the endpoint returns image, speech, transcription and embedding models too), writes a description for each, marks delisted models unavailable instead of deleting them, and fails non-zero on an API error without touching the table. See `commands/README.md` for the filter itself.
 
 The management framework enables:
 - Database initialization and reset operations

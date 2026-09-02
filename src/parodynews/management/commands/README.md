@@ -34,30 +34,14 @@ python manage.py refreshmigrations
 
 ### `fetch_models` — what it filters and why
 
-`Assistant.model` is a foreign key to `OpenAIModel`, so this command decides
-what the assistant form's model dropdown offers. OpenAI's `/models` endpoint
-returns the account's **whole catalogue** with no capability field — image
-(`dall-e-*`), speech (`tts-*`), transcription (`whisper-*`), embedding
-(`text-embedding-*`) and legacy completion (`babbage-002`, `davinci-002`) ids
-come back alongside the chat models — and none of those can back an assistant.
-Persisting all of them made selecting one fail at generation time instead of at
-selection time, so the command:
+`Assistant.model` is a foreign key to `OpenAIModel`, so this command decides what the assistant form's model dropdown offers. OpenAI's `/models` endpoint returns the account's **whole catalogue** with no capability field — image (`dall-e-*`), speech (`tts-*`), transcription (`whisper-*`), embedding (`text-embedding-*`) and legacy completion (`babbage-002`, `davinci-002`) ids come back alongside the chat models — and none of those can back an assistant. Persisting all of them made selecting one fail at generation time instead of at selection time, so the command:
 
-- keeps only ids matching the explicit allowlist in `fetch_models.py`
-  (`ASSISTANT_MODEL_PREFIXES` minus `ASSISTANT_MODEL_EXCLUDED`) — a reviewable
-  constant, not a heuristic buried in the loop;
-- writes a non-empty `description` for every row (the endpoint has none of its
-  own, so it is composed from `id`, `owned_by` and `created`);
-- marks models OpenAI no longer lists `is_available = False` rather than
-  deleting them — `Assistant.model` is `on_delete=SET_NULL`, so a delete would
-  silently unassign the model from every assistant using it. Unavailable models
-  are hidden from the assistant form and filterable in the admin;
-- resolves the whole catalogue **before** writing anything and writes inside one
-  transaction, then raises `CommandError` (exit 1) on an API failure — a bad or
-  missing `OPENAI_API_KEY` leaves the table exactly as it was.
+- keeps only ids matching the explicit allowlist in `fetch_models.py` (`ASSISTANT_MODEL_PREFIXES` minus `ASSISTANT_MODEL_EXCLUDED`) — a reviewable constant, not a heuristic buried in the loop;
+- writes a non-empty `description` for every row (the endpoint has none of its own, so it is composed from `id`, `owned_by` and `created`);
+- marks models OpenAI no longer lists `is_available = False` rather than deleting them — `Assistant.model` is `on_delete=SET_NULL`, so a delete would silently unassign the model from every assistant using it. Unavailable models are hidden from the assistant form and filterable in the admin;
+- resolves the whole catalogue **before** writing anything and writes inside one transaction, then raises `CommandError` (exit 1) on an API failure — a bad or missing `OPENAI_API_KEY` leaves the table exactly as it was.
 
-Covered by `src/parodynews/tests/test_fetch_models.py`, which fakes the client
-and never contacts the live API.
+Covered by `src/parodynews/tests/test_fetch_models.py`, which fakes the client and never contacts the live API.
 
 ## Container Configuration
 These commands run within the Django application container:
