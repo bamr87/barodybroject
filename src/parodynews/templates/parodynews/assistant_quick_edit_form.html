@@ -1,0 +1,25 @@
+{% comment %}
+File: assistant_quick_edit_form.html
+Description: AssistantForm rendered as a bare fragment for the quick-edit modal.
+Author: Barodybroject Team
+Created: 2026-09-02
+Last Modified: 2026-09-02
+Version: 1.0.0
+
+Dependencies:
+- django_bootstrap5
+- parodynews.views.assistants.assistant_quick_edit (renders this, GET and POST)
+
+Usage: Fetched by content_detail.js and injected into the body of
+includes/assistant_edit_modal.html. It is a fragment, not a page: it deliberately
+does not extend base.html, carry a <form> element, or render a submit button —
+the modal owns all three, so that a re-render after a validation error replaces
+only the fields and leaves the dialog and its focus trap intact.
+{% endcomment %}
+
+{% load django_bootstrap5 %}
+
+<div id="assistant-quick-edit-fields" data-assistant-id="{{ assistant.pk }}">
+    {% bootstrap_form_errors assistant_form type="non_fields" %}
+    {% bootstrap_form assistant_form %}
+</div>

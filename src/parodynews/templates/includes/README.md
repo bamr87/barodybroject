@@ -10,6 +10,7 @@ Contains reusable Django template components designed to eliminate code duplicat
 - `form_wrapper.html` - Bootstrap 5 form with error handling
 - `status_badge.html` - Status indicator badges
 - `confirm_modal.html` - Confirmation dialog for destructive actions
+- `assistant_edit_modal.html` - Quick-edit dialog for the assistant selected on the content detail form; opened by the Edit button beside `#id_assistant` and filled by `content_detail.js` from `assistants/<id>/quick-edit/`, so an assistant can be changed without navigating away from an unsaved draft
 
 ## Usage
 

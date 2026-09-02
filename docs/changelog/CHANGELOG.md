@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Quick edit for the selected assistant** (#105): an Edit button beside the
+  assistant selector on the content detail form opens the assistant's settings
+  in a Bootstrap modal, so its configuration can be changed without navigating
+  to `assistants/edit/<id>/` and losing an unsaved draft.
+  - New endpoint `assistants/<id>/quick-edit/`
+    (`parodynews.views.assistants.assistant_quick_edit`): GET renders
+    `AssistantForm` as a fragment, POST saves and returns JSON. It is a sibling
+    of `get_assistant_details`, which returns only
+    `{assistant_id, instructions}` and whose existing caller is unchanged.
+  - New template partials `includes/assistant_edit_modal.html` and
+    `parodynews/assistant_quick_edit_form.html`.
+  - `content_detail.html` now renders the content form field-by-field so the
+    button can sit directly beside the generated `#id_assistant` select.
+  - The button is **always visible** rather than hover-revealed, and the control
+    acts on the current selection. `<option>` elements inside a native `<select>`
+    cannot host a button or report hover, and a hover-only control works on
+    neither touch devices nor screen readers — see the issue for the full
+    rationale.
+  - A failed OpenAI sync returns HTTP 502 and leaves the local row untouched,
+    matching `ManageAssistantsView.save`.
+
 ## [1.0.0] - 2025-10-27 - Django Settings Optimization Release
 
 ### Added
