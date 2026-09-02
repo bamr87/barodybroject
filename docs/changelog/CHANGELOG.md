@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **In-app feedback / feature-request shortcut** (#42): mounted the
+  `<fleet-feedback>` web component in `base.html`, so every page carries an
+  "Improve this page" control that files a prefilled GitHub issue with page
+  context, environment, and captured console errors — without leaving the app.
+  - Vendored `src/assets/js/fleet-feedback.js` and
+    `.github/ISSUE_TEMPLATE/page_feedback.yml` from the bamr87/bamr87 feedback
+    kit (UPS-FB); provenance recorded in `src/assets/js/fleet-feedback.VERSION`.
+  - New template include `includes/fleet_feedback.html` and context processor
+    `parodynews.context_processors.fleet_feedback`.
+  - New settings `FLEET_REPO` / `FLEET_BRANCH` in `settings/base.py`, so
+    development, production and testing all inherit them.
+  - Runs in `url` mode: no GitHub token reaches the browser and no server-side
+    proxy is introduced. Degrades to a plain link to the `page_feedback.yml`
+    issue form when JavaScript is unavailable.
+  - Resolves the long-standing `TODO: Add Issue submission functionality to
+    create github issue` in `base.html`.
+
 ## [1.0.0] - 2025-10-27 - Django Settings Optimization Release
 
 ### Added

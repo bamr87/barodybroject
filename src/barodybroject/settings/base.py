@@ -230,6 +230,15 @@ GITHUB_ISSUE_REPO = env.str("GITHUB_ISSUE_REPO", default="") or secrets.get(
     "GITHUB_ISSUE_REPO", ""
 )
 
+# Fleet feedback widget (<fleet-feedback>, spec UPS-FB).
+# Consumed by parodynews.context_processors.fleet_feedback and rendered by
+# templates/includes/fleet_feedback.html. These are public identifiers, not
+# credentials: the widget runs in `url` mode and builds a prefilled
+# github.com/.../issues/new link, letting GitHub's own session authenticate.
+# Defined here in base.py so development, production and testing all inherit.
+FLEET_REPO = env.str("FLEET_REPO", default="") or "bamr87/barodybroject"
+FLEET_BRANCH = env.str("FLEET_BRANCH", default="") or "main"
+
 if not IS_PRODUCTION:
     # Development environment settings
     ALLOWED_HOSTS = [
@@ -379,6 +388,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "parodynews.context_processors.footer_items",
                 "parodynews.context_processors.issue_templates",
+                "parodynews.context_processors.fleet_feedback",
             ],
         },
     },

@@ -1,0 +1,27 @@
+# Provenance for the vendored <fleet-feedback> component.
+# Do not edit fleet-feedback.js in place — re-vendor from the hub and update
+# this file, so drift from the kit stays detectable.
+kit: feedback
+version: 0.1.0
+source: bamr87/bamr87 templates/feedback/
+vendored-from-sha: 5686109
+vendored-on: 2026-09-02
+vendored-files:
+  - fleet-feedback.js -> src/assets/js/fleet-feedback.js (byte-identical)
+  - page_feedback.yml -> .github/ISSUE_TEMPLATE/page_feedback.yml (byte-identical)
+  - adapters/django.html -> src/parodynews/templates/includes/fleet_feedback.html (adapted)
+spec: specs/FEEDBACK.md (UPS-FB); the Django adapter is UPS-FB-32
+adapter-deviations: |
+  fleet_feedback.html differs from the kit's adapters/django.html in three
+  documented ways (see the {% comment %} header in that file):
+    - env="{{ FLEET_ENV }}" instead of {% if debug %}, because Django's `debug`
+      context processor is gated on INTERNAL_IPS.
+    - page-title drops the inert {% block %} wrapper.
+    - the inline anchor is wrapped in Bootstrap utility classes.
+  fleet-feedback.js and page_feedback.yml are unmodified copies; diff them
+  against the hub to detect drift.
+labels-required: |
+  page-feedback (marker) plus the type labels from the kit taxonomy:
+  bug, docs, feature, question, area:a11y, area:perf.
+  GitHub silently drops unknown labels from a prefilled URL, so every one of
+  these must exist in this repo (`gh label list`).
