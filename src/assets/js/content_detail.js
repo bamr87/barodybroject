@@ -157,12 +157,31 @@ document.addEventListener('DOMContentLoaded', function() {
     if (editAssistantBtn && modalEl && window.bootstrap) {
         const modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
 
+        // Bootstrap's hide() is a no-op while the show transition is still
+        // running, so a save that resolves faster than the dialog opens would
+        // otherwise leave it stuck open. Retry once the transition finishes.
+        function hideModal() {
+            modal.hide();
+            if (modalEl.classList.contains('show')) {
+                modalEl.addEventListener('shown.bs.modal', function() {
+                    modal.hide();
+                }, { once: true });
+            }
+        }
+
         editAssistantBtn.addEventListener('click', function() {
             if (!assistantSelect || !assistantSelect.value) {
                 return;
             }
             modal.show();
             loadAssistantForm(assistantSelect.value);
+        });
+
+        // Focus has to land inside the dialog after Bootstrap's focus trap has
+        // activated, or the trap steals it back — and with focus outside, the
+        // dialog never receives the keydown that closes it on Escape.
+        modalEl.addEventListener('shown.bs.modal', function() {
+            focusFirstField();
         });
 
         // Bootstrap restores focus to the opener itself, but only if the dialog
@@ -229,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (option && data.name) {
                         option.textContent = data.name;
                     }
-                    modal.hide();
+                    hideModal();
                 })
                 .catch(error => {
                     console.error('Error saving assistant:', error);

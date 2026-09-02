@@ -56,6 +56,11 @@ BOOTSTRAP_CSS = (
 
 ASSISTANT_ID = "asst_e2e_105"
 
+FOCUS_IS_INSIDE_MODAL = (
+    "() => { const m = document.getElementById('assistantEditModal');"
+    " return m && document.activeElement && m.contains(document.activeElement); }"
+)
+
 # The fragment the quick-edit endpoint returns; `fetch` is stubbed to serve it.
 FORM_FRAGMENT = (
     '<div id="assistant-quick-edit-fields" data-assistant-id="%s">'
@@ -308,11 +313,19 @@ class TestInteraction:
         assert page.evaluate("() => document.activeElement.id") == "edit-assistant-btn"
 
         page.keyboard.press("Enter")
-        page.wait_for_selector("#assistantEditModal.show")
+        page.wait_for_selector("#assistant-quick-edit-fields")
+        # Escape only closes the dialog if focus is inside it, so wait for the
+        # focus trap rather than racing it.
+        page.wait_for_function(FOCUS_IS_INSIDE_MODAL)
 
         page.keyboard.press("Escape")
         page.wait_for_selector("#assistantEditModal.show", state="detached")
-        assert page.evaluate("() => document.activeElement.id") == "edit-assistant-btn"
+        # Focus is restored on `hidden.bs.modal`, which fires after the hide
+        # transition — later than the class removal above.
+        page.wait_for_function(
+            "() => document.activeElement"
+            " && document.activeElement.id === 'edit-assistant-btn'"
+        )
 
         page.keyboard.press(" ")
         page.wait_for_selector("#assistantEditModal.show")
@@ -324,11 +337,7 @@ class TestInteraction:
         page.click("#edit-assistant-btn")
         page.wait_for_selector("#assistant-quick-edit-fields")
 
-        inside = page.evaluate(
-            "() => document.getElementById('assistantEditModal')"
-            ".contains(document.activeElement)"
-        )
-        assert inside
+        page.wait_for_function(FOCUS_IS_INSIDE_MODAL)
 
     def test_usable_at_a_mobile_viewport_without_hover(self, browser):
         """Criterion 9: :hover does not exist on touch, so the control must be

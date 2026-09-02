@@ -9,9 +9,16 @@ case "$mode" in
   runtime)
     (cd src && pip install -r requirements.txt)
     ;;
-  test|e2e)
+  test)
     (cd src && pip install -r requirements.txt)
     pip install coverage pytest-cov pytest-django pytest-playwright
+    ;;
+  e2e)
+    (cd src && pip install -r requirements.txt)
+    # axe-playwright-python drives the accessibility assertions in the e2e
+    # specs; it is in requirements-dev.txt, but this job never installs those.
+    pip install coverage pytest-cov pytest-django pytest-playwright \
+      axe-playwright-python
     ;;
   lint)
     pip install black isort flake8 ruff bandit
