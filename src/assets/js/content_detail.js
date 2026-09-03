@@ -12,12 +12,6 @@
  * Usage: Include in content detail template
  */
 
-// Upper bound on the frames hideModal() will retry for. Bootstrap's modal fade
-// is 300ms (~18 frames at 60Hz); 60 frames is roughly a second, comfortably
-// past that while still terminating on a browser that never completes the
-// transition (a background tab, say, where rAF is throttled).
-const HIDE_RETRY_FRAMES = 60;
-
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -163,26 +157,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (editAssistantBtn && modalEl && window.bootstrap) {
         const modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
 
-        // Bootstrap's hide() is a no-op while a transition is still in flight,
-        // so a save that resolves faster than the dialog opens would otherwise
-        // leave it stuck open forever.
+        // Bootstrap's hide() is a no-op while the dialog is still opening, so a
+        // save that resolves faster than the open animation leaves the dialog
+        // stuck open. Neither obvious signal detects that:
         //
-        // Retrying on a one-shot `shown.bs.modal` listener is not enough: by
-        // the time the save resolves, `shown` may ALREADY have fired, in which
-        // case the listener never runs again and the dialog is wedged open.
-        // That is the failure the e2e save test hits. Re-issue hide() on each
-        // animation frame instead, until the dialog is actually gone — bounded
-        // so a wedged transition can never spin forever.
-        function hideModal() {
-            let framesLeft = HIDE_RETRY_FRAMES;
+        //  - hide() returns nothing, so there is no result to test.
+        //  - The `show` CLASS is not a proxy for "open" either. show() runs the
+        //    backdrop first and adds `show` only afterwards, so for the first
+        //    part of opening the dialog is mid-transition WITHOUT that class.
+        //    Reading its absence as "already hidden" therefore stops retrying
+        //    at exactly the moment a retry is needed.
+        //
+        // Track the request against the dialog's own lifecycle events instead,
+        // which do report its real state: mark that a hide was asked for,
+        // re-issue it when the open transition finishes, and clear it once the
+        // dialog has actually gone.
+        let hideRequested = false;
 
-            (function attempt() {
-                modal.hide();
-                if (!modalEl.classList.contains('show') || framesLeft-- <= 0) {
-                    return;
-                }
-                window.requestAnimationFrame(attempt);
-            })();
+        function hideModal() {
+            hideRequested = true;
+            modal.hide();
         }
 
         editAssistantBtn.addEventListener('click', function() {
@@ -197,6 +191,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // activated, or the trap steals it back — and with focus outside, the
         // dialog never receives the keydown that closes it on Escape.
         modalEl.addEventListener('shown.bs.modal', function() {
+            // A save that resolved before the dialog finished opening asked for
+            // a hide that Bootstrap ignored. The open transition is over now, so
+            // it will take this time.
+            if (hideRequested) {
+                modal.hide();
+                return;
+            }
             focusFirstField();
         });
 
@@ -204,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // was opened via data-bs-toggle. It was opened from script here, so
         // return focus explicitly.
         modalEl.addEventListener('hidden.bs.modal', function() {
+            hideRequested = false;
             editAssistantBtn.focus();
         });
 

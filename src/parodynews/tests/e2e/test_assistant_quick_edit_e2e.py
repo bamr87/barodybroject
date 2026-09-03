@@ -61,6 +61,23 @@ FOCUS_IS_INSIDE_MODAL = (
     " return m && document.activeElement && m.contains(document.activeElement); }"
 )
 
+# The dialog has finished its open animation: `show` is on, the modal has faded
+# fully in, and the dialog has finished sliding down. Bootstrap fades `.modal`
+# opacity 0 -> 1 and translates `.modal-dialog` -50px -> 0 over 300ms, and the
+# fetch stub resolves in a microtask, so `#assistant-quick-edit-fields` can
+# appear while all of that is still running.
+DIALOG_IS_SETTLED = """
+() => {
+    const m = document.getElementById('assistantEditModal');
+    if (!m || !m.classList.contains('show')) { return false; }
+    if (getComputedStyle(m).opacity !== '1') { return false; }
+    const d = m.querySelector('.modal-dialog');
+    if (!d) { return true; }
+    const t = getComputedStyle(d).transform;
+    return t === 'none' || t === 'matrix(1, 0, 0, 1, 0, 0)';
+}
+"""
+
 # The fragment the quick-edit endpoint returns; `fetch` is stubbed to serve it.
 #
 # Field ids are namespaced `id_quick_*`, matching QUICK_EDIT_AUTO_ID in
@@ -344,6 +361,13 @@ class TestInteraction:
         )
 
     def test_saving_updates_the_content_form_instructions(self, page):
+        """Note this does NOT wait for the dialog to finish opening, and must
+        not be "fixed" by adding that wait. The stub resolves in a microtask, so
+        the save lands while Bootstrap is still animating the dialog open — the
+        exact case where `hide()` is a no-op. Waiting first would make the test
+        pass against a `hideModal` that cannot close a still-opening dialog,
+        which is the bug this pins.
+        """
         load_harness(page)
         page.select_option("#id_assistant", ASSISTANT_ID)
         page.click("#edit-assistant-btn")
@@ -423,6 +447,13 @@ class TestInteraction:
         page.select_option("#id_assistant", ASSISTANT_ID)
         page.click("#edit-assistant-btn")
         page.wait_for_selector("#assistant-quick-edit-fields")
+        # Audit the settled dialog. Mid-fade the modal's opacity is below 1, so
+        # every colour inside it composites against the page behind and axe
+        # scores the ANIMATION rather than the UI — reporting `color-contrast`
+        # on the title, the labels and the inputs alike. Waiting is not a
+        # relaxation of the assertion: the transient state being measured is one
+        # no user can read or interact with.
+        page.wait_for_function(DIALOG_IS_SETTLED)
 
         opened = axe_violations(page)
         assert opened == [], [v["id"] for v in opened]
