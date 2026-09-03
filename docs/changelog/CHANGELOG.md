@@ -28,6 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     rationale.
   - A failed OpenAI sync returns HTTP 502 and leaves the local row untouched,
     matching `ManageAssistantsView.save`.
+  - The dialog's form fields are rendered with a namespaced `auto_id`
+    (`id_quick_%s`). `AssistantForm` shares the field names `instructions` and
+    `description` with the two forms the content detail page already renders, so
+    Django's default `id_%s` would put duplicate active element ids on the page
+    whenever the dialog was open — binding `<label for>` to the wrong control
+    and making `getElementById('id_instructions')` in `content_detail.js`
+    depend on document order. Field **names** are unchanged, so the submitted
+    payload is identical.
 
 ## [1.0.0] - 2025-10-27 - Django Settings Optimization Release
 

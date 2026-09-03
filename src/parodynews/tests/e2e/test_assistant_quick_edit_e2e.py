@@ -62,20 +62,46 @@ FOCUS_IS_INSIDE_MODAL = (
 )
 
 # The fragment the quick-edit endpoint returns; `fetch` is stubbed to serve it.
+#
+# Field ids are namespaced `id_quick_*`, matching QUICK_EDIT_AUTO_ID in
+# views/assistants.py. AssistantForm shares the names `instructions` and
+# `description` with the two forms the content page already renders, so the
+# default `id_%s` would put duplicate active ids on the page the moment the
+# dialog opens. `AssistantQuickEditViewTests.test_fragment_ids_are_namespaced`
+# pins the real endpoint to this shape, so the fixture cannot drift from it.
+# The field NAMES are deliberately unprefixed here, exactly as the endpoint
+# renders them.
 FORM_FRAGMENT = (
     '<div id="assistant-quick-edit-fields" data-assistant-id="%s">'
     '<div class="mb-3">'
-    '<label class="form-label" for="id_name">Name</label>'
-    '<input type="text" class="form-control" id="id_name" name="name" '
+    '<label class="form-label" for="id_quick_name">Name</label>'
+    '<input type="text" class="form-control" id="id_quick_name" name="name" '
     'value="Original name">'
     "</div>"
     '<div class="mb-3">'
-    '<label class="form-label" for="id_instructions">Instructions</label>'
-    '<textarea class="form-control" id="id_instructions_modal" name="instructions">'
+    '<label class="form-label" for="id_quick_instructions">Instructions</label>'
+    '<textarea class="form-control" id="id_quick_instructions" '
+    'name="instructions">'
     "Original instructions.</textarea>"
     "</div>"
     "</div>" % ASSISTANT_ID
 )
+
+# The markup this change adds. The live content page also carries base.html's
+# navbar and footer, which this change does not touch.
+FEATURE_ROOTS = ("#assistant-field-group", "#assistantEditModal")
+
+# Does any of an axe node's target selectors resolve inside the feature markup?
+NODE_IS_IN_FEATURE = """
+([targets, roots]) => targets.some(selector => {
+    const el = document.querySelector(selector);
+    if (!el) { return false; }
+    return roots.some(rootSelector => {
+        const root = document.querySelector(rootSelector);
+        return Boolean(root) && root.contains(el);
+    });
+})
+"""
 
 
 def harness_html():
@@ -174,25 +200,43 @@ def load_harness(page):
     return page
 
 
-def axe_violations(page, impacts=None):
-    """WCAG 2.1 A/AA violations on the current page.
-
-    `impacts=None` means every violation counts, which is what the harness page
-    is held to — all of its markup is new in this change. The live content page
-    is filtered to serious/critical because it carries pre-existing markup this
-    change does not touch, and the criterion is "no *new* violations"; tightening
-    that to zero is a worthwhile follow-up but would fail here for reasons
-    unrelated to this feature.
-    """
+def axe_violations(page):
+    """Every WCAG 2.1 A/AA violation on the current page, at any impact."""
     from axe_playwright_python.sync_playwright import Axe
 
     results = Axe().run(
         page, options={"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa"]}}
     )
-    violations = results.response["violations"]
-    if impacts is None:
-        return violations
-    return [v for v in violations if v.get("impact") in impacts]
+    return results.response["violations"]
+
+
+def violations_in_feature_markup(page, violations):
+    """Keep only violations with at least one node inside FEATURE_ROOTS.
+
+    The criterion is "no *new* accessibility violations", and the live content
+    page renders base.html's navbar and footer, which this change does not
+    touch. Rather than filter by impact — which lets a pre-existing serious
+    violation fail this feature's test while hiding a moderate one the feature
+    itself introduced — this asks the page directly which nodes are inside the
+    markup the change adds, and holds that markup to ZERO violations at ANY
+    impact. Pre-existing problems elsewhere on the page stay visible as their
+    own defects instead of being silently absorbed here.
+    """
+    attributable = []
+    for violation in violations:
+        nodes = []
+        for node in violation.get("nodes", []):
+            targets = node.get("target") or []
+            # axe nests targets inside iframes; this page has none, so a flat
+            # list of selector strings is what we expect. Anything else is not
+            # something this helper can attribute, so leave it out.
+            if not targets or not all(isinstance(t, str) for t in targets):
+                continue
+            if page.evaluate(NODE_IS_IN_FEATURE, [targets, list(FEATURE_ROOTS)]):
+                nodes.append(node)
+        if nodes:
+            attributable.append(violation)
+    return attributable
 
 
 @pytest.mark.e2e
@@ -225,11 +269,20 @@ class TestLivePage:
     def test_no_new_accessibility_violations_on_the_content_page(
         self, logged_in_page, e2e_base_url
     ):
+        """No violation on the live page is attributable to this change.
+
+        Scoped to the markup the change adds. base.html's navbar already fails
+        `color-contrast` on `main` — the "Theme", "Settings" and "Report Issue"
+        labels (`span.d-none.d-lg-inline.ms-1`) — and neither base.html nor
+        footer.html is touched by this PR. That is a real, separate defect in
+        pre-existing markup; it is reported on the PR rather than fixed or
+        suppressed here.
+        """
         page = logged_in_page
         page.goto(f"{e2e_base_url}/content/")
         page.locator("#edit-assistant-btn").wait_for(state="attached")
 
-        violations = axe_violations(page, impacts=("serious", "critical"))
+        violations = violations_in_feature_markup(page, axe_violations(page))
         assert violations == [], [v["id"] for v in violations]
 
 
@@ -266,8 +319,10 @@ class TestInteraction:
         page.click("#edit-assistant-btn")
 
         page.wait_for_selector("#assistant-quick-edit-fields")
+        # A distinct element from the content form's same-named `instructions`
+        # field, which is why the endpoint namespaces the dialog's ids.
         assert (
-            page.locator("#id_instructions_modal").input_value()
+            page.locator("#id_quick_instructions").input_value()
             == "Original instructions."
         )
 

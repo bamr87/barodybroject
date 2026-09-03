@@ -167,6 +167,22 @@ def get_assistant_details(request, assistant_id):
 
 QUICK_EDIT_TEMPLATE = "parodynews/assistant_quick_edit_form.html"
 
+# The fragment is injected into the content detail page, which is already
+# rendering ContentItemForm (`instructions`) and ContentDetailForm
+# (`description`). AssistantForm carries both of those names, so Django's
+# default `id_%s` would put two `id_instructions` and two `id_description`
+# elements on the page at once as soon as the dialog opens. That is three
+# separate defects: duplicate active ids, <label for> resolving to whichever
+# control happens to come first in document order rather than the one it
+# labels, and an ambiguous `getElementById('id_instructions')` in
+# content_detail.js — which mirrors the saved instructions back into the
+# content form and would otherwise be relying on the modal being last in
+# <body>. Namespacing the ids fixes all three.
+#
+# Only the ids move. Field NAMES are untouched, so `request.POST` parses
+# exactly as before and the POST half of this view needs no change.
+QUICK_EDIT_AUTO_ID = "id_quick_%s"
+
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -200,12 +216,16 @@ def assistant_quick_edit(request, assistant_id):
             request,
             QUICK_EDIT_TEMPLATE,
             {
-                "assistant_form": AssistantForm(instance=assistant),
+                "assistant_form": AssistantForm(
+                    instance=assistant, auto_id=QUICK_EDIT_AUTO_ID
+                ),
                 "assistant": assistant,
             },
         )
 
-    assistant_form = AssistantForm(request.POST, instance=assistant)
+    assistant_form = AssistantForm(
+        request.POST, instance=assistant, auto_id=QUICK_EDIT_AUTO_ID
+    )
     if not assistant_form.is_valid():
         return render(
             request,

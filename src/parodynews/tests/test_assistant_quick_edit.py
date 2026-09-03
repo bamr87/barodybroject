@@ -17,6 +17,7 @@ existing full-page edit makes — so `save_assistant` and the client factory are
 patched here, following the pattern established in test_thread_message_delete.py.
 """
 
+import re
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -83,6 +84,78 @@ class AssistantQuickEditViewTests(TestCase):
 
         self.assertIn("Original instructions.", body)
         self.assertIn("Original name", body)
+
+    def test_fragment_ids_are_namespaced(self):
+        """The fragment is injected into the content detail page, which already
+        renders ContentItemForm (`instructions`) and ContentDetailForm
+        (`description`). AssistantForm carries both names, so Django's default
+        `id_%s` would put two `id_instructions` and two `id_description`
+        elements on one page as soon as the dialog opened — duplicate active
+        ids, <label for> binding to whichever came first in document order, and
+        an ambiguous getElementById('id_instructions') in content_detail.js.
+        """
+        body = self.client.get(self.url).content.decode("utf-8")
+
+        for field in ("name", "description", "instructions", "model"):
+            self.assertIn(f'id="id_quick_{field}"', body)
+            self.assertNotIn(
+                f'id="id_{field}"',
+                body,
+                f"'{field}' still renders an un-namespaced id and would collide "
+                f"with the content detail page",
+            )
+
+    def test_fragment_ids_do_not_collide_with_the_content_page(self):
+        """The collision, asserted directly against the ids the content page
+        actually renders rather than against a hand-listed set."""
+        from parodynews.forms import ContentDetailForm, ContentItemForm
+
+        page_ids = {
+            field.auto_id
+            for form in (ContentItemForm(), ContentDetailForm())
+            for field in form
+            if field.auto_id
+        }
+        fragment_ids = set(
+            re.findall(r'id="([^"]+)"', self.client.get(self.url).content.decode())
+        )
+
+        self.assertTrue(page_ids, "expected the content page forms to have ids")
+        self.assertEqual(
+            fragment_ids & page_ids,
+            set(),
+            "quick-edit fragment reuses element ids the content page already "
+            "renders; the dialog would produce duplicate active ids",
+        )
+
+    def test_fragment_labels_point_at_their_own_controls(self):
+        """A namespaced id is only a fix if the labels moved with it."""
+        body = self.client.get(self.url).content.decode("utf-8")
+
+        for label_for in re.findall(r'<label[^>]*for="([^"]+)"', body):
+            self.assertIn(
+                f'id="{label_for}"',
+                body,
+                f"<label for=\"{label_for}\"> has no matching control in the "
+                f"fragment, so it binds to whatever owns that id on the page",
+            )
+
+    @patch(SAVE_ASSISTANT, autospec=True)
+    def test_namespaced_ids_do_not_change_the_post_payload(
+        self, mock_save_assistant
+    ):
+        """Only `auto_id` is overridden, so field NAMES — and therefore the
+        payload the browser submits — are unchanged."""
+        with patch.object(AppConfigClientMixin, "get_client"):
+            response = self.client.post(self.url, self._valid_payload())
+
+        self.assertEqual(response.status_code, 200)
+        self.assistant.refresh_from_db()
+        self.assertEqual(self.assistant.name, "Updated name")
+
+        body = self.client.get(self.url).content.decode("utf-8")
+        for field in ("name", "description", "instructions", "model"):
+            self.assertIn(f'name="{field}"', body)
 
     def test_get_requires_login(self):
         self.client.logout()

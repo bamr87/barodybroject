@@ -12,6 +12,12 @@
  * Usage: Include in content detail template
  */
 
+// Upper bound on the frames hideModal() will retry for. Bootstrap's modal fade
+// is 300ms (~18 frames at 60Hz); 60 frames is roughly a second, comfortably
+// past that while still terminating on a browser that never completes the
+// transition (a background tab, say, where rAF is throttled).
+const HIDE_RETRY_FRAMES = 60;
+
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -157,16 +163,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (editAssistantBtn && modalEl && window.bootstrap) {
         const modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
 
-        // Bootstrap's hide() is a no-op while the show transition is still
-        // running, so a save that resolves faster than the dialog opens would
-        // otherwise leave it stuck open. Retry once the transition finishes.
+        // Bootstrap's hide() is a no-op while a transition is still in flight,
+        // so a save that resolves faster than the dialog opens would otherwise
+        // leave it stuck open forever.
+        //
+        // Retrying on a one-shot `shown.bs.modal` listener is not enough: by
+        // the time the save resolves, `shown` may ALREADY have fired, in which
+        // case the listener never runs again and the dialog is wedged open.
+        // That is the failure the e2e save test hits. Re-issue hide() on each
+        // animation frame instead, until the dialog is actually gone — bounded
+        // so a wedged transition can never spin forever.
         function hideModal() {
-            modal.hide();
-            if (modalEl.classList.contains('show')) {
-                modalEl.addEventListener('shown.bs.modal', function() {
-                    modal.hide();
-                }, { once: true });
-            }
+            let framesLeft = HIDE_RETRY_FRAMES;
+
+            (function attempt() {
+                modal.hide();
+                if (!modalEl.classList.contains('show') || framesLeft-- <= 0) {
+                    return;
+                }
+                window.requestAnimationFrame(attempt);
+            })();
         }
 
         editAssistantBtn.addEventListener('click', function() {
