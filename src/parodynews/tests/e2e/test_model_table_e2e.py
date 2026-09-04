@@ -186,3 +186,118 @@ def test_the_empty_state_row_is_never_hidden_by_filtering(page):
     empty_row = page.locator("tbody tr").first
     assert empty_row.is_visible()
     assert "No items found" in empty_row.text_content()
+
+
+# ---------------------------------------------------------------------------
+# The hand-rolled tables
+# ---------------------------------------------------------------------------
+#
+# Four list pages cannot use model_table.html, because their rows carry
+# click-through handlers or embedded forms that the generic body cannot emit.
+# They opt into the same contract through includes/sortable_header.html instead.
+# These tests drive that header partial with a click-through body — the
+# assistant_detail.html / assistant_group_detail.html shape — to prove the
+# behaviour is identical and that the row-level navigation survives.
+
+
+def click_through_row(pk, name):
+    """A row shaped like assistant_detail.html's: the whole <tr> navigates.
+
+    The real templates assign an absolute URL; a fragment is used here so the
+    page survives the click and the assertion can read where it went.
+    """
+    target = f"#row-{pk}"
+    return (
+        f"<tr onclick=\"window.location.href='{target}'\" "
+        f"onkeydown=\"if(event.key==='Enter') window.location.href='{target}'\" "
+        f'tabindex="0" role="link" aria-label="View {name}">'
+        f"<td>{pk}</td><td>{name}</td></tr>"
+    )
+
+
+def hand_rolled_table_html():
+    """A header built from the shared partial over a click-through row body."""
+    headers = "".join(
+        render_to_string(
+            "includes/sortable_header.html",
+            {"label": label, "sort_type": sort_type},
+        )
+        for label, sort_type in (("ID", "number"), ("Name", ""))
+    )
+    rows = "".join(
+        click_through_row(pk, name)
+        for pk, name in ((2, "bravo"), (10, "charlie"), (1, "alpha"))
+    )
+    return (
+        '<table class="table table-hover">'
+        f"<thead><tr>{headers}</tr></thead><tbody>{rows}</tbody></table>"
+    )
+
+
+def mount_hand_rolled(page):
+    page.set_content(
+        f"<!DOCTYPE html><html><body>{hand_rolled_table_html()}</body></html>"
+    )
+    page.add_script_tag(path=str(TABLE_UTILS_JS))
+    page.evaluate("document.dispatchEvent(new Event('DOMContentLoaded'))")
+    return page
+
+
+def visible_names(page):
+    return page.eval_on_selector_all(
+        "tbody tr",
+        """rows => rows
+            .filter(r => r.style.display !== 'none')
+            .map(r => r.cells[1].textContent.trim())""",
+    )
+
+
+@pytest.mark.e2e
+def test_hand_rolled_header_binds_a_working_sort(page):
+    """The regression: these headers had no .sortable, so this click did nothing."""
+    mount_hand_rolled(page)
+
+    header = click_header_label(page, 1)  # Name, a text column
+    assert visible_names(page) == ["alpha", "bravo", "charlie"]
+    assert header.get_attribute("aria-sort") == "ascending"
+
+    click_header_label(page, 1)
+    assert visible_names(page) == ["charlie", "bravo", "alpha"]
+    assert header.get_attribute("aria-sort") == "descending"
+
+
+@pytest.mark.e2e
+def test_hand_rolled_numeric_column_sorts_numerically(page):
+    mount_hand_rolled(page)
+    click_header_label(page, 0)  # ID, data-type="number"
+
+    # Lexicographic ordering would give 1, 10, 2.
+    assert column_values(page, 0) == ["1", "2", "10"]
+
+
+@pytest.mark.e2e
+def test_hand_rolled_filter_still_narrows_rows(page):
+    mount_hand_rolled(page)
+    page.locator("th.sortable").nth(1).locator("input.filter").fill("al")
+
+    assert visible_names(page) == ["alpha"]
+
+
+@pytest.mark.e2e
+def test_hand_rolled_rows_keep_their_click_through(page):
+    """Row-level navigation must survive alongside the header handlers."""
+    mount_hand_rolled(page)
+    page.locator("tbody tr").first.click()
+
+    assert page.evaluate("window.location.hash") == "#row-2"
+
+
+@pytest.mark.e2e
+def test_hand_rolled_row_click_through_survives_a_sort(page):
+    """Sorting reorders the same row nodes, so their handlers must come along."""
+    mount_hand_rolled(page)
+    click_header_label(page, 0)  # now ordered 1, 2, 10
+
+    page.locator("tbody tr").first.click()
+
+    assert page.evaluate("window.location.hash") == "#row-1"

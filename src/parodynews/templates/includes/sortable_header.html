@@ -1,0 +1,48 @@
+{% comment %}
+File: sortable_header.html
+Description: One contract-compliant sortable/filterable table header cell
+Author: Barodybroject Team
+Created: 2026-09-04
+Version: 1.0.0
+
+Dependencies:
+- table_utils.js for the sorting/filtering behaviour it opts into
+
+Why this exists: list tables whose BODY cannot be produced by the generic
+`{% render_model_table %}` component -- because their rows carry click-through
+handlers, embedded forms, or static columns -- still have to satisfy the same
+markup contract with table_utils.js. Before this partial they hand-rolled the
+header and every one of them got it wrong the same way: `<th scope="col">` with
+a filter input and no `class="sortable"`, so the filter worked, the sort
+affordance rendered, and clicking a column header did nothing.
+
+Contract with table_utils.js (both halves must hold, or the feature is dead):
+- `class="sortable"` is the exact selector table_utils.js:7 binds its click
+  handler to. Without it no listener is attached.
+- `data-type="number"|"date"` selects sortTable's comparator (table_utils.js:56-62).
+  A header with no data-type sorts lexicographically, which orders IDs 1, 10, 2.
+- The per-column filter is an `input.filter` nested inside its own `<th>`;
+  table_utils.js maps it back to a column via `input.closest('th').cellIndex`
+  and ignores clicks originating inside it, so typing never re-sorts.
+
+This is the same markup `includes/model_table.html` emits. Prefer
+`{% render_model_table %}` whenever the table body fits its shape; reach for
+this partial only for the bodies that cannot.
+
+Usage:
+  Model-driven column:
+    {% include "includes/sortable_header.html" with label=field.verbose_name sort_type=field|sort_data_type %}
+  Static column:
+    {% include "includes/sortable_header.html" with label="ID" sort_type="number" %}
+{% endcomment %}
+
+<th scope="col"
+    class="sortable"
+    aria-sort="none"
+    {% if sort_type %}data-type="{{ sort_type }}"{% endif %}>
+    {{ label }}
+    <input type="text"
+           class="form-control form-control-sm filter"
+           placeholder="Filter {{ label }}..."
+           aria-label="Filter {{ label }}"/>
+</th>
