@@ -136,14 +136,12 @@ class AssistantQuickEditViewTests(TestCase):
             self.assertIn(
                 f'id="{label_for}"',
                 body,
-                f"<label for=\"{label_for}\"> has no matching control in the "
+                f'<label for="{label_for}"> has no matching control in the '
                 f"fragment, so it binds to whatever owns that id on the page",
             )
 
     @patch(SAVE_ASSISTANT, autospec=True)
-    def test_namespaced_ids_do_not_change_the_post_payload(
-        self, mock_save_assistant
-    ):
+    def test_namespaced_ids_do_not_change_the_post_payload(self, mock_save_assistant):
         """Only `auto_id` is overridden, so field NAMES — and therefore the
         payload the browser submits — are unchanged."""
         with patch.object(AppConfigClientMixin, "get_client"):

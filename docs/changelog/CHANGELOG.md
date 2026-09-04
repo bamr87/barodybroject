@@ -36,6 +36,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     and making `getElementById('id_instructions')` in `content_detail.js`
     depend on document order. Field **names** are unchanged, so the submitted
     payload is identical.
+  - The Playwright interaction harness is loaded from a routed origin rather
+    than `page.set_content`. `set_content` leaves the document on an opaque
+    origin where reading `document.cookie` raises `SecurityError`, and
+    `content_detail.js` reads it via `getCookie('csrftoken')` while building the
+    save request — so the submit handler died there, synchronously and outside
+    the promise chain, and the dialog hung open. Django serves this page over
+    http, where that read is fine, so the failure was the harness's rather than
+    the app's.
+  - `test_saving_closes_a_dialog_that_is_still_opening` covers the
+    `hide()`-while-opening race directly. `page.click` cannot: Playwright waits
+    for the element to be stable, i.e. for the very animation whose mid-flight
+    state is the bug, so a clicked save always lands after `shown.bs.modal` has
+    fired. The submit is dispatched from script instead, and the test asserts
+    the dialog had NOT settled, so it fails rather than silently covering
+    nothing.
 
 ## [1.0.0] - 2025-10-27 - Django Settings Optimization Release
 

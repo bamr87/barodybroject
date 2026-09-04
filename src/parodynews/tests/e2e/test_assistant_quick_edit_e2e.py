@@ -211,8 +211,27 @@ def harness_html():
 </html>"""
 
 
+# `set_content` would be the obvious way to load this, and is what
+# `test_model_table_e2e.py` does — but that leaves the document on an opaque
+# origin, where reading `document.cookie` raises
+#   SecurityError: Failed to read the 'cookie' property from 'Document'
+# `content_detail.js` reads it via `getCookie('csrftoken')` while assembling the
+# save request's headers, so under `set_content` the submit handler dies THERE —
+# synchronously, before `fetch` is called, and outside the promise chain, so the
+# handler's own `.catch` never runs and the dialog just hangs open. That is an
+# artifact of the harness, not of the app: Django serves this page over http,
+# where the cookie read is fine. Serve the harness from a real origin so the
+# save path under test is the one that actually ships.
+HARNESS_ORIGIN = "http://assistant-quick-edit.harness"
+
+
 def load_harness(page):
-    page.set_content(harness_html())
+    html = harness_html()
+    page.route(
+        f"{HARNESS_ORIGIN}/**",
+        lambda route: route.fulfill(content_type="text/html", body=html),
+    )
+    page.goto(f"{HARNESS_ORIGIN}/content/")
     page.wait_for_function("() => window.bootstrap && window.bootstrap.Modal")
     return page
 
@@ -361,13 +380,7 @@ class TestInteraction:
         )
 
     def test_saving_updates_the_content_form_instructions(self, page):
-        """Note this does NOT wait for the dialog to finish opening, and must
-        not be "fixed" by adding that wait. The stub resolves in a microtask, so
-        the save lands while Bootstrap is still animating the dialog open — the
-        exact case where `hide()` is a no-op. Waiting first would make the test
-        pass against a `hideModal` that cannot close a still-opening dialog,
-        which is the bug this pins.
-        """
+        """The ordinary save: the dialog closes and the content form catches up."""
         load_harness(page)
         page.select_option("#id_assistant", ASSISTANT_ID)
         page.click("#edit-assistant-btn")
@@ -380,6 +393,42 @@ class TestInteraction:
         # A renamed assistant is reflected in the selector it was opened from.
         option = page.locator(f'#id_assistant option[value="{ASSISTANT_ID}"]')
         assert option.text_content() == "Renamed assistant"
+
+    def test_saving_closes_a_dialog_that_is_still_opening(self, page):
+        """Bootstrap's `hide()` is a no-op while the dialog is still animating
+        open, so a save that resolves faster than that animation used to leave
+        the dialog stuck open. `hideModal` records the request and the
+        `shown.bs.modal` handler re-issues it; this pins that.
+
+        `page.click` cannot express this case: Playwright's actionability check
+        waits for the element to be STABLE, i.e. for the very animation whose
+        mid-flight state is the bug, so a clicked save always lands after
+        `shown.bs.modal` has already fired. The submit is therefore dispatched
+        from script — and the assertion below fails loudly if the dialog turns
+        out to have settled first, rather than passing while covering nothing.
+        """
+        load_harness(page)
+        page.select_option("#id_assistant", ASSISTANT_ID)
+        page.click("#edit-assistant-btn")
+        page.wait_for_selector("#assistant-quick-edit-fields")
+
+        # Read the transition state and submit in the SAME JS turn, so the
+        # dialog cannot finish opening in between and turn this into the
+        # already-covered settled case.
+        was_settled = page.evaluate("""() => {
+                const m = document.getElementById('assistantEditModal');
+                const settled = m.classList.contains('show')
+                    && getComputedStyle(m).opacity === '1';
+                document.getElementById('assistantEditForm').requestSubmit();
+                return settled;
+            }""")
+        assert not was_settled, (
+            "the dialog had already finished opening, so this run did not "
+            "exercise the hide()-while-opening race"
+        )
+
+        page.wait_for_selector("#assistantEditModal.show", state="detached")
+        assert page.locator("#id_instructions").input_value() == "Saved instructions."
 
     def test_operable_by_keyboard_alone(self, page):
         """Criterion 7: reachable by Tab from the select, activates with Enter
