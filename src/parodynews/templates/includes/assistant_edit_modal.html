@@ -1,0 +1,61 @@
+{% comment %}
+File: assistant_edit_modal.html
+Description: Bootstrap modal for editing the selected assistant in place, without
+             navigating away from the content detail form.
+Author: Barodybroject Team
+Created: 2026-09-02
+Last Modified: 2026-09-02
+Version: 1.0.0
+
+Dependencies:
+- Bootstrap 5 (modal component)
+- assets/js/content_detail.js — fills the body, submits, and manages focus
+- parodynews/assistant_quick_edit_form.html — the fetched fragment
+
+Usage: Include once on a page that renders an #id_assistant selector; the Edit
+button beside that selector opens it. Follows confirm_modal.html's structure
+(modal fade, aria-labelledby, btn-close with aria-label).
+
+The <form> lives here rather than in the fetched fragment so that re-rendering
+after a validation error swaps only the fields, leaving the dialog — and the
+browser's focus trap — untouched.
+{% endcomment %}
+
+<div class="modal fade" id="assistantEditModal" tabindex="-1" aria-labelledby="assistantEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <form id="assistantEditForm" novalidate>
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assistantEditModalLabel">
+                        <i class="bi bi-robot"></i> Edit Assistant
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="assistantEditAlert" class="alert alert-danger d-none" role="alert"></div>
+                    {% comment %}
+                    aria-busy/aria-live let a screen reader announce the fetch
+                    rather than landing the user in an empty dialog.
+                    {% endcomment %}
+                    <div id="assistantEditBody" aria-live="polite" aria-busy="false">
+                        <div class="text-center py-4" id="assistantEditSpinner">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading assistant…</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="assistantEditSave" disabled
+                            data-loading-text="Saving…">
+                        <i class="bi bi-save"></i> Save Assistant
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

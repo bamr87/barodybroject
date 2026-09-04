@@ -404,6 +404,127 @@ class PerformanceTests(TestCase):
         )
 
 
+class AssistantQuickEditTemplateTests(TestCase):
+    """Template-level coverage for the assistant quick-edit control (issue #105).
+
+    The control is deliberately always visible rather than hover-revealed: the
+    assistants are <option>s inside a <select>, which browsers draw as native UI,
+    so there is nothing per-assistant to hover; and a hover-only control cannot
+    satisfy the issue's own mobile and accessibility criteria.
+    """
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="quickedit", password="testpass123", email="qe@example.com"
+        )
+        self.client.force_login(self.user)
+
+    def _content_page(self):
+        return self.client.get(reverse("manage_content"))
+
+    def test_edit_button_rendered_next_to_assistant_select(self):
+        response = self._content_page()
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode("utf-8")
+
+        self.assertIn('id="assistant-field-group"', content)
+        self.assertIn('id="id_assistant"', content)
+        self.assertIn('id="edit-assistant-btn"', content)
+
+        # "Adjacent" is the point of the feature, so assert ordering rather than
+        # mere presence: the wrapper opens, then the select, then the button.
+        wrapper_at = content.index('id="assistant-field-group"')
+        select_at = content.index('id="id_assistant"')
+        button_at = content.index('id="edit-assistant-btn"')
+        self.assertLess(wrapper_at, select_at)
+        self.assertLess(select_at, button_at)
+
+        # ...and nothing else from the form comes between them, which is what
+        # would happen if the button were appended after the whole form instead.
+        between = content[select_at:button_at]
+        for other in ("id_prompt", "id_content_text", "id_instructions"):
+            self.assertNotIn(
+                f'id="{other}"',
+                between,
+                f"'{other}' renders between the assistant select and the button",
+            )
+
+    def test_edit_button_is_accessible(self):
+        response = self._content_page()
+        content = response.content.decode("utf-8")
+
+        button = re.search(r'<button[^>]*id="edit-assistant-btn"[^>]*>', content)
+        self.assertIsNotNone(button)
+        markup = button.group(0)
+
+        self.assertIn('aria-label="Edit selected assistant"', markup)
+        self.assertIn('aria-controls="assistantEditModal"', markup)
+        self.assertIn('aria-haspopup="dialog"', markup)
+        # A real <button> is keyboard-operable (Tab/Enter/Space) for free; a
+        # <div> or bare <a> would not be.
+        self.assertIn('type="button"', markup)
+
+    def test_edit_button_starts_disabled_with_no_selection(self):
+        """Server-rendered default; content_detail.js re-syncs it on change."""
+        response = self._content_page()
+        content = response.content.decode("utf-8")
+
+        button = re.search(r'<button[^>]*id="edit-assistant-btn"[^>]*>', content)
+        self.assertIn("disabled", button.group(0))
+
+    def test_modal_included_and_labelled(self):
+        response = self._content_page()
+        self.assertTemplateUsed(response, "includes/assistant_edit_modal.html")
+        content = response.content.decode("utf-8")
+
+        self.assertIn('id="assistantEditModal"', content)
+        self.assertIn('aria-labelledby="assistantEditModalLabel"', content)
+        self.assertIn('id="assistantEditModalLabel"', content)
+        # Follows confirm_modal.html's convention.
+        self.assertIn("modal fade", content)
+        close = re.search(r'<button[^>]*class="btn-close"[^>]*>', content)
+        self.assertIsNotNone(close)
+        self.assertIn('aria-label="Close"', close.group(0))
+
+    def test_modal_is_not_nested_inside_the_content_form(self):
+        """Nested <form> elements are invalid HTML and browsers drop the inner
+        one, which would silently break saving from the dialog."""
+        response = self._content_page()
+        content = response.content.decode("utf-8")
+
+        modal_at = content.index('id="assistantEditModal"')
+        before = content[:modal_at]
+        self.assertEqual(
+            before.count("<form"),
+            before.count("</form>"),
+            "assistant edit modal is inside an unclosed <form>; nested forms are "
+            "invalid HTML and the browser drops the inner one",
+        )
+
+    def test_all_content_form_fields_still_render(self):
+        """The field-by-field loop replaced {% bootstrap_form content_form %};
+        no field may be dropped by that change."""
+        response = self._content_page()
+        content = response.content.decode("utf-8")
+
+        for field_name in ("assistant", "instructions", "prompt", "content_text"):
+            self.assertIn(
+                f'id="id_{field_name}"',
+                content,
+                f"content form field '{field_name}' stopped rendering",
+            )
+
+    def test_quick_edit_url_matches_the_path_the_script_calls(self):
+        """content_detail.js builds this path by hand, matching how it already
+        calls /get_assistant_details/. Pin the two together so a route change
+        breaks a test instead of the button."""
+        self.assertEqual(
+            reverse("assistant_quick_edit", args=["asst_example"]),
+            "/assistants/asst_example/quick-edit/",
+        )
+
+
 # Test runner output
 def run_tests():
     """Run all tests and output results"""

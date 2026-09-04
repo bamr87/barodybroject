@@ -14,10 +14,12 @@ Usage: Included via parodynews URL routing.
 """
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
+from django.views.decorators.http import require_http_methods
 
 from ..forms import AssistantForm, AssistantGroupForm, AssistantGroupMembershipFormSet
 from ..mixins import AppConfigClientMixin, ModelFieldsMixin
@@ -161,6 +163,108 @@ def get_assistant_details(request, assistant_id):
         return JsonResponse(data)
     except Assistant.DoesNotExist:
         return JsonResponse({"error": "Assistant not found"}, status=404)
+
+
+QUICK_EDIT_TEMPLATE = "parodynews/assistant_quick_edit_form.html"
+
+# The fragment is injected into the content detail page, which is already
+# rendering ContentItemForm (`instructions`) and ContentDetailForm
+# (`description`). AssistantForm carries both of those names, so Django's
+# default `id_%s` would put two `id_instructions` and two `id_description`
+# elements on the page at once as soon as the dialog opens. That is three
+# separate defects: duplicate active ids, <label for> resolving to whichever
+# control happens to come first in document order rather than the one it
+# labels, and an ambiguous `getElementById('id_instructions')` in
+# content_detail.js — which mirrors the saved instructions back into the
+# content form and would otherwise be relying on the modal being last in
+# <body>. Namespacing the ids fixes all three.
+#
+# Only the ids move. Field NAMES are untouched, so `request.POST` parses
+# exactly as before and the POST half of this view needs no change.
+QUICK_EDIT_AUTO_ID = "id_quick_%s"
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def assistant_quick_edit(request, assistant_id):
+    """Render, and accept, the assistant edit form as a modal partial.
+
+    This backs the Edit button beside the assistant selector on the content
+    detail form, so an assistant's configuration can be changed without
+    navigating away and losing an unsaved draft.
+
+    It is a sibling of :func:`get_assistant_details` rather than another
+    ``ManageAssistantsView`` route on purpose. That view renders the full
+    ``assistant_detail.html`` page and redirects on save — precisely the
+    navigation this endpoint exists to avoid. ``get_assistant_details`` returns
+    only ``{assistant_id, instructions}``, which is not enough to populate a
+    form, and ``content_detail.js`` already depends on that exact shape, so it
+    is left untouched rather than extended.
+
+    GET
+        The bound :class:`~parodynews.forms.AssistantForm` as an HTML fragment.
+    POST
+        Saves and returns JSON with the fields the content form mirrors. An
+        invalid form re-renders the fragment with errors and HTTP 422; a failed
+        OpenAI sync returns HTTP 502 and leaves the local row untouched, which
+        matches how ``ManageAssistantsView.save`` treats the same failure.
+    """
+    assistant = get_object_or_404(Assistant, pk=assistant_id)
+
+    if request.method == "GET":
+        return render(
+            request,
+            QUICK_EDIT_TEMPLATE,
+            {
+                "assistant_form": AssistantForm(
+                    instance=assistant, auto_id=QUICK_EDIT_AUTO_ID
+                ),
+                "assistant": assistant,
+            },
+        )
+
+    assistant_form = AssistantForm(
+        request.POST, instance=assistant, auto_id=QUICK_EDIT_AUTO_ID
+    )
+    if not assistant_form.is_valid():
+        return render(
+            request,
+            QUICK_EDIT_TEMPLATE,
+            {"assistant_form": assistant_form, "assistant": assistant},
+            status=422,
+        )
+
+    updated = assistant_form.save(commit=False)
+
+    try:
+        client = AppConfigClientMixin().get_client()
+        save_assistant(
+            client,
+            updated.name,
+            updated.description,
+            updated.instructions,
+            updated.model,
+            updated.json_schema,
+            assistant.pk,
+        )
+    except Exception as e:
+        # Mirror ManageAssistantsView.save: if OpenAI rejects the change, do not
+        # persist locally, or the two stores silently diverge. The primary key
+        # is deliberately not reassigned from the response here — it is the
+        # OpenAI assistant id and is stable across updates, and rewriting it on
+        # an existing instance would insert a duplicate row rather than update.
+        return JsonResponse({"error": f"Error saving assistant: {e}"}, status=502)
+
+    updated.save()
+    assistant_form.save_m2m()
+
+    return JsonResponse(
+        {
+            "assistant_id": updated.pk,
+            "name": updated.name,
+            "instructions": updated.instructions or "",
+        }
+    )
 
 
 class ManageAssistantGroupsView(LoginRequiredMixin, ModelFieldsMixin, View):

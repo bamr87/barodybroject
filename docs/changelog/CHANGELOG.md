@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Quick edit for the selected assistant** (#105): an Edit button beside the
+  assistant selector on the content detail form opens the assistant's settings
+  in a Bootstrap modal, so its configuration can be changed without navigating
+  to `assistants/edit/<id>/` and losing an unsaved draft.
+  - New endpoint `assistants/<id>/quick-edit/`
+    (`parodynews.views.assistants.assistant_quick_edit`): GET renders
+    `AssistantForm` as a fragment, POST saves and returns JSON. It is a sibling
+    of `get_assistant_details`, which returns only
+    `{assistant_id, instructions}` and whose existing caller is unchanged.
+  - New template partials `includes/assistant_edit_modal.html` and
+    `parodynews/assistant_quick_edit_form.html`.
+  - `content_detail.html` now renders the content form field-by-field so the
+    button can sit directly beside the generated `#id_assistant` select.
+  - The button is **always visible** rather than hover-revealed, and the control
+    acts on the current selection. `<option>` elements inside a native `<select>`
+    cannot host a button or report hover, and a hover-only control works on
+    neither touch devices nor screen readers — see the issue for the full
+    rationale.
+  - A failed OpenAI sync returns HTTP 502 and leaves the local row untouched,
+    matching `ManageAssistantsView.save`.
+  - The dialog's form fields are rendered with a namespaced `auto_id`
+    (`id_quick_%s`). `AssistantForm` shares the field names `instructions` and
+    `description` with the two forms the content detail page already renders, so
+    Django's default `id_%s` would put duplicate active element ids on the page
+    whenever the dialog was open — binding `<label for>` to the wrong control
+    and making `getElementById('id_instructions')` in `content_detail.js`
+    depend on document order. Field **names** are unchanged, so the submitted
+    payload is identical.
+  - The Playwright interaction harness is loaded from a routed origin rather
+    than `page.set_content`. `set_content` leaves the document on an opaque
+    origin where reading `document.cookie` raises `SecurityError`, and
+    `content_detail.js` reads it via `getCookie('csrftoken')` while building the
+    save request — so the submit handler died there, synchronously and outside
+    the promise chain, and the dialog hung open. Django serves this page over
+    http, where that read is fine, so the failure was the harness's rather than
+    the app's.
+  - `test_saving_closes_a_dialog_that_is_still_opening` covers the
+    `hide()`-while-opening race directly. `page.click` cannot: Playwright waits
+    for the element to be stable, i.e. for the very animation whose mid-flight
+    state is the bug, so a clicked save always lands after `shown.bs.modal` has
+    fired. The submit is dispatched from script instead, and the test asserts
+    the dialog had NOT settled, so it fails rather than silently covering
+    nothing.
+
 ## [1.0.0] - 2025-10-27 - Django Settings Optimization Release
 
 ### Added

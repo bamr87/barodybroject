@@ -22,6 +22,7 @@ from .views import (
     PoweredByViewSet,
     ProcessContentView,
     ThreadViewSet,
+    assistant_quick_edit,
     create_schema,
     delete_schema,
     edit_schema,
@@ -175,6 +176,13 @@ urlpatterns = [
         "assistants/delete/<str:assistant_id>/",
         ManageAssistantsView.as_view(),
         name="delete_assistant",
+    ),
+    # Modal partial behind the Edit button on the content detail form: renders
+    # (GET) and saves (POST) AssistantForm without a page navigation.
+    path(
+        "assistants/<str:assistant_id>/quick-edit/",
+        assistant_quick_edit,
+        name="assistant_quick_edit",
     ),
     # Assistant Groups management
     path(

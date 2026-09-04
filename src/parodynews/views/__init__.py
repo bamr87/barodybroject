@@ -30,6 +30,7 @@ from .api import (
 from .assistants import (
     ManageAssistantGroupsView,
     ManageAssistantsView,
+    assistant_quick_edit,
     get_assistant_details,
 )
 
@@ -71,6 +72,7 @@ __all__ = [
     "ManageAssistantsView",
     "ManageAssistantGroupsView",
     "get_assistant_details",
+    "assistant_quick_edit",
     # Posts
     "ManagePostView",
     "push_to_github_and_create_pr",

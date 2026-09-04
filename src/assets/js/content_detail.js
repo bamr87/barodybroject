@@ -30,9 +30,98 @@ function getCookie(name) {
 document.addEventListener('DOMContentLoaded', function() {
     // Assistant selection handler - migrated from jQuery to Fetch API
     const assistantSelect = document.getElementById('id_assistant');
+
+    // Quick-edit dialog for the selected assistant (issue #105). The assistants
+    // are <option>s inside a <select>, which browsers render as native UI: there
+    // is no per-assistant element to hover, position against, or attach a button
+    // to. So the control is adjacent to the select and acts on the current
+    // selection, and it is always visible rather than hover-revealed — :hover
+    // does not exist on touch devices and a hover-only control is unreachable by
+    // keyboard and unannounced to screen readers.
+    const editAssistantBtn = document.getElementById('edit-assistant-btn');
+    const modalEl = document.getElementById('assistantEditModal');
+    const modalForm = document.getElementById('assistantEditForm');
+    const modalBody = document.getElementById('assistantEditBody');
+    const modalAlert = document.getElementById('assistantEditAlert');
+    const modalSave = document.getElementById('assistantEditSave');
+
+    function syncEditButtonState() {
+        if (!editAssistantBtn || !assistantSelect) {
+            return;
+        }
+        editAssistantBtn.disabled = !assistantSelect.value;
+    }
+
+    function showModalError(message) {
+        if (!modalAlert) {
+            return;
+        }
+        modalAlert.textContent = message;
+        modalAlert.classList.remove('d-none');
+    }
+
+    function clearModalError() {
+        if (!modalAlert) {
+            return;
+        }
+        modalAlert.textContent = '';
+        modalAlert.classList.add('d-none');
+    }
+
+    function focusFirstField() {
+        if (!modalBody) {
+            return;
+        }
+        const first = modalBody.querySelector(
+            'input:not([type="hidden"]), select, textarea'
+        );
+        if (first) {
+            first.focus();
+        }
+    }
+
+    function loadAssistantForm(assistantId) {
+        if (!modalBody) {
+            return Promise.resolve();
+        }
+        modalBody.setAttribute('aria-busy', 'true');
+        modalSave.disabled = true;
+        clearModalError();
+        // Reset to the spinner first, or reopening the dialog for a different
+        // assistant briefly shows the previous one's values.
+        modalBody.innerHTML =
+            '<div class="text-center py-4"><div class="spinner-border" role="status">' +
+            '<span class="visually-hidden">Loading assistant…</span></div></div>';
+
+        return fetch(`/assistants/${assistantId}/quick-edit/`, {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Could not load assistant (${response.status})`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            modalBody.innerHTML = html;
+            modalSave.disabled = false;
+            focusFirstField();
+        })
+        .catch(error => {
+            console.error('Error loading assistant form:', error);
+            modalBody.innerHTML = '';
+            showModalError(error.message);
+        })
+        .finally(() => {
+            modalBody.setAttribute('aria-busy', 'false');
+        });
+    }
+
     if (assistantSelect) {
         assistantSelect.addEventListener('change', function() {
             const assistantId = this.value;
+            syncEditButtonState();
             if (assistantId) {
                 fetch(`/get_assistant_details/${assistantId}/`, {
                     method: 'GET',
@@ -59,5 +148,132 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         });
+    }
+
+    // Reflect the initial selection, so the button starts disabled on a blank
+    // form and enabled on one that already has an assistant.
+    syncEditButtonState();
+
+    if (editAssistantBtn && modalEl && window.bootstrap) {
+        const modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        // Bootstrap's hide() is a no-op while the dialog is still opening, so a
+        // save that resolves faster than the open animation leaves the dialog
+        // stuck open. Neither obvious signal detects that:
+        //
+        //  - hide() returns nothing, so there is no result to test.
+        //  - The `show` CLASS is not a proxy for "open" either. show() runs the
+        //    backdrop first and adds `show` only afterwards, so for the first
+        //    part of opening the dialog is mid-transition WITHOUT that class.
+        //    Reading its absence as "already hidden" therefore stops retrying
+        //    at exactly the moment a retry is needed.
+        //
+        // Track the request against the dialog's own lifecycle events instead,
+        // which do report its real state: mark that a hide was asked for,
+        // re-issue it when the open transition finishes, and clear it once the
+        // dialog has actually gone.
+        let hideRequested = false;
+
+        function hideModal() {
+            hideRequested = true;
+            modal.hide();
+        }
+
+        editAssistantBtn.addEventListener('click', function() {
+            if (!assistantSelect || !assistantSelect.value) {
+                return;
+            }
+            modal.show();
+            loadAssistantForm(assistantSelect.value);
+        });
+
+        // Focus has to land inside the dialog after Bootstrap's focus trap has
+        // activated, or the trap steals it back — and with focus outside, the
+        // dialog never receives the keydown that closes it on Escape.
+        modalEl.addEventListener('shown.bs.modal', function() {
+            // A save that resolved before the dialog finished opening asked for
+            // a hide that Bootstrap ignored. The open transition is over now, so
+            // it will take this time.
+            if (hideRequested) {
+                modal.hide();
+                return;
+            }
+            focusFirstField();
+        });
+
+        // Bootstrap restores focus to the opener itself, but only if the dialog
+        // was opened via data-bs-toggle. It was opened from script here, so
+        // return focus explicitly.
+        modalEl.addEventListener('hidden.bs.modal', function() {
+            hideRequested = false;
+            editAssistantBtn.focus();
+        });
+
+        if (modalForm) {
+            modalForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                if (!assistantSelect || !assistantSelect.value) {
+                    return;
+                }
+
+                const assistantId = assistantSelect.value;
+                const formData = new FormData(modalForm);
+                clearModalError();
+                modalSave.disabled = true;
+
+                fetch(`/assistants/${assistantId}/quick-edit/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    // 422 re-renders the fields with validation errors; the
+                    // dialog stays open so the user keeps their input.
+                    if (response.status === 422) {
+                        return response.text().then(html => {
+                            modalBody.innerHTML = html;
+                            modalSave.disabled = false;
+                            focusFirstField();
+                            return null;
+                        });
+                    }
+                    if (!response.ok) {
+                        return response.json()
+                            .catch(() => ({ error: `Save failed (${response.status})` }))
+                            .then(payload => {
+                                throw new Error(payload.error || 'Save failed');
+                            });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data) {
+                        return;
+                    }
+                    // Mirror the instructions into the content form, matching
+                    // what the select's own change handler does above.
+                    const instructionsField = document.getElementById('id_instructions');
+                    if (instructionsField) {
+                        instructionsField.value = data.instructions || '';
+                    }
+                    // Keep the selector's label in step with a renamed assistant.
+                    const option = assistantSelect.querySelector(
+                        `option[value="${data.assistant_id}"]`
+                    );
+                    if (option && data.name) {
+                        option.textContent = data.name;
+                    }
+                    hideModal();
+                })
+                .catch(error => {
+                    console.error('Error saving assistant:', error);
+                    showModalError(error.message);
+                    modalSave.disabled = false;
+                });
+            });
+        }
     }
 });
