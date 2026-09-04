@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Rendered Markdown for read-only fields** (#56): assistant `instructions` on the content
+  detail view now display as formatted HTML instead of raw Markdown source inside a readonly
+  `<textarea>`. The raw value moves to a hidden input, so the submitted payload is unchanged.
+- **`MARKDOWNIFY["readonly"]` settings profile**: django-markdownify falls back to
+  `bleach.sanitizer.ALLOWED_TAGS` when unconfigured, and that set has no heading, paragraph or
+  `<pre>` tag — so a bare `|markdownify` silently strips `## Heading` to bare text. The profile
+  adds the block-level tags and the `fenced_code`/`tables` extensions, with bleach still on and
+  no `script`/`style`/`iframe`/`img` tag or `on*` attribute permitted.
+- **`instructions_html` on `/get_assistant_details/<id>/`**: the rendered, already-sanitised HTML,
+  so switching assistants re-renders without a page reload and without a second Markdown
+  implementation in the browser.
+
 ## [1.0.0] - 2025-10-27 - Django Settings Optimization Release
 
 ### Added

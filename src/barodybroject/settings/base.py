@@ -872,6 +872,80 @@ MARTOR_MARKDOWN_EXTENSION_CONFIGS = {}
 MARTOR_UPLOAD_URL = ""  # Disabled for security
 MARTOR_SEARCH_USERS_URL = ""  # Disabled
 
+# ==============================================================================
+# DJANGO-MARKDOWNIFY (READ-ONLY MARKDOWN DISPLAY) CONFIGURATION
+# ==============================================================================
+
+# Martor above renders Markdown for *editing*; django-markdownify renders it for
+# *reading*. The "readonly" profile below is used by the read-only display
+# blocks -- currently the assistant instructions on the content detail view.
+#
+# It exists because django-markdownify's defaults cannot render the output this
+# project needs: with no MARKDOWNIFY setting it falls back to
+# bleach.sanitizer.ALLOWED_TAGS, which is only
+# {a, abbr, acronym, b, blockquote, code, em, i, li, ol, strong, ul} -- so
+# headings, paragraphs and code blocks are silently stripped to bare text, and
+# fenced code blocks are not converted at all without the fenced_code extension.
+#
+# This is a named profile rather than "default" so it changes only the read-only
+# blocks that opt into it, leaving the existing bare `|markdownify` call sites
+# (message_detail.html, content_processing.html) on the library defaults.
+#
+# Security: BLEACH stays on (the library default) and the allowlists are
+# additive only. No `script`, `style`, `iframe`, `object` or `img` tag is
+# permitted, and no `on*` event-handler attribute is, so hostile Markdown is
+# neutralised rather than executed. See parodynews/tests/test_markdown_readonly.py.
+MARKDOWNIFY = {
+    "readonly": {
+        "WHITELIST_TAGS": [
+            # Block structure
+            "p",
+            "br",
+            "hr",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "blockquote",
+            "pre",
+            # Lists
+            "ul",
+            "ol",
+            "li",
+            # Inline
+            "a",
+            "abbr",
+            "acronym",
+            "b",
+            "strong",
+            "i",
+            "em",
+            "code",
+            # Tables (markdown.extensions.tables)
+            "table",
+            "thead",
+            "tbody",
+            "tr",
+            "th",
+            "td",
+        ],
+        "WHITELIST_ATTRS": {
+            "a": ["href", "title"],
+            "abbr": ["title"],
+            "acronym": ["title"],
+            "th": ["align"],
+            "td": ["align"],
+        },
+        "MARKDOWN_EXTENSIONS": [
+            "markdown.extensions.fenced_code",
+            "markdown.extensions.tables",
+            "markdown.extensions.sane_lists",
+        ],
+    }
+}
+
 # Content security settings
 ALLOWED_URL_SCHEMES = [
     "http",

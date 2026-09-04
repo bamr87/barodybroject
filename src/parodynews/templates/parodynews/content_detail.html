@@ -26,7 +26,24 @@ TODO: Add button to create post directly (automating thread step)
                         <h3 class="mb-0">Content Form</h3>
                     </div>
                     <div class="card-body">
-                        {% bootstrap_form content_form %}
+                        {% comment %}
+                        `instructions` is display-only (ContentItemForm populates it
+                        from the selected assistant), so it is rendered as Markdown
+                        below instead of inside a readonly textarea, which can only
+                        ever show raw source.
+                        {% endcomment %}
+                        {% bootstrap_form content_form exclude="instructions" %}
+                        <div class="mb-3">
+                            {# Not a <label for>: its target is a div, which is not a labelable element. #}
+                            <div class="form-label" id="instructions-label">{{ content_form.instructions.label }}</div>
+                            <div id="instructions-rendered"
+                                 class="border rounded p-2 bg-body-tertiary overflow-auto markdown-rendered"
+                                 aria-labelledby="instructions-label">{{ content_form.instructions.value|default:''|markdownify:"readonly" }}</div>
+                            {# Keeps the submitted payload identical to the textarea it replaces. #}
+                            <input type="hidden" name="{{ content_form.instructions.html_name }}"
+                                   id="{{ content_form.instructions.auto_id }}"
+                                   value="{{ content_form.instructions.value|default:'' }}">
+                        </div>
                     </div>
                 </div>
             </div>

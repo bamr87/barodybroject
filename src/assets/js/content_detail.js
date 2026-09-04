@@ -3,8 +3,8 @@
  * Description: Dynamic content loading and form handling with vanilla JavaScript
  * Author: Barodybroject Team <team@example.com>
  * Created: 2025-01-15
- * Last Modified: 2025-11-25
- * Version: 2.0.0
+ * Last Modified: 2026-09-04
+ * Version: 2.1.0
  * 
  * Dependencies:
  * - None (vanilla JavaScript, no jQuery)
@@ -48,9 +48,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     return response.json();
                 })
                 .then(data => {
+                    // The hidden input carries the raw Markdown that the form
+                    // submits; the sibling block shows it rendered. Both are
+                    // updated together so the two never drift apart.
                     const instructionsField = document.getElementById('id_instructions');
                     if (data.instructions && instructionsField) {
                         instructionsField.value = data.instructions;
+                    }
+                    const instructionsRendered = document.getElementById('instructions-rendered');
+                    if (instructionsRendered && data.instructions_html !== undefined) {
+                        // Server-rendered by django-markdownify and already
+                        // bleach-sanitised. Never assign raw Markdown here.
+                        instructionsRendered.innerHTML = data.instructions_html;
                     }
                 })
                 .catch(error => {
