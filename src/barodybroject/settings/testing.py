@@ -14,6 +14,9 @@ from .base import *  # noqa: F403
 
 IS_PRODUCTION = False
 DEBUG = True
+# The one value that distinguishes this module from development.py, which is
+# otherwise identical on RUNNING_IN_PRODUCTION and DEBUG.
+ENVIRONMENT = "test"
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "testserver"]
 AUTH_PASSWORD_VALIDATORS = []
 STATIC_ROOT = "/tmp/staticfiles"

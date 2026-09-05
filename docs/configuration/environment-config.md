@@ -11,6 +11,7 @@
 
 - [Overview](#overview)
 - [Environment Variables Reference](#environment-variables-reference)
+- [Environment name and treatment](#environment-name-and-treatment)
 - [Environment Profiles](#environment-profiles)
 - [Variable Validation](#variable-validation)
 - [Security Considerations](#security-considerations)
@@ -30,7 +31,75 @@ This guide provides comprehensive documentation for all environment variables us
 | `RUNNING_IN_PRODUCTION` | bool | False | Controls production vs development mode | No |
 | `DEBUG` | bool | !RUNNING_IN_PRODUCTION | Enables Django debug mode | No |
 | `LOG_LEVEL` | string | INFO | Logging level (DEBUG, INFO, WARNING, ERROR) | No |
-| `ENVIRONMENT` | string | development | Environment name (development, staging, production) | No |
+| `ENVIRONMENT` | string | development | Environment name — one of `production`, `test`, `development`. Invalid values raise `ImproperlyConfigured` at startup. See [Environment name and treatment](#environment-name-and-treatment) | No |
+
+### Environment name and treatment
+
+`ENVIRONMENT` is the application's three-valued environment name. It exists
+because `RUNNING_IN_PRODUCTION` and `DEBUG` **cannot distinguish test from
+development** — `settings/development.py` and `settings/testing.py` set both to
+identical values — so there was previously no name for anything to key on.
+
+Each settings module declares its own value, the same way it already declares
+`IS_PRODUCTION` and `DEBUG`:
+
+| Settings module | `ENVIRONMENT` | `IS_PRODUCTION` | `DEBUG` |
+| --- | --- | --- | --- |
+| `barodybroject.settings.production` | `production` | `True` | `False` |
+| `barodybroject.settings.testing` | `test` | `False` | `True` |
+| `barodybroject.settings.development` | `development` | `False` | `True` |
+
+Verify a module's value:
+
+```bash
+DJANGO_SETTINGS_MODULE=barodybroject.settings.testing \
+    python -c "from django.conf import settings; print(settings.ENVIRONMENT)"
+# test
+```
+
+An unrecognised value fails loudly at startup rather than falling back:
+
+```bash
+ENVIRONMENT=banana python manage.py check
+# django.core.exceptions.ImproperlyConfigured:
+#   ENVIRONMENT must be one of production, test, development — got 'banana'.
+```
+
+This is deliberate. A silent fallback would render an unrecognised environment
+as production — the one appearance that must never be wrong, because it is the
+"safe to click destructive things" signal.
+
+**Precedence.** `settings/base.py` reads and validates the `ENVIRONMENT`
+environment variable (defaulting to `development`); each of the three settings
+modules then assigns its own value explicitly, exactly as it already does for
+`IS_PRODUCTION` and `DEBUG`. So the settings module is authoritative for the
+final value, while the environment variable is still validated on every startup
+— which is what makes the `banana` case above fail rather than pass silently.
+
+`ENVIRONMENT` is **additive**: `IS_PRODUCTION` and `DEBUG` keep their existing
+meaning, and nothing that reads them changed.
+
+#### The visual treatment
+
+Non-production deployments get a coloured navbar border and a text badge in
+`base.html`, supplied by the `parodynews.context_processors.environment` context
+processor:
+
+| Environment | Label | Badge class | Border class |
+| --- | --- | --- | --- |
+| `production` | *(none)* | *(none — unstyled baseline)* | *(none)* |
+| `test` | `TEST` | `text-bg-warning` | `border-warning` |
+| `development` | `DEV` | `text-bg-info` | `border-info` |
+
+The label is always spelled out as text, never colour alone (WCAG 2.1 SC 1.4.1),
+and the classes are Bootstrap 5.3 semantic classes, so the treatment follows the
+user's light/dark/auto choice instead of overriding `data-bs-theme`.
+
+**Adding a fourth environment such as `staging`** is two one-line additions: the
+name in `ENVIRONMENTS` (`settings/base.py`) and a row in
+`ENVIRONMENT_TREATMENTS` (`parodynews/context_processors.py`). No template
+change is needed. See
+[src/parodynews/templates/README.md](../../src/parodynews/templates/README.md).
 
 ### Security Configuration
 

@@ -9,3 +9,4 @@ from .base import *  # noqa: F403
 
 IS_PRODUCTION = True
 DEBUG = False
+ENVIRONMENT = "production"
