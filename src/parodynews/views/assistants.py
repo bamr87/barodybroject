@@ -18,6 +18,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
+from markdownify.templatetags.markdownify import markdownify
 
 from ..forms import AssistantForm, AssistantGroupForm, AssistantGroupMembershipFormSet
 from ..mixins import AppConfigClientMixin, ModelFieldsMixin
@@ -157,6 +158,10 @@ def get_assistant_details(request, assistant_id):
         data = {
             "assistant_id": assistant.id,
             "instructions": instructions,
+            # Rendered server-side through the same django-markdownify pipeline
+            # the template uses, so the browser never needs a second Markdown
+            # implementation and the HTML it inserts is already bleach-sanitised.
+            "instructions_html": markdownify(instructions, "readonly"),
         }
         return JsonResponse(data)
     except Assistant.DoesNotExist:
