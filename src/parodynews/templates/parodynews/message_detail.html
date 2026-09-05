@@ -15,21 +15,14 @@
         <table class="table table-hover" id="messages-table">
             <thead>
                 <tr>
-                    <th scope="col">
-                        ID
-                        <span class="sort-indicator"></span>
-                        <input type="text" class="filter form-control form-control-sm" placeholder="Filter" aria-label="Filter ID">
-                    </th>
-                    <th scope="col">
-                        Content Detail Title
-                        <span class="sort-indicator"></span>
-                        <input type="text" class="filter form-control form-control-sm" placeholder="Filter" aria-label="Filter Title">
-                    </th>
-                    <th scope="col">
-                        Assistant Assignment
-                        <span class="sort-indicator"></span>
-                        <input type="text" class="filter form-control form-control-sm" placeholder="Filter" aria-label="Filter Assistant">
-                    </th>
+                    {# Columns here are static rather than looped over `fields`, and the rows #}
+                    {# embed assignment and delete forms, so render_model_table cannot emit this #}
+                    {# body. The headers satisfy the same table_utils.js contract by hand. #}
+                    {% include "includes/sortable_header.html" with label="ID" sort_type="number" %}
+                    {% include "includes/sortable_header.html" with label="Content Detail Title" sort_type="" %}
+                    {% include "includes/sortable_header.html" with label="Assistant Assignment" sort_type="" %}
+                    {# Not sortable and not filterable: this column holds only action buttons, #}
+                    {# so it advertises neither. #}
                     <th scope="col">
                         Actions
                     </th>

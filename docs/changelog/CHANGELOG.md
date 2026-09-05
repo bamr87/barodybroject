@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Dead column sorting on four list pages** (#54): `assistant_detail`, `assistant_group_detail`,
+  `message_detail` and `thread_detail` hand-rolled their table headers as `<th scope="col">` with
+  a filter input and no `class="sortable"` — the selector `table_utils.js` binds its click handler
+  to. The filter worked and a sort indicator rendered, so the pages advertised a sort that was
+  never wired up. All four now emit the contract, and numeric columns carry `data-type` so IDs
+  order `1, 2, 10` rather than `1, 10, 2`.
+
+### Added
+- **`includes/sortable_header.html`**: one contract-compliant `<th>`, for list tables whose bodies
+  cannot be produced by `{% render_model_table %}` (click-through rows, embedded forms, static
+  columns). Pinned by a source-level sweep in `test_model_table.py` that fails if any template
+  renders a column filter in a header that will never be bound.
+
+### Removed
+- The decorative `<span class="sort-indicator">` from those four headers: no CSS styled it and no
+  JavaScript read it. It was the visible half of the false affordance.
+
 ## [1.0.0] - 2025-10-27 - Django Settings Optimization Release
 
 ### Added
