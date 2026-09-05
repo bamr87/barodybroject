@@ -38,9 +38,7 @@ Template features:
 
 ## Markdown rendering
 
-Fields that hold Markdown are rendered as HTML wherever they are shown for *reading* rather
-than editing, via the `markdownify` filter from `django-markdownify`. Martor handles the
-*editing* side and is a separate pipeline — do not route display through it.
+Fields that hold Markdown are rendered as HTML wherever they are shown for *reading* rather than editing, via the `markdownify` filter from `django-markdownify`. Martor handles the *editing* side and is a separate pipeline — do not route display through it.
 
 | Template | Field | Filter | Notes |
 | --- | --- | --- | --- |
@@ -48,15 +46,9 @@ than editing, via the `markdownify` filter from `django-markdownify`. Martor han
 | `message_detail.html` | `contentitem.content_text` | `markdownify\|linebreaksbr` | Library defaults. |
 | `content_processing.html` | `contentitem.content_text` | `dict_to_text_list\|markdownify\|linebreaksbr` | Library defaults. |
 
-The `readonly` profile is defined in `barodybroject/settings/base.py` (`MARKDOWNIFY`). It
-exists because django-markdownify falls back to `bleach.sanitizer.ALLOWED_TAGS` when
-unconfigured, and that default set contains no heading, paragraph or `<pre>` tag — an
-unprofiled `|markdownify` renders `## Heading` as the bare word `Heading`. The two call sites
-marked *library defaults* above are still subject to that and are candidates for the same
-treatment; they were left unchanged here to keep the change scoped.
+The `readonly` profile is defined in `barodybroject/settings/base.py` (`MARKDOWNIFY`). It exists because django-markdownify falls back to `bleach.sanitizer.ALLOWED_TAGS` when unconfigured, and that default set contains no heading, paragraph or `<pre>` tag — an unprofiled `|markdownify` renders `## Heading` as the bare word `Heading`. The two call sites marked *library defaults* above are still subject to that and are candidates for the same treatment; they were left unchanged here to keep the change scoped.
 
-Anything inserted into a rendered block from JavaScript must be sanitised **server-side**
-first — never assign raw Markdown or unsanitised HTML to `innerHTML`.
+Anything inserted into a rendered block from JavaScript must be sanitised **server-side** first — never assign raw Markdown or unsanitised HTML to `innerHTML`.
 
 ## Container Configuration
 Templates are served through Django's template system:
