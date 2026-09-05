@@ -38,11 +38,7 @@ Template features:
 
 ## List tables
 
-Every list table on these pages is sortable and filterable client-side, via
-`assets/js/table_utils.js`. **Never hand-roll a `<th>`** — the sort handler binds to
-`th.sortable` while the filter binds to `input.filter`, so a header missing the class
-gets a working filter and a dead sort, which looks functional and is not. See
-[`../includes/README.md`](../includes/README.md) for the full contract.
+Every list table on these pages is sortable and filterable client-side, via `assets/js/table_utils.js`. **Never hand-roll a `<th>`** — the sort handler binds to `th.sortable` while the filter binds to `input.filter`, so a header missing the class gets a working filter and a dead sort, which looks functional and is not. See [`../includes/README.md`](../includes/README.md) for the full contract.
 
 | Template | List table | Renders headers via |
 | --- | --- | --- |
@@ -54,9 +50,7 @@ gets a working filter and a dead sort, which looks functional and is not. See
 | `message_detail.html` | Messages | `includes/sortable_header.html` — static columns; rows embed assign/delete forms |
 | `thread_detail.html` | Thread messages | `includes/sortable_header.html` — rows embed an "Add to Database" form |
 
-The four using `sortable_header.html` cannot use `{% render_model_table %}`: it renders its
-first cell as a link and has no way to express row-level click-through, an embedded form,
-or a static column, so migrating them would trade a dead sort for lost behaviour.
+The four using `sortable_header.html` cannot use `{% render_model_table %}`: it renders its first cell as a link and has no way to express row-level click-through, an embedded form, or a static column, so migrating them would trade a dead sort for lost behaviour.
 
 > **Note on `thread_detail.html`:** no view currently renders it — the `thread_detail` URL
 > routes to `ProcessContentView`, which renders `content_processing.html`. Its headers also
