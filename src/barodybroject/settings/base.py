@@ -64,6 +64,27 @@ IS_PRODUCTION = env.bool(
 )  # Default to development
 DEBUG = env.bool("DEBUG", default=not IS_PRODUCTION)
 
+# Three-valued environment name.
+#
+# `IS_PRODUCTION` and `DEBUG` cannot tell test from development — both modules
+# set them to exactly the same values (False/True) — so there was no name in
+# this codebase for anything to key on. Anything that needs the distinction (the
+# environment banner in base.html, logging, error reporting, the installation
+# wizard) reads ENVIRONMENT rather than inferring it from DEBUG.
+#
+# Additive on purpose: IS_PRODUCTION and DEBUG keep their current meaning.
+ENVIRONMENTS = ("production", "test", "development")
+ENVIRONMENT = env.str("ENVIRONMENT", default="development").strip().lower()
+if ENVIRONMENT not in ENVIRONMENTS:
+    # Fail loudly rather than fall back. A silent fallback would render an
+    # unrecognised environment as production — the one appearance that must
+    # never be wrong, since it is the "safe to click destructive things" signal.
+    raise ImproperlyConfigured(
+        "ENVIRONMENT must be one of {} — got {!r}.".format(
+            ", ".join(ENVIRONMENTS), ENVIRONMENT
+        )
+    )
+
 # Installation wizard configuration
 SKIP_INSTALLATION_CHECK = env.bool("SKIP_INSTALLATION_CHECK", default=False)
 
@@ -379,6 +400,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "parodynews.context_processors.footer_items",
                 "parodynews.context_processors.issue_templates",
+                "parodynews.context_processors.environment",
             ],
         },
     },

@@ -93,11 +93,27 @@ TODO: Add embeddings functionality [https://platform.openai.com/docs/guides/embe
 
         <!-- Navigation Bar -->
         {% block navbar %}
-        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        {% comment %}
+        Environment treatment: production is the unstyled baseline, so this whole
+        block collapses to today's exact markup there. Non-production adds a
+        coloured top border plus a TEXT badge — text, not colour alone, so the
+        signal survives greyscale and colour-blindness (WCAG 2.1 SC 1.4.1).
+        Uses Bootstrap semantic classes only, and never touches `data-bs-theme`
+        or the theme switcher: the environment signal and the user's
+        light/dark/auto choice must compose, not fight.
+        {% endcomment %}
+        <nav class="navbar navbar-expand-lg bg-body-tertiary{% if show_environment_badge %} border-top border-3 {{ environment_border_class }}{% endif %}">
             <div class="container-xl">
                 <a class="navbar-brand" href="/">
                     {% block brand %}Barody Broject{% endblock %}
                 </a>
+                {% if show_environment_badge %}
+                    <span class="badge {{ environment_badge_class }} me-auto"
+                          data-environment="{{ environment }}"
+                          title="{% blocktranslate %}You are on the {{ environment }} environment{% endblocktranslate %}">
+                        {{ environment_label }}
+                    </span>
+                {% endif %}
                 <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
