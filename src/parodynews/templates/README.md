@@ -57,14 +57,9 @@ Template features:
 
 ## Environment treatment
 
-`base.html` gives non-production deployments a colour treatment so an operator
-with several tabs open can tell production from test from development before
-clicking a destructive control.
+`base.html` gives non-production deployments a colour treatment so an operator with several tabs open can tell production from test from development before clicking a destructive control.
 
-The environment name comes from `settings.ENVIRONMENT` (see
-[docs/configuration/environment-config.md](../../../docs/configuration/environment-config.md)),
-and reaches templates through the `parodynews.context_processors.environment`
-context processor, which supplies:
+The environment name comes from `settings.ENVIRONMENT` (see [docs/configuration/environment-config.md](../../../docs/configuration/environment-config.md)), and reaches templates through the `parodynews.context_processors.environment` context processor, which supplies:
 
 | Context variable | Meaning |
 | --- | --- |
@@ -89,15 +84,9 @@ Three rules this treatment is built to keep:
 2. **The label is text, never colour alone.** Colour by itself fails for
    colour-blind users and in greyscale (WCAG 2.1 SC 1.4.1).
 3. **It must not fight the light/dark switcher.** The treatment uses Bootstrap
-   5.3 semantic classes (`text-bg-*`, `border-*`), which are colour-mode aware,
-   and never touches `data-bs-theme` or the stored theme preference. The two
-   signals compose.
+5.3 semantic classes (`text-bg-*`, `border-*`), which are colour-mode aware, and never touches `data-bs-theme` or the stored theme preference. The two signals compose.
 
-**Adding a fourth environment (e.g. `staging`) is a one-line change**: add the
-name to `ENVIRONMENTS` in `settings/base.py`, and add one row to
-`ENVIRONMENT_TREATMENTS` in `parodynews/context_processors.py`. `base.html`
-needs no change — it branches on `show_environment_badge`, not on the name. An
-environment with no row simply renders no badge.
+**Adding a fourth environment (e.g. `staging`) is a one-line change**: add the name to `ENVIRONMENTS` in `settings/base.py`, and add one row to `ENVIRONMENT_TREATMENTS` in `parodynews/context_processors.py`. `base.html` needs no change — it branches on `show_environment_badge`, not on the name. An environment with no row simply renders no badge.
 
 Covered by `parodynews/tests/test_environment_theme.py`.
 
