@@ -84,9 +84,16 @@ graph TD
 
 2. **Security Analysis**
    - Bandit: Python security issue detection
-   - Safety: Known vulnerability scanning
-   - pip-audit: Dependency vulnerability audit
+   - Safety: Known vulnerability scanning, scoped to `src/requirements.txt`
+   - pip-audit: Dependency vulnerability audit, scoped to `src/requirements.txt`
    - TruffleHog: Secret detection in code/history
+
+   Both dependency scanners are invoked with `-r requirements.txt`, so the gate
+   audits the dependencies this project **declares** rather than whatever is
+   installed in the CI interpreter. Dev and CI-toolchain packages (linters, the
+   scanners themselves and their transitive dependencies) are out of scope: an
+   advisory against them is not a risk to what this project ships and must not
+   block a merge.
 
 3. **Container Security**
    - Trivy: Container image vulnerability scanning
@@ -303,7 +310,8 @@ services:
 
 ### Multi-Layer Security
 1. **Code Level**: Bandit, secret detection, import analysis
-2. **Dependency Level**: Safety, pip-audit, known vulnerability scanning
+2. **Dependency Level**: Safety and pip-audit over `src/requirements.txt` — the
+   declared runtime dependencies, and the only set that can block a merge
 3. **Container Level**: Trivy image scanning, base image validation
 4. **Infrastructure Level**: Azure security best practices
 5. **Runtime Level**: Application monitoring and anomaly detection
@@ -343,9 +351,12 @@ black src/
 isort src/
 ruff check src/
 
-# Security scan locally
+# Security scan locally — mirror CI exactly: scan the DECLARED dependencies.
+# Without -r both scanners audit your whole interpreter, which reports
+# advisories against your own tooling and misses the ones that matter.
 bandit -r src/
-safety check
+cd src && safety check -r requirements.txt
+cd src && pip-audit --desc -r requirements.txt
 ```
 
 **Container Build Problems**:
