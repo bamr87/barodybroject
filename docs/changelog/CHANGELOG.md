@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`ENVIRONMENT` setting and an environment treatment in the chrome** (#83): `settings/base.py`
+  now derives a three-valued `ENVIRONMENT` (`production` / `test` / `development`), which each
+  settings module sets explicitly. This is the first thing in the codebase that distinguishes
+  `testing.py` from `development.py` — the two are byte-identical on `IS_PRODUCTION` and `DEBUG`.
+  An unrecognised value raises `ImproperlyConfigured` at startup rather than silently rendering as
+  production.
+- **`parodynews.context_processors.environment`**: exposes the environment name plus a display
+  flag and the Bootstrap classes for it, registered alongside `footer_items`/`issue_templates`.
+  `base.html` renders the name as **text** in a badge near the brand, so the signal never depends
+  on colour alone (WCAG 2.1 SC 1.4.1). Adding a fourth environment such as `staging` is one row in
+  `ENVIRONMENT_TREATMENTS`.
+
+### Changed
+- Production is the unstyled baseline: it renders exactly as before, with no badge and the
+  navbar's existing classes untouched. The treatment rides Bootstrap 5.3's colour-mode-aware
+  `text-bg-*` / `border-*` utilities, so it composes with the user's light/dark/auto choice
+  instead of overriding `data-bs-theme`.
+
 ## [1.0.0] - 2025-10-27 - Django Settings Optimization Release
 
 ### Added
