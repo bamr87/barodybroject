@@ -89,7 +89,7 @@ DIALOG_IS_SETTLED = """
 # The field NAMES are deliberately unprefixed here, exactly as the endpoint
 # renders them.
 FORM_FRAGMENT = (
-    '<div id="assistant-quick-edit-fields" data-assistant-id="%s">'
+    f'<div id="assistant-quick-edit-fields" data-assistant-id="{ASSISTANT_ID}">'
     '<div class="mb-3">'
     '<label class="form-label" for="id_quick_name">Name</label>'
     '<input type="text" class="form-control" id="id_quick_name" name="name" '
@@ -101,7 +101,7 @@ FORM_FRAGMENT = (
     'name="instructions">'
     "Original instructions.</textarea>"
     "</div>"
-    "</div>" % ASSISTANT_ID
+    "</div>"
 )
 
 # The markup this change adds. The live content page also carries base.html's
