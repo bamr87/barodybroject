@@ -1,13 +1,19 @@
 # Production requirements with pinned versions
-# Last updated: 2025-11-24
-# Python: >=3.10 (required for Django 5.1)
+# Last updated: 2026-09-11
+# Python: >=3.10 (required for Django 5.2)
 
 # Web Server
 gunicorn==23.0.0
 
 # Django Core Framework
-Django==5.1.15
-djangorestframework==3.15.2
+# 5.2.x is the current LTS. 5.1.15 carried six advisories that the newly
+# scoped dependency scan reports (#176): CVE-2026-48587, CVE-2026-6873 and
+# CVE-2026-8404 (fixed in 5.2.15) and CVE-2026-53877, CVE-2026-53878 and
+# CVE-2026-48588 (fixed in 5.2.16).
+Django==5.2.17
+# 3.15.2 carries PYSEC-2026-3827 and PYSEC-2026-3828, fixed in 3.17.2; 3.15
+# also predates official Django 5.2 support.
+djangorestframework==3.18.1
 django-environ==0.11.2
 
 # Django Extensions & Apps
@@ -17,15 +23,22 @@ django-markdownify==0.9.5
 django-allauth[mfa,saml,socialaccount,steam]==65.14.1
 django-ses==4.2.0
 django-bootstrap5==24.3
-fido2==1.2.0
+# fido2 1.2.0 caps cryptography at <45, which pins the tree to 44.0.3 and its
+# six open advisories (PYSEC-2026-2141, PYSEC-2026-35, PYSEC-2026-3552/3553/
+# 3554, GHSA-537c-gmf6-5ccf). 2.x lifts the cap. Reached only through
+# django-allauth[mfa]'s WebAuthn support.
+fido2==2.2.1
 
 # Django Extensions Requirements
 jsonref==1.1.0
 jsonschema==4.23.0
 jsonschema-specifications==2024.10.1
-Markdown==3.5.2
+# Markdown 3.5.2 is vulnerable to CVE-2025-69534 (uncaught exception on
+# malformed HTML), fixed in 3.8.1. martor <1.7 caps Markdown at <3.6, so the
+# patch is only reachable by upgrading martor alongside it.
+Markdown==3.8.2
 PyYAML==6.0.2
-martor==1.6.44
+martor==1.8.2
 setuptools==83.0.0
 
 # Database

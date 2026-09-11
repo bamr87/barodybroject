@@ -1,6 +1,6 @@
 # Barodybroject
 
-Barodybroject is a Django 5.1 application for generating and managing parody news content with OpenAI. It runs against PostgreSQL, exposes Django REST Framework endpoints, includes a Jekyll static-site sidecar for published content, and deploys to Azure Container Apps with Bicep infrastructure.
+Barodybroject is a Django 5.2 application for generating and managing parody news content with OpenAI. It runs against PostgreSQL, exposes Django REST Framework endpoints, includes a Jekyll static-site sidecar for published content, and deploys to Azure Container Apps with Bicep infrastructure.
 
 ## Start Here
 
@@ -18,7 +18,7 @@ Barodybroject is a Django 5.1 application for generating and managing parody new
 
 ## Current Stack
 
-- Python 3.10+ and Django 5.1
+- Python 3.10+ and Django 5.2 (LTS)
 - Django REST Framework
 - PostgreSQL
 - OpenAI Python SDK

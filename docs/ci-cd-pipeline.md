@@ -90,6 +90,8 @@ graph TD
 
    Both dependency scanners are invoked with `-r requirements.txt`, so the gate audits the dependencies this project **declares** rather than whatever is installed in the CI interpreter. Dev and CI-toolchain packages (linters, the scanners themselves and their transitive dependencies) are out of scope: an advisory against them is not a risk to what this project ships and must not block a merge.
 
+   `pip-audit` resolves the declared set's own transitive tree, so a shipped indirect dependency is in scope too. When one of those is flagged, the fix is usually to lift the cap that holds it back rather than to pin it directly — `fido2 1.2.0` declaring `cryptography<45`, and `martor <1.7` declaring `Markdown<3.6`, are the two worked examples in this repository's history (see `docs/changelog/summaries/2026-09-11-dependency-scan-scope.md`).
+
 3. **Container Security**
    - Trivy: Container image vulnerability scanning
    - Dockerfile best practices validation

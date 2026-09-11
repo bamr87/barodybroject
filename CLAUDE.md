@@ -2,7 +2,7 @@
 
 Guidance for AI coding agents (Claude Code, Copilot, Cursor) working in **barodybroject**.
 
-Barodybroject is a Django 5.1 application for generating and managing parody news content with OpenAI. It runs against PostgreSQL, exposes Django REST Framework endpoints, includes a Jekyll static-site sidecar for published content (`src/pages/`), and deploys to Azure Container Apps via the Azure Developer CLI with Bicep infrastructure (`infra/`; `azure.yaml` maps the `src` service to a container app). The Django project root is `src/` (`barodybroject` = project config, `parodynews` = main app), with settings split into `barodybroject.settings.development` / `.production` / `.testing`. Deeper developer docs live in `.github/README.md`; the documentation index is `docs/README.md`.
+Barodybroject is a Django 5.2 application for generating and managing parody news content with OpenAI. It runs against PostgreSQL, exposes Django REST Framework endpoints, includes a Jekyll static-site sidecar for published content (`src/pages/`), and deploys to Azure Container Apps via the Azure Developer CLI with Bicep infrastructure (`infra/`; `azure.yaml` maps the `src` service to a container app). The Django project root is `src/` (`barodybroject` = project config, `parodynews` = main app), with settings split into `barodybroject.settings.development` / `.production` / `.testing`. Deeper developer docs live in `.github/README.md`; the documentation index is `docs/README.md`.
 
 ## Stack & commands
 
