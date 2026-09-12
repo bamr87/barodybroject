@@ -178,10 +178,14 @@ class Post(models.Model):
     def get_absolute_url(self):
         """Return the canonical URL for this post.
 
+        The `post_detail` route is declared as `posts/<int:post_id>/` in
+        `parodynews/urls.py`, so the kwarg must be `post_id`. Passing `pk`
+        raised `NoReverseMatch` on every call (issue #51).
+
         Returns:
             str: URL path to post detail view
         """
-        return reverse("post_detail", kwargs={"pk": self.pk})
+        return reverse("post_detail", kwargs={"post_id": self.pk})
 
     def __str__(self):
         """Return the post title from content_detail.

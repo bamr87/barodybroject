@@ -55,6 +55,22 @@ Post publishing and versioning:
 - `PostFrontMatter`: YAML front matter for posts
 - `PostVersion`: Version history for posts
 
+## Tests
+
+The test layout mirrors this package one-for-one — `parodynews/tests/test_models_<module>.py`
+covers `parodynews/models/<module>.py`. Add a model here and its tests go in the
+matching module; `test_models_publishing.py` carries a completeness guard that
+fails if a name in `__all__` is not referenced by any of them.
+
+```bash
+python -m pytest parodynews/tests/ -k "test_models" \
+  --cov=parodynews.models --cov-report=term-missing   # run from src/
+```
+
+Model factories are shared from `parodynews/tests/conftest.py` and are built
+from the real exports under `parodynews/tests/data/`, not from invented
+literals. See [the tests README](../tests/README.md).
+
 ## Usage
 
 ### Backward Compatible Imports (Recommended)
