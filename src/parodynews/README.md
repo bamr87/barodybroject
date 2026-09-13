@@ -44,7 +44,10 @@ This is the main Django application directory for the parody news generator. It 
 - `templatetags/`: Custom Django template tags
 - `tests/`: Test suite for the application
 - `utils/`: Utility functions and helper modules
-- `views/`: Package-based Django views and REST API viewsets
+- `views/`: Package-based Django views and REST API viewsets. In `posts.py`,
+  every GitHub failure during publication is raised as a `PublicationError`
+  carrying a reader-facing message, so `ManagePostView.publish()` answers with a
+  `messages.error` and a redirect to `manage_post` rather than a 500 (issue #114)
 
 ### Legacy Data
 - `model_choices.json`: JSON file containing model choice configurations

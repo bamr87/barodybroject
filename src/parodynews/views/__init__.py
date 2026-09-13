@@ -40,7 +40,11 @@ from .base import FooterView, UserLoginView, index
 from .content import ManageContentView
 
 # Post management views
-from .posts import ManagePostView, push_to_github_and_create_pr
+from .posts import (
+    ManagePostView,
+    PublicationError,
+    push_to_github_and_create_pr,
+)
 
 # Schema management views
 from .schemas import (
@@ -73,6 +77,7 @@ __all__ = [
     "get_assistant_details",
     # Posts
     "ManagePostView",
+    "PublicationError",
     "push_to_github_and_create_pr",
     # Schemas
     "list_schemas",
