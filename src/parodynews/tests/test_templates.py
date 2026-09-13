@@ -13,7 +13,9 @@ Usage: python manage.py test parodynews.tests.test_templates
 """
 
 import re
+from pathlib import Path
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.template import Context, Template
 from django.template.loader import get_template
@@ -402,6 +404,139 @@ class PerformanceTests(TestCase):
             1,
             f"Bootstrap CSS loaded {len(bootstrap_links)} times",
         )
+
+
+class FleetFeedbackWidgetTests(TestCase):
+    """Test the in-app feedback / feature-request shortcut (<fleet-feedback>).
+
+    Covers the acceptance criteria of issue #42. Every assertion here fails on
+    the commit before the widget was mounted, because none of the strings below
+    existed anywhere in the template tree.
+    """
+
+    def setUp(self):
+        self.client = Client()
+
+    def test_widget_mounted_in_shell(self):
+        """The custom element is rendered on a page built from base.html."""
+        response = self.client.get("/")
+        self.assertTemplateUsed(response, "includes/fleet_feedback.html")
+        self.assertContains(response, "<fleet-feedback")
+
+    def test_widget_has_non_empty_repo(self):
+        """FLEET_REPO reaches the template — an empty repo makes the widget inert."""
+        response = self.client.get("/")
+        content = response.content.decode("utf-8")
+
+        match = re.search(r'<fleet-feedback[^>]*\srepo="([^"]*)"', content)
+        self.assertIsNotNone(match, "fleet-feedback element has no repo attribute")
+        self.assertNotEqual(match.group(1), "", "FLEET_REPO rendered empty")
+        self.assertRegex(match.group(1), r"^[\w.-]+/[\w.-]+$")
+
+    def test_widget_labelled_with_marker_label(self):
+        """The marker label is what makes widget-filed issues findable."""
+        response = self.client.get("/")
+        content = response.content.decode("utf-8")
+        self.assertRegex(content, r'<fleet-feedback[^>]*\slabels="page-feedback"')
+
+    def test_component_served_from_own_static_files(self):
+        """The kit is explicit: vendor it, never hot-link the hub."""
+        response = self.client.get("/")
+        content = response.content.decode("utf-8")
+
+        self.assertIn("fleet-feedback.js", content)
+        for foreign in (
+            "raw.githubusercontent.com",
+            "cdn.jsdelivr.net/gh/bamr87",
+            "github.com/bamr87/bamr87",
+        ):
+            self.assertNotIn(
+                foreign,
+                content,
+                f"fleet-feedback.js must not be loaded from {foreign}",
+            )
+
+    def test_no_js_anchor_targets_committed_issue_form(self):
+        """With JS off the inline anchor is the whole feature; it must resolve."""
+        response = self.client.get("/")
+        content = response.content.decode("utf-8")
+
+        self.assertIn("page_feedback.yml", content)
+        self.assertIn("data-fleet-feedback-open", content)
+
+        anchors = re.findall(r"<a[^>]*data-fleet-feedback-open[^>]*>", content)
+        self.assertTrue(anchors, "no inline data-fleet-feedback-open anchor rendered")
+        for anchor in anchors:
+            self.assertIn("href=", anchor)
+            self.assertIn("noopener", anchor)
+
+        # The anchor 404s unless the issue form is actually committed.
+        template_path = (
+            Path(settings.BASE_DIR).parent
+            / ".github"
+            / "ISSUE_TEMPLATE"
+            / "page_feedback.yml"
+        )
+        self.assertTrue(
+            template_path.exists(),
+            f"{template_path} is missing; the no-JS anchor would 404",
+        )
+
+    def test_no_credential_in_rendered_page(self):
+        """`mode` stays `url`, so no token may ever reach the client."""
+        response = self.client.get("/")
+        content = response.content.decode("utf-8")
+
+        for secret_marker in ("ghp_", "github_pat_", "ghs_", "gho_"):
+            self.assertNotIn(secret_marker, content)
+
+        # url mode is the default; assert we never opted into proxy mode, which
+        # is the variant that would need a server-side credential.
+        self.assertNotRegex(content, r'<fleet-feedback[^>]*\smode="proxy"')
+
+    def test_vendored_component_file_exists(self):
+        """The <script> tag is useless if the asset was never vendored."""
+        asset = Path(settings.BASE_DIR) / "assets" / "js" / "fleet-feedback.js"
+        self.assertTrue(asset.exists(), f"{asset} is missing")
+        self.assertIn("customElements.define", asset.read_text(encoding="utf-8"))
+
+    def test_kit_version_recorded(self):
+        """Provenance is what makes later drift from the kit detectable."""
+        version_file = (
+            Path(settings.BASE_DIR) / "assets" / "js" / "fleet-feedback.VERSION"
+        )
+        self.assertTrue(version_file.exists(), f"{version_file} is missing")
+        self.assertIn("version:", version_file.read_text(encoding="utf-8"))
+
+
+class FleetFeedbackSettingsTests(TestCase):
+    """FLEET_* must live in settings/base.py so every environment inherits it."""
+
+    def test_fleet_settings_present_and_non_empty(self):
+        self.assertTrue(getattr(settings, "FLEET_REPO", ""))
+        self.assertTrue(getattr(settings, "FLEET_BRANCH", ""))
+
+    def test_fleet_settings_defined_in_base_not_one_environment(self):
+        """Guards the regression the issue calls out: setting these in
+        development.py only, which leaves testing/production rendering an
+        empty repo attribute."""
+        base_source = (
+            Path(settings.BASE_DIR) / "barodybroject" / "settings" / "base.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("FLEET_REPO", base_source)
+        self.assertIn("FLEET_BRANCH", base_source)
+
+    def test_context_processor_registered(self):
+        processors = settings.TEMPLATES[0]["OPTIONS"]["context_processors"]
+        self.assertIn("parodynews.context_processors.fleet_feedback", processors)
+
+    def test_context_processor_output(self):
+        from parodynews.context_processors import fleet_feedback
+
+        ctx = fleet_feedback(None)
+        self.assertEqual(ctx["FLEET_REPO"], settings.FLEET_REPO)
+        self.assertEqual(ctx["FLEET_BRANCH"], settings.FLEET_BRANCH)
+        self.assertIn(ctx["FLEET_ENV"], {"development", "production"})
 
 
 # Test runner output

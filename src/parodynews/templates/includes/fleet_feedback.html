@@ -1,0 +1,58 @@
+{% comment %}
+File: fleet_feedback.html
+Description: Mounts the <fleet-feedback> widget — an "Improve this page" control
+             that files a prefilled GitHub issue carrying page context,
+             environment, and captured console errors.
+Author: Barodybroject Team
+Created: 2026-09-02
+Last Modified: 2026-09-02
+Version: 1.0.0
+
+Vendored from the bamr87/bamr87 feedback kit
+(templates/feedback/adapters/django.html). The kit version is recorded in
+src/assets/js/fleet-feedback.VERSION — keep both in sync when re-vendoring.
+Spec: https://github.com/bamr87/bamr87/blob/main/specs/FEEDBACK.md (UPS-FB-32)
+
+Deviations from the kit adapter, and why:
+- `env` reads {{ FLEET_ENV }} from the context processor rather than the kit's
+  `{% if debug %}`. Django's built-in `debug` context processor only sets that
+  flag when the request IP is in INTERNAL_IPS, so the kit's version reports
+  "production" during ordinary local development.
+- `page-title` drops the kit's `{% block %}` wrapper: a block inside an
+  {% include %} cannot be overridden by a child template, so it was inert.
+  The component falls back to document.title when the attribute is empty.
+- The inline anchor is wrapped in Bootstrap utility classes so it reads as
+  deliberate page chrome instead of a bare link above </body>.
+
+Dependencies:
+- Bootstrap 5 (utility classes only; the widget itself is zero-dependency and
+  renders into a shadow root, so it inherits the page's data-bs-theme)
+- src/assets/js/fleet-feedback.js — the vendored component
+- parodynews.context_processors.fleet_feedback — FLEET_REPO/FLEET_BRANCH/FLEET_ENV
+- .github/ISSUE_TEMPLATE/page_feedback.yml — target of the no-JS anchor
+
+Usage: Include once in base.html, immediately before </body>.
+{% endcomment %}
+
+{% load static %}
+<script src="{% static 'js/fleet-feedback.js' %}"></script>
+<fleet-feedback
+  repo="{{ FLEET_REPO }}"
+  branch="{{ FLEET_BRANCH|default:'main' }}"
+  page-title="{{ request.resolver_match.view_name|default:'' }}"
+  labels="page-feedback"
+  assignee="copilot"
+  env="{{ FLEET_ENV }}"></fleet-feedback>
+{% comment %}
+Progressive enhancement: the component delegates clicks on any
+[data-fleet-feedback-open] element to its dialog. With JavaScript disabled the
+same element is still a working link to the page_feedback.yml issue form.
+{% endcomment %}
+<div class="fleet-feedback-inline text-center py-2">
+    <a class="link-secondary small"
+       href="https://github.com/{{ FLEET_REPO }}/issues/new?template=page_feedback.yml&amp;labels=page-feedback"
+       data-fleet-feedback-open
+       data-type="improve-page"
+       target="_blank"
+       rel="noopener noreferrer">Improve this page</a>
+</div>
