@@ -518,6 +518,38 @@ ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https" if IS_PRODUCTION else "http"
 
 LOG_LEVEL = env.str("LOG_LEVEL", default="INFO" if IS_PRODUCTION else "DEBUG")
 
+# ------------------------------------------------------------------------------
+# Automatic GitHub issue reporting for unhandled exceptions
+# ------------------------------------------------------------------------------
+# OFF by default, and it stays off until BOTH a switch and a target are set.
+# There is deliberately no default repository and no fallback to "this repo":
+# error reports are application data, and this repository is PUBLIC.
+#
+# Full documentation: docs/configuration/error-reporting.md
+GITHUB_ISSUE_REPORTER = {
+    "ENABLED": env.bool("GITHUB_ISSUE_REPORTER_ENABLED", default=False),
+    # "owner/name" of a PRIVATE tracker. No default — unset means "do nothing".
+    "REPO": env.str("GITHUB_ISSUE_REPORTER_REPO", default="") or None,
+    "TOKEN": env.str("GITHUB_ISSUE_REPORTER_TOKEN", default="") or None,
+    # Separate, explicitly-named override. Filing into a PUBLIC repository
+    # publishes your application's error data; this must be a deliberate act,
+    # not a side effect of switching the feature on.
+    "ALLOW_PUBLIC_REPO": env.bool(
+        "GITHUB_ISSUE_REPORTER_ALLOW_PUBLIC_REPO", default=False
+    ),
+    # ALLOWLISTS — anything not named here is never transmitted.
+    "ALLOWED_REQUEST_HEADERS": ("Content-Type", "Accept", "Accept-Language"),
+    "ALLOWED_REQUEST_FIELDS": (),
+    "INCLUDE_FRAME_LOCALS": False,
+    "DEDUPE_WINDOW_SECONDS": env.int(
+        "GITHUB_ISSUE_REPORTER_DEDUPE_WINDOW", default=24 * 60 * 60
+    ),
+    "RATE_LIMIT_MAX_ISSUES": env.int("GITHUB_ISSUE_REPORTER_RATE_LIMIT", default=5),
+    "RATE_LIMIT_WINDOW_SECONDS": env.int(
+        "GITHUB_ISSUE_REPORTER_RATE_WINDOW", default=60 * 60
+    ),
+}
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -564,6 +596,14 @@ LOGGING = {
             "class": "django.utils.log.AdminEmailHandler",
             "formatter": "verbose",
         },
+        # Files unhandled exceptions as deduplicated GitHub issues. Attached
+        # unconditionally because the handler is inert unless
+        # GITHUB_ISSUE_REPORTER["ENABLED"] is true AND a target repo is set —
+        # gating it here as well would put the same switch in two places.
+        "github_issues": {
+            "level": "ERROR",
+            "class": "parodynews.utils.error_reporting.GitHubIssueHandler",
+        },
     },
     "root": {
         "handlers": ["console", "file"],
@@ -576,7 +616,7 @@ LOGGING = {
             "propagate": False,
         },
         "django.request": {
-            "handlers": ["console", "file", "mail_admins"],
+            "handlers": ["console", "file", "mail_admins", "github_issues"],
             "level": "ERROR",
             "propagate": False,
         },
