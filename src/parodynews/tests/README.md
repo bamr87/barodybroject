@@ -15,6 +15,7 @@ This directory contains the comprehensive test suite for the parodynews Django a
 - `test_models_publishing.py`: `PostPageConfigModel`, `Post`, `PostFrontMatter`, `PostVersion` — `get_absolute_url()`, `auto_now`, the one-to-one and `unique_together` constraints, plus a completeness guard asserting every name in `parodynews.models.__all__` is referenced by one of these six modules
 - `test_templates.py`: Django template structure, accessibility, and Bootstrap 5 usage tests
 - `test_model_table.py`: regression tests for the `model_table.html` ↔ `table_utils.js` markup contract (the `sortable` class and `data-type` a column needs for sorting to bind and order correctly)
+- `test_forms_content.py`: regression tests for `ContentItemForm`'s assistant seeding — a saved `ContentItem` whose nullable `assistant` is `NULL` must not be given an arbitrary one, and must stay saveable as such (issue #3)
 - `e2e/`: Playwright end-to-end specs, marked `@pytest.mark.e2e` and deselected by default (`pytest.ini` sets `-m "not e2e"`); run them with `pytest -m e2e --browser chromium` against a running server
 - `test_thread_message_delete.py`: regression tests for the thread-message delete route — pins the `openai_delete_message` arity and the remote-before-local delete ordering (issue #30)
 - `data/`: Test data directory containing sample data, fixtures, and mock responses (has its own README)

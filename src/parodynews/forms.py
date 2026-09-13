@@ -8,7 +8,6 @@ import re
 
 from django import forms
 from django.core.exceptions import ValidationError
-from django.db.models import Count
 from django.forms import inlineformset_factory
 from django_json_widget.widgets import JSONEditorWidget
 
@@ -44,9 +43,12 @@ class ContentDetailForm(DefaultFormFieldsMixin, forms.ModelForm):
 
 class ContentItemForm(DefaultFormFieldsMixin, forms.ModelForm):
     # Define the form fields for the assistant to be displayed in the form
+    # `ContentItem.assistant` is `null=True, blank=True`, so the form field is
+    # optional too -- an item with no assistant must stay saveable as one.
     assistant = forms.ModelChoiceField(
         queryset=Assistant.objects.all(),
         label="Assistant Name",
+        required=False,
     )
 
     # Define the form field for the instructions to be displayed in the form
@@ -68,27 +70,38 @@ class ContentItemForm(DefaultFormFieldsMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["assistant"].widget.choices = [
-            (assistant.id, assistant.name) for assistant in Assistant.objects.all()
+            # The blank choice must survive this override: without it the
+            # browser silently selects the first assistant for an item that
+            # has none, and saving the form then persists that choice.
+            ("", self.fields["assistant"].empty_label),
+            *((assistant.id, assistant.name) for assistant in Assistant.objects.all()),
         ]
 
         self.fields["content_text"].required = False  # Make content field optional
 
-        # Only set the assistant field to a random record if the form is new
-        if not self.initial.get("assistant"):
-            random_assistant = (
-                Assistant.objects.annotate(num=Count("id")).order_by("?").first()
-            )
-            if random_assistant:
-                self.fields["assistant"].initial = random_assistant.id
-                self.fields["instructions"].initial = random_assistant.instructions
-        else:
+        # Seed a default assistant only when the form is genuinely new.
+        #
+        # `self.initial` comes from `model_to_dict(instance)`, which reports
+        # `assistant: None` for BOTH a brand-new form AND a saved ContentItem
+        # whose nullable `assistant` FK is NULL -- so `self.initial` cannot
+        # tell them apart. Whether the instance has been saved can (issue #3).
+        assistant_id = self.initial.get("assistant")
+        if assistant_id:
             # Populate the instructions field based on the selected assistant
-            assistant_id = self.initial.get("assistant")
             try:
                 assistant = Assistant.objects.get(id=assistant_id)
                 self.fields["instructions"].initial = assistant.instructions
             except Assistant.DoesNotExist:
                 self.fields["instructions"].initial = ""
+        elif self.instance.pk is None:
+            default_assistant = Assistant.objects.order_by("?").first()
+            if default_assistant:
+                self.fields["assistant"].initial = default_assistant.id
+                self.fields["instructions"].initial = default_assistant.instructions
+        else:
+            # A saved item with no assistant: pre-select nothing, and show no
+            # other assistant's instructions.
+            self.fields["instructions"].initial = ""
 
 
 # =============================================================================
