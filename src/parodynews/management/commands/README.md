@@ -6,7 +6,7 @@ This directory contains Django management commands that provide administrative a
 
 ## Contents
 - `__init__.py`: Python package initialization file
-- `fetch_models.py`: Django command to fetch and update OpenAI model choices from the OpenAI API
+- `fetch_models.py`: Django command to refresh the `OpenAIModel` table — the source of the assistant form's model dropdown — from the OpenAI API
 - `generate_field_defaults.py`: Django command to generate FieldDefaults records with base templates of model defaults
 - `refreshmigrations.py`: Django command for refreshing database migrations
 - `reset_db.py`: Django command to reset the database to an empty state (PostgreSQL-only)
@@ -31,6 +31,17 @@ python manage.py refreshmigrations
 > **⚠️ WARNING:** The `reset_db` command is **highly destructive**. It will permanently delete your database and all migration history.
 > **Before running this command, always back up your data.**
 > **Never use this command in production environments.**
+
+### `fetch_models` — what it filters and why
+
+`Assistant.model` is a foreign key to `OpenAIModel`, so this command decides what the assistant form's model dropdown offers. OpenAI's `/models` endpoint returns the account's **whole catalogue** with no capability field — image (`dall-e-*`), speech (`tts-*`), transcription (`whisper-*`), embedding (`text-embedding-*`) and legacy completion (`babbage-002`, `davinci-002`) ids come back alongside the chat models — and none of those can back an assistant. Persisting all of them made selecting one fail at generation time instead of at selection time, so the command:
+
+- keeps only ids matching the explicit allowlist in `fetch_models.py` (`ASSISTANT_MODEL_PREFIXES` minus `ASSISTANT_MODEL_EXCLUDED`) — a reviewable constant, not a heuristic buried in the loop;
+- writes a non-empty `description` for every row (the endpoint has none of its own, so it is composed from `id`, `owned_by` and `created`);
+- marks models OpenAI no longer lists `is_available = False` rather than deleting them — `Assistant.model` is `on_delete=SET_NULL`, so a delete would silently unassign the model from every assistant using it. Unavailable models are hidden from the assistant form and filterable in the admin;
+- resolves the whole catalogue **before** writing anything and writes inside one transaction, then raises `CommandError` (exit 1) on an API failure — a bad or missing `OPENAI_API_KEY` leaves the table exactly as it was.
+
+Covered by `src/parodynews/tests/test_fetch_models.py`, which fakes the client and never contacts the live API.
 
 ## Container Configuration
 These commands run within the Django application container:

@@ -46,8 +46,8 @@ This is the main Django application directory for the parody news generator. It 
 - `utils/`: Utility functions and helper modules
 - `views/`: Package-based Django views and REST API viewsets
 
-### Legacy Data
-- `model_choices.json`: JSON file containing model choice configurations
+### Model Choices
+The assistant model dropdown is populated from the database, not from a file: `manage.py fetch_models` upserts assistant-capable ids into `OpenAIModel`, and `Assistant.model` is a foreign key to that table. The former `model_choices.json` snapshot was orphaned by that change and has been removed.
 
 ## Usage
 This Django app provides the core functionality of the parody news generator:
