@@ -20,14 +20,9 @@ breaking: false
 
 ## 📊 Before
 
-`src/parodynews/models/` holds **17 model classes** across six modules. Only
-three — `Thread`, `Message`, `AppConfig` — were referenced by any model-level
-test, all of them incidentally, inside `test_thread_message_delete.py`.
-`test_model_table.py`'s 15 tests exercise the model-table *view*, which is a
-different guarantee, and `test_templates.py`'s 38 are template tests.
+`src/parodynews/models/` holds **17 model classes** across six modules. Only three — `Thread`, `Message`, `AppConfig` — were referenced by any model-level test, all of them incidentally, inside `test_thread_message_delete.py`. `test_model_table.py`'s 15 tests exercise the model-table *view*, which is a different guarantee, and `test_templates.py`'s 38 are template tests.
 
-Statement coverage of `src/parodynews/models/` was **85%**, and `base.py` was at
-**0%**.
+Statement coverage of `src/parodynews/models/` was **85%**, and `base.py` was at **0%**.
 
 ## ✅ Change
 
@@ -42,40 +37,24 @@ Statement coverage of `src/parodynews/models/` was **85%**, and `base.py` was at
 | `test_models_conversation.py` | `Thread`, `Message` |
 | `test_models_publishing.py` | `PostPageConfigModel`, `Post`, `PostFrontMatter`, `PostVersion` |
 
-Each asserts field definitions and defaults, `__str__`, `get_display_fields()`,
-`Meta.ordering`, every `ForeignKey`/`ManyToMany`/`OneToOne`, and the `on_delete`
-behaviour of each relation — `CASCADE` and `SET_NULL` are asserted separately,
-because which one a relation uses is the difference between losing a published
-post and keeping it.
+Each asserts field definitions and defaults, `__str__`, `get_display_fields()`, `Meta.ordering`, every `ForeignKey`/`ManyToMany`/`OneToOne`, and the `on_delete` behaviour of each relation — `CASCADE` and `SET_NULL` are asserted separately, because which one a relation uses is the difference between losing a published post and keeping it.
 
-The two custom `save()` methods get behavioural tests rather than
-does-not-raise tests:
+The two custom `save()` methods get behavioural tests rather than does-not-raise tests:
 
 - `ContentItem.save()` numbers items **per parent detail**. An implementation
-  based on a global `count()` would pass a single-parent test; the added
-  `test_save_numbers_each_detail_independently` fails it.
+based on a global `count()` would pass a single-parent test; the added `test_save_numbers_each_detail_independently` fails it.
 - `FieldDefaults.save()` exists only to `cache.delete("field_defaults")`. It is
-  asserted on insert, on update, and — separately — that it does *not* evict
-  other keys, which is what a `cache.clear()` regression would do.
+asserted on insert, on update, and — separately — that it does *not* evict other keys, which is what a `cache.clear()` regression would do.
 
 ### Shared factories, built from the real exports
 
-`conftest.py` gains `*_export` fixtures that read `tests/data/*.json` as-is and
-a chain of model factories (`user` → `openai_model` → `assistant` →
-`content_detail` → `content_item` → `thread` → `message` → `post`). No parallel
-fixture mechanism and no new dependency — `factory_boy` was deliberately not
-added.
+`conftest.py` gains `*_export` fixtures that read `tests/data/*.json` as-is and a chain of model factories (`user` → `openai_model` → `assistant` → `content_detail` → `content_item` → `thread` → `message` → `post`). No parallel fixture mechanism and no new dependency — `factory_boy` was deliberately not added.
 
-`TimestampedModel` is the one class in the package that is not instantiated:
-it is `abstract = True` and has **no concrete subclass** in the tree
-(`OpenAIModel` and `Post` declare their own timestamp columns), so it is
-asserted through its field definitions and its abstractness.
+`TimestampedModel` is the one class in the package that is not instantiated: it is `abstract = True` and has **no concrete subclass** in the tree (`OpenAIModel` and `Post` declare their own timestamp columns), so it is asserted through its field definitions and its abstractness.
 
 ### A completeness guard
 
-`test_every_exported_model_has_a_test_module` asserts that every name in
-`parodynews.models.__all__` is referenced by one of the six modules, so a model
-added later without tests fails the suite instead of passing quietly.
+`test_every_exported_model_has_a_test_module` asserts that every name in `parodynews.models.__all__` is referenced by one of the six modules, so a model added later without tests fails the suite instead of passing quietly.
 
 ## 🐛 Defect found and fixed
 
@@ -92,15 +71,11 @@ return reverse("post_detail", kwargs={"pk": self.pk})
 return reverse("post_detail", kwargs={"post_id": self.pk})
 ```
 
-`parodynews/urls.py:161` declares the route as
-`posts/<int:post_id>/`. The method was never called by a test, and this is
-precisely the class of defect issue #51 was filed to surface. It is a one-word
-fix in `models/publishing.py`; no migration, no signature change.
+`parodynews/urls.py:161` declares the route as `posts/<int:post_id>/`. The method was never called by a test, and this is precisely the class of defect issue #51 was filed to surface. It is a one-word fix in `models/publishing.py`; no migration, no signature change.
 
 ## 🧪 Testing and Validation
 
-Run from `src/` (config: `src/pytest.ini`, `e2e` excluded by default) against
-the project's PostgreSQL test database — `base.py` rejects SQLite outright:
+Run from `src/` (config: `src/pytest.ini`, `e2e` excluded by default) against the project's PostgreSQL test database — `base.py` rejects SQLite outright:
 
 ```console
 $ python -m pytest parodynews/tests -q
@@ -125,8 +100,7 @@ Statement coverage of `src/parodynews/models/`:
 
 ## ⚠️ Breaking Changes and Migration
 
-None. No model field changed, no migration is required, and no dependency was
-added to `pyproject.toml`.
+None. No model field changed, no migration is required, and no dependency was added to `pyproject.toml`.
 
 ## 🔗 Related Resources
 
