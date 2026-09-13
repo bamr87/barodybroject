@@ -50,10 +50,7 @@ def test_an_assistant_comes_from_the_real_export(assistant, assistant_export):
     assert assistant.name == assistant_export[0]["name"]
 ```
 
-The factories chain, so asking for `post` transitively creates the `user`,
-`content_detail`, `thread`, `message`, `assistant`, `openai_model` and
-`json_schema` it needs. Each depends on `db`, so requesting one is enough to get
-database access — no extra `@pytest.mark.django_db` on the test itself.
+The factories chain, so asking for `post` transitively creates the `user`, `content_detail`, `thread`, `message`, `assistant`, `openai_model` and `json_schema` it needs. Each depends on `db`, so requesting one is enough to get database access — no extra `@pytest.mark.django_db` on the test itself.
 
 Testing features:
 - **Unit Tests**: Individual component testing for models, views, forms, and utilities
