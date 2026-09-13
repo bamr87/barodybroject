@@ -43,6 +43,14 @@ class ContentDetailForm(DefaultFormFieldsMixin, forms.ModelForm):
 
 
 class ContentItemForm(DefaultFormFieldsMixin, forms.ModelForm):
+    # Fields whose stored value is Markdown. `content_detail.html` renders these
+    # through the app's one renderer instead of dropping raw source into a form
+    # widget — showing raw Markdown in a field the user is only *viewing* is the
+    # bug this list exists to fix. Every other field keeps its normal widget.
+    # `instructions` is read-only (below), so it renders as HTML and never
+    # exposes its source at all.
+    markdown_fields = ("instructions", "content_text")
+
     # Define the form fields for the assistant to be displayed in the form
     assistant = forms.ModelChoiceField(
         queryset=Assistant.objects.all(),

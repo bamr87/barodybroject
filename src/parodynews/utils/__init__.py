@@ -46,7 +46,7 @@ from .defaults import (
 from .dkim_backend import DKIMEmailBackend
 
 # Markdown utilities
-from .markdown import generate_markdown_file, json_to_markdown
+from .markdown import generate_markdown_file, json_to_markdown, render_markdown
 
 # OpenAI client utilities
 from .openai_client import load_openai_client
@@ -91,6 +91,7 @@ __all__ = [
     # Markdown
     "json_to_markdown",
     "generate_markdown_file",
+    "render_markdown",
     # Defaults
     "get_model_defaults",
     "load_template_from_path",

@@ -1,0 +1,56 @@
+{% comment %}
+_markdown_field.html — one Markdown-bearing form field.
+
+Renders the field's value as HTML (the app's one renderer, `|markdownify`) and
+keeps the raw source available only when the field is actually being edited.
+
+Two shapes, decided by whether the widget is read-only:
+
+  read-only   rendered HTML plus a hidden input carrying the value forward. A
+              read-only `<textarea>` still submits, so the hidden input keeps
+              POST semantics identical; there is no editor, so the raw source
+              can never be revealed.
+  editable    rendered HTML plus the real widget. The widget is visible here
+              and hidden by content_detail.js on load — deliberately that way
+              round, so with JavaScript off the field stays editable instead of
+              becoming permanently invisible.
+
+Expects: `field` (a BoundField).
+{% endcomment %}
+{% load markdownify %}
+{% load django_bootstrap5 %}
+
+<div class="mb-3 markdown-field"
+     data-markdown-field
+     data-field-name="{{ field.name }}"
+     {% if field.field.widget.attrs.readonly %}data-markdown-readonly{% endif %}>
+
+  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+  {% comment %}
+  `markdownify` sanitizes and returns a SafeString, so no `|safe` here — adding
+  one would only disable autoescaping for output that is already cleaned.
+
+  And no `|linebreaksbr` either, unlike the older templates. This div's contents
+  are replaced on blur by the response from `markdown_preview`, which is plain
+  `render_markdown` output; appending a filter here would make the field reflow
+  the first time the user focused and left it. `MARKDOWNIFY["default"]` allows
+  `p` and `br`, so Markdown's own paragraphing already does this job.
+  {% endcomment %}
+  <div class="markdown-rendered form-control"
+       data-markdown-rendered
+       {% if not field.field.widget.attrs.readonly %}tabindex="0" role="button" aria-label="{{ field.label }} — click to edit"{% endif %}>{{ field.value|default:""|markdownify }}</div>
+
+  {% if field.field.widget.attrs.readonly %}
+    <input type="hidden" name="{{ field.html_name }}" id="{{ field.id_for_label }}" value="{{ field.value|default:'' }}">
+  {% else %}
+    <div class="markdown-source" data-markdown-source>{{ field }}</div>
+  {% endif %}
+
+  {% if field.help_text %}
+    <div class="form-text">{{ field.help_text }}</div>
+  {% endif %}
+  {% for error in field.errors %}
+    <div class="invalid-feedback d-block">{{ error }}</div>
+  {% endfor %}
+</div>

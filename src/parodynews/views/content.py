@@ -17,14 +17,41 @@ import json
 from datetime import datetime
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views import View
+from django.views.decorators.http import require_POST
 
 from ..forms import ContentDetailForm, ContentItemForm
 from ..mixins import AppConfigClientMixin, ModelFieldsMixin
 from ..models import ContentDetail, ContentItem, Message, Thread
-from ..utils import generate_content, openai_create_message
+from ..utils import generate_content, openai_create_message, render_markdown
+
+
+@login_required
+@require_POST
+def markdown_preview(request):
+    """Render a Markdown fragment to sanitized HTML for the content editor.
+
+    The content detail page shows rendered HTML for a field the user is not
+    editing and the raw source while they are. Swapping back on blur needs the
+    *current* text rendered, which cannot come from the page's initial
+    server-side render — and rendering it in the browser would mean a second
+    Markdown library, bypassing the bleach sanitizer that `render_markdown`
+    applies. So the round trip happens here, through the same renderer the
+    templates use, and the answer is HTML that is already safe.
+
+    Not `/martor/markdownify/`: that endpoint is routed and working
+    (`parodynews/urls.py`), but it renders through `martor.utils.markdownify`,
+    whose extension set and sanitizer differ from `|markdownify`. Using it here
+    would give the same content two different renderings depending on which page
+    you looked at.
+
+    CSRF applies as normal; the caller sends `X-CSRFToken`.
+    """
+    return HttpResponse(render_markdown(request.POST.get("text", "")))
 
 
 class ManageContentView(

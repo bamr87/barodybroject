@@ -84,7 +84,11 @@ TODO: Update the assistant field with last assistant to produce output
         <div class="card">
             <div class="card-body">
                 {% if post.post_content %}
-                    {{ post.post_content|markdownify|safe }}
+                    {# `markdownify` sanitizes (bleach) and returns a SafeString,
+                       so the trailing `|safe` was a no-op that only read as if
+                       autoescaping were being switched off deliberately. Dropped;
+                       output is unchanged. #}
+                    {{ post.post_content|markdownify }}
                 {% else %}
                     <p class="text-muted">No content available</p>
                 {% endif %}
