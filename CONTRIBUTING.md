@@ -2,16 +2,16 @@
 
 ## Overview of the Project
 
-The Parody News Generator is a Django application integrated with OpenAI to generate content with the help of assistants. The project aims to create a platform for generating parody news articles, providing a fun and engaging way to explore AI-generated content.
+The Parody News Generator is a Django application that generates content with AI assistants and publishes it as a static site. It is deliberately **provider-agnostic**: application code never imports a vendor SDK, so the same assistant can run on Claude today and GPT tomorrow by changing configuration. Claude Code is the default provider.
 
 ## Tech Stack
 
 The project utilizes the following technologies:
 
-- **Django**: High-level Python Web framework that encourages rapid development and clean, pragmatic design.
-- **OpenAI**: API for accessing new AI models developed by OpenAI.
-- **PostgreSQL**: Powerful, open-source object-relational database system.
-- **SQLite**: Self-contained, serverless, zero-configuration, transactional SQL database engine.
+- **Django** + **Django REST Framework**: The backend and the API the frontend consumes.
+- **React**, **TypeScript**, **Vite**: The user interface, in `src/frontend/`.
+- **Claude Agent SDK** (default), **Anthropic SDK**, **OpenAI SDK**: Reached only through `parodynews.ai` — see below.
+- **PostgreSQL**: The database. SQLite is not supported.
 - **Docker**: Open platform for developing, shipping, and running applications.
 - **Bootstrap**: Front-end open source toolkit for developing with HTML, CSS, and JS.
 - **Git**: Distributed version control system for tracking changes in source code during software development.
@@ -20,6 +20,16 @@ The project utilizes the following technologies:
 - **Docker Compose**: Tool for defining and running multi-container Docker applications.
 - **Azure Container Apps**: Service for deploying and scaling containerized applications in the cloud.
 - **Azure Developer CLI**: Command-line interface for managing Azure resources.
+
+## Architecture you should know before changing code
+
+Three boundaries carry most of the design, and crossing one is usually a mistake:
+
+**AI vendors are confined to `src/parodynews/ai/providers/`.** Everything else builds a `GenerationRequest` and calls whatever provider the registry resolved. If a change appears to need `import anthropic` in a service or a view, what it actually needs is a new capability on the provider contract. See [the AI layer README](src/parodynews/ai/README.md).
+
+**The UI is React, not Django templates.** `src/frontend/` is the interface; Django renders only the SPA shell, the allauth account pages, and error pages. New screens are React routes plus API endpoints.
+
+**Business logic lives in `src/parodynews/services/`.** Views parse input and render output. A view with a `for` loop over model instances is usually a service waiting to be extracted.
 
 ## How to Contribute
 
@@ -123,7 +133,26 @@ This project maintains a comprehensive changelog documentation system to track a
    git checkout -b my-feature-branch
    ```
 
-2. Make your changes and test them thoroughly
+2. Make your changes and test them thoroughly. Before pushing, run what CI runs:
+
+   ```sh
+   # from src/
+   python -m pytest
+   ruff check src/ && black --check src/
+
+   # from src/frontend/
+   npm run test && npm run build
+   ```
+
+   If you touched models, generate the migration and verify it *reverses*:
+
+   ```sh
+   python manage.py makemigrations parodynews
+   python manage.py migrate parodynews <previous>   # reverse
+   python manage.py migrate parodynews              # forward again
+   ```
+
+A migration that only goes forward will be sent back in review. See [the migrations README](src/parodynews/migrations/README.md) for the two ways this usually fails.
 
 3. Document your changes using our changelog system:
    - Choose the appropriate template from [docs/changelog/templates/](docs/changelog/templates/)

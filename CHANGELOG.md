@@ -2,8 +2,53 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.6.0] - 2026-09-15
+
+> Full change record: [docs/changelog/summaries/2026-09-15-provider-agnostic-ai-and-react-frontend.md](docs/changelog/summaries/2026-09-15-provider-agnostic-ai-and-react-frontend.md)
+
+### Added
+- **Provider-agnostic AI layer** (`src/parodynews/ai/`): one `AIProvider` contract,
+a registry that resolves the configured implementation at runtime, and four built-in providers — `claude_code` (default), `anthropic`, `openai`, and a `mock` used by the test suite. No application code imports a vendor SDK.
+- **Claude Code as the default provider**, authenticated with a
+  `CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token`.
+- **React frontend** (`src/frontend/`): React 19, TypeScript, Vite 7, React
+  Router 7. Django serves the built bundle from the Vite manifest via WhiteNoise.
+- **REST API** (`src/parodynews/api/`) authenticated by session cookie and CSRF,
+  so the SPA reuses the existing allauth login.
+- **Service layer** (`src/parodynews/services/`) holding the use cases that used
+  to live in views.
+- `AIProviderConfig` model for per-provider credentials and defaults, editable
+  from the settings screen.
+- `sync_models` management command, replacing the OpenAI-only `fetch_models`.
+- CI job for the frontend (typecheck, Vitest, build).
+
+### Changed
+- **BREAKING**: `OpenAIModel` is now `AIModel`, keyed by `(provider, model_id)`.
+- **BREAKING**: `AppConfig.api_key`, `.org_id` and `.project_id` moved to
+  `AIProviderConfig`. The migration copies existing values across.
+- **BREAKING**: The Django template UI and its view modules are removed.
+- **BREAKING**: `AssistantGroupMembership.assistants` renamed to `assistant`.
+- Threads and messages are stored locally and replayed to the provider on every
+call, so a thread is portable across providers and the OpenAI Assistants/Threads API is no longer used.
+- `Message` records `role`, `provider`, `model_id`, `usage` and `error`.
+- The CI lint step blocks again instead of running with `continue-on-error`.
+
+### Fixed
+- Enabling the debug toolbar registered `debug_toolbar` in `INSTALLED_APPS`
+  three times, which makes Django refuse to start on duplicate app labels.
+- The ruff rule selection sat under `[tool.ruff]` rather than
+  `[tool.ruff.lint]` and was silently ignored. `src/` is now clean.
+- The account pages loaded Bootstrap from a CDN, so login depended on a
+  third-party host being reachable. They now use the local bundle and no JS.
+
+### Migration
+- Run `python manage.py migrate`, then `python manage.py sync_models`.
+- Set `CLAUDE_CODE_OAUTH_TOKEN`, or set `AI_DEFAULT_PROVIDER=openai` to keep
+  using an existing `OPENAI_API_KEY`.
+- Both migrations reverse cleanly; `python manage.py migrate parodynews 0001`
+  restores the previous schema and credentials.
 
 ## [0.5.0] - 2025-12-20
 
