@@ -83,6 +83,25 @@ claude setup-token          # prints a token starting sk-ant-oat...
 
 Put it in `.env` as `CLAUDE_CODE_OAUTH_TOKEN`, or set `AI_DEFAULT_PROVIDER` to `anthropic` or `openai` and supply that provider's key instead. See [.env.example](.env.example) for every supported variable, and the [AI layer README](src/parodynews/ai/README.md) for how credentials resolve.
 
+## Using the Application
+
+Django owns a handful of prefixes, routed in [`src/barodybroject/urls.py`](src/barodybroject/urls.py); everything else is handed to the React SPA by the catch-all in [`src/parodynews/urls.py`](src/parodynews/urls.py).
+
+| Path | What it is |
+|---|---|
+| `/setup/` | Installation wizard — runs first and handles redirects, see [docs/installation-wizard.md](docs/installation-wizard.md) |
+| `/admin/` | Django admin |
+| `/accounts/` | Sign-in and registration (Django Allauth), server-rendered |
+| `/api/` | Django REST Framework browsable API |
+
+The parody-content workflow is a client-side route in [`src/frontend/`](src/frontend/README.md): `/assistants` and `/assistant-groups` to configure assistants, `/content` to manage content items, `/threads` to run generation, `/messages` to review the results, `/posts` to edit and publish them, `/schemas` for the JSON schemas that shape assistant output, and `/settings` to configure AI providers. These are React routes, not Django views — the server returns the same SPA shell for all of them.
+
+Publishing a post writes into the Jekyll sidecar in [`src/pages/`](src/pages/), which renders the public site with the `bamr87/zer0-mistakes` remote theme.
+
+The REST API exposes the same objects as viewsets under `/api/`: `assistants`, `assistant-groups`, `content-items`, `content-details`, `threads`, `messages`, `posts`, `post-front-matters`, `post-versions`, `json-schemas`, `ai-models`, `providers` and `powered-by`.
+
+Remember that the dev container starts Django under `debugpy --wait-for-client`, so none of these respond until a debugger attaches — see the caveat in [Development Quick Start](#development-quick-start).
+
 ## Testing
 
 Pytest is configured in [src/pytest.ini](src/pytest.ini). Run tests from `src/` inside the dev container once development dependencies are installed:

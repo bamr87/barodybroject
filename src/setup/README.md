@@ -211,7 +211,7 @@ service.mark_installation_complete()
 
 ## Support
 
-For detailed documentation, see: [docs/installation-wizard.md](docs/installation-wizard.md)
+For detailed documentation, see: [docs/installation-wizard.md](../../docs/installation-wizard.md)
 
 For issues and questions:
 - Check the troubleshooting section above
@@ -221,7 +221,7 @@ For issues and questions:
 ---
 
 **Quick Links:**
-- [Full Documentation](docs/installation-wizard.md)
-- [Environment Configuration](.env.example)
-- [Docker Compose Development](.devcontainer/docker-compose_dev.yml)
-- [Docker Compose Production](docker-compose.yml)
+- [Full Documentation](../../docs/installation-wizard.md)
+- [Environment Configuration](../../.env.example)
+- [Docker Compose Development](../../.devcontainer/docker-compose_dev.yml)
+- [Docker Compose Production](../../docker-compose.yml)
