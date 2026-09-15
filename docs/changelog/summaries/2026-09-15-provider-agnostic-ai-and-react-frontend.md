@@ -149,6 +149,14 @@ Recorded because each is a trap that will recur.
 
 **The auth pages depended on a CDN.** `base.html` pulled Bootstrap's CSS and JS from jsDelivr, so every login page load depended on that host resolving and its certificate validating. They now reuse the React bundle's stylesheet and load no JavaScript at all.
 
+## 📦 Ported from #177
+
+CI's `Run dependency scans` step is red on `main`, so it is red here too. The failure is not this change's — the advisory set is byte-identical with and without this PR's added dependencies (14 advisories across `django`, `markdown` and `cryptography`; `whitenoise`, `claude-agent-sdk`, `anthropic` and `openai` add none) — but a fix exists in open PR #177, so it is ported here rather than waited on. It no-ops once `main` carries it.
+
+What came across: `quality.sh dependency-scan` now passes `-r requirements.txt` to both scanners, so the gate audits what this project declares instead of whatever the CI interpreter happens to hold; the packages the scoped gate then reports are patched (`Django` 5.1.15 → 5.2.17, `Markdown` 3.5.2 → 3.8.2, and `martor` and `fido2` upgraded to lift version caps that made the patched `Markdown` and `cryptography` unreachable); and `src/tests/test_dependency_scan_scope.py` guards the CI contract.
+
+`pip-audit --desc -r requirements.txt` reports *No known vulnerabilities found* against the patched set, and the full suite passes on Django 5.2.17.
+
 ## ✅ Verification
 
 - 349 Python tests, 25 Vitest tests, all passing

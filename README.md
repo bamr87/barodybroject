@@ -1,6 +1,6 @@
 # Barodybroject
 
-Barodybroject is a Django 5.1 application for generating and managing parody news content with AI. It runs against PostgreSQL, serves a React frontend over a Django REST Framework API, includes a Jekyll static-site sidecar for published content, and deploys to Azure Container Apps with Bicep infrastructure.
+Barodybroject is a Django 5.2 application for generating and managing parody news content with AI. It runs against PostgreSQL, serves a React frontend over a Django REST Framework API, includes a Jekyll static-site sidecar for published content, and deploys to Azure Container Apps with Bicep infrastructure.
 
 The AI layer is **provider-agnostic**: no application code imports a vendor SDK. Claude Code is the default provider, driven by a `CLAUDE_CODE_OAUTH_TOKEN`; Anthropic and OpenAI are built in, and adding another is one class plus a registry entry. Switching providers is a configuration change.
 
@@ -23,7 +23,7 @@ The AI layer is **provider-agnostic**: no application code imports a vendor SDK.
 ## Current Stack
 
 **Backend**
-- Python 3.10+ and Django 5.1
+- Python 3.10+ and Django 5.2 (LTS)
 - Django REST Framework (session-cookie authenticated)
 - PostgreSQL
 - Claude Agent SDK (default), Anthropic SDK, OpenAI SDK — reached only through `parodynews.ai`

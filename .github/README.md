@@ -6,7 +6,7 @@ AI-powered Django application for generating parody news content, with a React f
 
 ## Tech Stack
 
-**Backend**: Django 5.1 • Python 3.10+ • DRF  
+**Backend**: Django 5.2 • Python 3.10+ • DRF  
 **Frontend**: React 19 • TypeScript • Vite 7 • Bootstrap 5  
 **Database**: PostgreSQL  
 **Infrastructure**: Docker • Azure Container Apps • Azure Bicep  
