@@ -316,8 +316,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 **Documentation References:**
-- [Migration Guide](./docs/migration/v0.2.0-guide.md) - Complete migration procedures
-- [Infrastructure Changes](./docs/infrastructure/v0.2.0-changes.md) - Detailed infrastructure evolution
-- [Deployment Guide](./docs/deployment/minimal-guide.md) - Step-by-step deployment instructions
-- [CMS Removal](./docs/migration/cms-removal.md) - CMS removal and restoration procedures
-- [Troubleshooting](./docs/troubleshooting/azure-quota.md) - Common issues and solutions
+- [Migration Guide](./docs/migration/MIGRATION_GUIDE.md) - Complete migration procedures
+- [Infrastructure Changes](./docs/deployment/INFRASTRUCTURE_CHANGES.md) - Detailed infrastructure evolution
+- [Deployment Guide](./docs/deployment/DEPLOYMENT-GUIDE-MINIMAL.md) - Step-by-step deployment instructions
+- [CMS Removal](./docs/migration/CMS_REMOVAL_GUIDE.md) - CMS removal and restoration procedures
+- [Troubleshooting](./docs/deployment/QUOTA_ISSUE_SOLUTIONS.md) - Common issues and solutions

@@ -13,29 +13,17 @@ This directory contains Jekyll navigation data files that define the site's menu
 Navigation files are loaded by Jekyll templates and layouts:
 
 ```yaml
-# Example main.yml structure
-main:
-  - title: "Home"
-    url: /
-  - title: "Blog"
-    url: /blog/
-    submenu:
-      - title: "Technology"
-        url: /category/technology/
-      - title: "Satire"
-        url: /category/satire/
-  - title: "About"
-    url: /about/
-
-# Usage in Jekyll templates
-{% for item in site.data.navigation.main %}
-  <a href="{{ item.url }}">{{ item.title }}</a>
-  {% if item.submenu %}
-    {% for subitem in item.submenu %}
-      <a href="{{ subitem.url }}">{{ subitem.title }}</a>
-    {% endfor %}
-  {% endif %}
-{% endfor %}
+# main.yml - a list of entries, each optionally carrying `sublinks`
+- title: News
+  url: /posts
+  sublinks:
+    - title: Pages
+      url: /pages
+- title: About
+  url: /about/
+  sublinks:
+    - title: Config
+      url: /about/config
 ```
 
 Navigation features:

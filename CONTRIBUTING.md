@@ -173,7 +173,7 @@ We welcome various types of contributions, including:
 
 ## Code of Conduct
 
-We are committed to fostering a welcoming and respectful environment for all contributors. Please read and adhere to our [Code of Conduct](CODE_OF_CONDUCT.md).
+We are committed to fostering a welcoming and respectful environment for all contributors. Please read and adhere to our [Code of Conduct](https://github.com/bamr87/.github/blob/main/CODE_OF_CONDUCT.md).
 
 ## Contact Information
 
