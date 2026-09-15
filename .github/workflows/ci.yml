@@ -137,7 +137,7 @@ jobs:
           if-no-files-found: error
 
   frontend:
-    name: Frontend (Node ${{ env.NODE_VERSION }})
+    name: Frontend
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: pre-checks
