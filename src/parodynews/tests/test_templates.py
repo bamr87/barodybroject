@@ -20,6 +20,7 @@ Playwright specs under `tests/e2e/`.
 
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from django.contrib.auth.models import User
@@ -183,6 +184,23 @@ class AuthTemplateTests(TestCase):
         already carries Bootstrap, so there is nothing to fetch."""
         content = self.client.get("/accounts/login/").content.decode()
         self.assertNotIn("https://cdn.jsdelivr.net", content)
+
+    def test_the_auth_pages_have_no_cdn_fallback_when_the_frontend_is_unbuilt(self):
+        """The guarantee has to hold in the state where it is easiest to lose.
+
+        With no Vite manifest there is no bundled stylesheet to serve, and the
+        template used to fall back to a CDN. That made the previous assertion
+        pass only on a machine that happened to have `dist/` built: a
+        deployment shipped without a frontend build would quietly go back to
+        fetching CSS from a third party on every sign-in. Unstyled is the
+        correct failure here — visible and local, rather than invisible and
+        remote.
+        """
+        with patch("parodynews.views.spa.manifest_assets", return_value=None):
+            content = self.client.get("/accounts/login/").content.decode()
+        self.assertNotIn("cdn.jsdelivr.net", content)
+        self.assertNotIn("//unpkg.com", content)
+        self.assertNotIn("//cdnjs.cloudflare.com", content)
 
     def test_the_auth_pages_run_no_javascript_of_their_own(self):
         """Nothing on them needs it, and not loading Bootstrap's bundle is what

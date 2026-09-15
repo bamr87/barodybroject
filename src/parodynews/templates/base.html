@@ -8,10 +8,10 @@ Version: 0.6.0
 
 The application UI is the React app served by `spa/index.html`; this template
 only wraps the pages Django still renders itself, so it stays deliberately
-small — Bootstrap from the CDN, a link back to the app, and nothing else.
+small — the app's own stylesheet, a link back to the app, and nothing else.
 {% endcomment %}
 <!DOCTYPE html>
-{% load static i18n django_bootstrap5 %}
+{% load static i18n %}
 <html lang="{{ LANGUAGE_CODE }}" data-bs-theme="auto">
     <head>
         <meta charset="utf-8"/>
@@ -24,16 +24,18 @@ small — Bootstrap from the CDN, a link back to the app, and nothing else.
             {% block title %}{% block head_title %}Account{% endblock head_title %} | Barody Broject{% endblock title %}
         </title>
         {% comment %}
-        Prefer the React bundle's stylesheet: it already carries Bootstrap and
-        Bootstrap Icons, so these pages need no CDN and match the app exactly.
-        Before the frontend is built there is nothing to serve, so fall back.
+        The React bundle's stylesheet already carries Bootstrap and Bootstrap
+        Icons, so these pages match the app exactly and need no CDN.
+
+        There is deliberately no CDN fallback for an unbuilt frontend. These
+        pages carry the login form, and a fallback would mean that a deployment
+        shipped without a frontend build silently goes back to fetching CSS
+        from a third party on every sign-in — the exact dependency this
+        replaced. Unstyled is a visible, local failure; a CDN round-trip is an
+        invisible, remote one. Build the frontend (`npm run build` in
+        `src/frontend/`, which the Dockerfile does) and this resolves.
         {% endcomment %}
-        {% if frontend_styles %}
-            {% for href in frontend_styles %}<link rel="stylesheet" href="{{ href }}"/>{% endfor %}
-        {% else %}
-            {% bootstrap_css %}
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
-        {% endif %}
+        {% for href in frontend_styles %}<link rel="stylesheet" href="{{ href }}"/>{% endfor %}
         <style>
             html, body { height: 100%; }
             body { display: flex; flex-direction: column; }
