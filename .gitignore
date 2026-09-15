@@ -185,8 +185,11 @@ pages/_notes/.DS_Store
 
 # Node modules
 node_modules/
-package-lock.json
-package.json
+
+# The React frontend's manifest and lockfile ARE tracked: the Docker build runs
+# `npm ci` from them, so ignoring them would make the image unbuildable.
+# Build output is not.
+src/frontend/dist/
 .venv*
 .azure
 src/.installation

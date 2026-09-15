@@ -167,11 +167,10 @@ class AdminUserForm(forms.Form):
         password = cleaned_data.get("password")
         password_confirm = cleaned_data.get("password_confirm")
 
-        if password and password_confirm:
-            if password != password_confirm:
-                raise ValidationError(
-                    {"password_confirm": "Password confirmation does not match."}
-                )
+        if password and password_confirm and password != password_confirm:
+            raise ValidationError(
+                {"password_confirm": "Password confirmation does not match."}
+            )
 
         return cleaned_data
 

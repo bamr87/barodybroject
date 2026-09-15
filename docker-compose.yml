@@ -45,6 +45,12 @@ services:
       DEBUG: "False"
       PYTHONPATH: /app
       PYTHONUNBUFFERED: 1
+      # AI provider configuration. Credentials saved in the Settings screen
+      # take precedence over these.
+      AI_DEFAULT_PROVIDER: ${AI_DEFAULT_PROVIDER:-claude_code}
+      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       # Installation wizard configuration
       SKIP_INSTALLATION_CHECK: ${SKIP_INSTALLATION_CHECK:-false}
       SETUP_TOKEN_EXPIRY_HOURS: ${SETUP_TOKEN_EXPIRY_HOURS:-1}

@@ -1,0 +1,62 @@
+{% comment %}
+File: spa/index.html
+Description: Shell for the React frontend (see parodynews/views/spa.py)
+Author: Barodybroject Team
+Created: 2026-09-14
+Version: 0.6.0
+{% endcomment %}<!DOCTYPE html>
+{% load static %}
+<html lang="{{ LANGUAGE_CODE|default:'en' }}" data-bs-theme="auto">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="description" content="AI-powered parody news generator. Bring your own AI provider."/>
+        <meta name="csrf-token" content="{{ csrf_token }}"/>
+        <meta property="og:type" content="website"/>
+        <meta property="og:title" content="{{ site_name }}"/>
+        <meta property="og:description" content="AI-powered parody news generator. Bring your own AI provider."/>
+        <link rel="icon" href="{% static 'favicon.ico' %}"/>
+        <title>{{ site_name }} | AI Parody News</title>
+        <script>
+            // Apply the stored theme before paint to avoid a flash.
+            (function () {
+                try {
+                    var theme = localStorage.getItem('theme') || 'auto';
+                    var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (dark ? 'dark' : 'light') : theme);
+                } catch (e) { /* storage unavailable */ }
+            })();
+        </script>
+        {% if dev_server_url %}
+            <script type="module" src="{{ dev_server_url }}/@vite/client"></script>
+        {% elif assets %}
+            {% for href in assets.styles %}<link rel="stylesheet" href="{{ href }}"/>{% endfor %}
+        {% endif %}
+    </head>
+    <body>
+        <div id="root"></div>
+        {% if dev_server_url %}
+            <script type="module" src="{{ dev_server_url }}/{{ spa_entry }}"></script>
+        {% elif assets %}
+            {% for src in assets.scripts %}<script type="module" src="{{ src }}"></script>{% endfor %}
+        {% else %}
+            <main class="container" style="max-width: 48rem; margin: 4rem auto; font-family: system-ui, sans-serif; padding: 0 1rem;">
+                <h1>{{ site_name }}</h1>
+                <p>The React frontend has not been built yet, so there is nothing to render here.</p>
+                <p>Build it once with:</p>
+                <pre style="background: #f4f4f4; padding: 1rem; border-radius: .5rem; overflow-x: auto;">cd src/frontend
+npm install
+npm run build</pre>
+                <p>or run the Vite dev server (<code>npm run dev</code>) and set <code>VITE_DEV_SERVER_URL=http://localhost:5173</code> for Django.</p>
+                <p>
+                    <a href="{% url 'admin:index' %}">Django admin</a> ·
+                    <a href="{% url 'account_login' %}">Sign in</a> ·
+                    <a href="/api/">Browse the API</a>
+                </p>
+            </main>
+        {% endif %}
+        <noscript>
+            <p style="text-align: center; font-family: system-ui, sans-serif;">{{ site_name }} needs JavaScript enabled.</p>
+        </noscript>
+    </body>
+</html>

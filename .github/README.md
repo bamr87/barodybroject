@@ -1,17 +1,17 @@
 # Parody News Generator - Developer Guide
 
-AI-powered Django application for generating parody news content using OpenAI APIs. Production-ready with Azure Container Apps deployment, PostgreSQL, and Jekyll static site integration.
+AI-powered Django application for generating parody news content, with a React frontend and a provider-agnostic AI layer. Production-ready with Azure Container Apps deployment, PostgreSQL, and Jekyll static site integration.
 
 > 📘 **General Users**: See the [comprehensive README](../README.md) for detailed documentation.
 
 ## Tech Stack
 
-**Backend**: Django 5.1 • Python 3.10+ • DRF  
+**Backend**: Django 5.2 • Python 3.10+ • DRF  
+**Frontend**: React 19 • TypeScript • Vite 7 • Bootstrap 5  
 **Database**: PostgreSQL  
 **Infrastructure**: Docker • Azure Container Apps • Azure Bicep  
-**AI**: OpenAI API • Custom Assistants  
-**Testing**: Pytest • Playwright • Selenium  
-**Frontend**: Bootstrap • CKEditor • Jekyll
+**AI**: Claude Code (default) • Anthropic • OpenAI — all behind one contract  
+**Testing**: Pytest • Vitest • Playwright
 
 ## Quick Start
 
@@ -65,12 +65,16 @@ barodybroject/
 ├── scripts/           # Deployment automation
 ├── src/
 │   ├── barodybroject/ # Django project config
-│   ├── parodynews/    # Main app (models, views, API)
+│   ├── parodynews/    # Main app
+│   │   ├── ai/        # Provider contract, registry, providers
+│   │   ├── api/       # DRF viewsets the frontend consumes
+│   │   ├── services/  # Use cases
 │   │   ├── models/
-│   │   ├── views/
+│   │   ├── views/     # SPA shell only
 │   │   ├── management/commands/  # Custom commands
 │   │   ├── tests/
-│   │   └── templates/
+│   │   └── templates/ # SPA shell + allauth pages
+│   ├── frontend/      # React + Vite UI
 │   ├── pages/         # Jekyll blog (59 posts)
 │   ├── static/        # CSS, JS, images
 │   └── requirements.txt
@@ -121,11 +125,15 @@ azd pipeline config                    # Setup CI/CD
 
 ### Django App Structure
 ```
-MVC Pattern:
-- Models: src/parodynews/models/ (AI, content, conversation, publishing, config)
-- Views: src/parodynews/views/ (API, assistants, content, posts, threads, schemas)
-- Templates: Bootstrap-based responsive UI
-- API: Django REST Framework endpoints
+Layers (each calls only the one below it):
+- React (src/frontend/)          the user interface
+- API (src/parodynews/api/)      parse, authorize, serialize
+- Services (src/parodynews/services/)  the use cases
+- AI (src/parodynews/ai/)        one contract, four providers
+- Models (src/parodynews/models/)
+
+The AI boundary is the one that matters: no vendor SDK is imported above it,
+so swapping providers is configuration rather than code.
 
 Authentication:
 - django-allauth (social auth, MFA, SAML)
@@ -141,9 +149,11 @@ Settings:
 ```
 Core Models:
 - Content: AI-generated articles
-- Assistant: OpenAI assistant configurations
-- Thread: Conversation threads
-- Message: Thread messages
+- AIModel: A model offered by a provider, keyed by (provider, model_id)
+- Assistant: Instructions + the model that runs them + an optional output schema
+- AIProviderConfig: Per-provider credentials and defaults
+- Thread: Conversation threads, stored locally and replayed to the provider
+- Message: Thread messages, with role / provider / model_id / usage / error
 - User: Django auth + custom profile
 ```
 
@@ -205,18 +215,22 @@ azd pipeline config  # Creates GitHub workflow
 
 ### Required
 ```bash
-SECRET_KEY              # Django secret (generate with get_random_secret_key())
-DATABASE_URL            # Database connection string
-OPENAI_API_KEY          # OpenAI API key
+SECRET_KEY                # Django secret (generate with get_random_secret_key())
+DATABASE_URL              # Database connection string
+CLAUDE_CODE_OAUTH_TOKEN   # Default provider credential (`claude setup-token`)
 ```
 
 ### Optional
 ```bash
-DEBUG                   # Debug mode (default: False)
-ALLOWED_HOSTS           # Comma-separated hosts
-DB_HOST, DB_NAME        # Database config (if not using DATABASE_URL)
+DEBUG                     # Debug mode (default: False)
+ALLOWED_HOSTS             # Comma-separated hosts
+DB_HOST, DB_NAME          # Database config (if not using DATABASE_URL)
 DB_USERNAME, DB_PASSWORD
-AZURE_INSIGHTS_KEY      # Application Insights
+AZURE_INSIGHTS_KEY        # Application Insights
+AI_DEFAULT_PROVIDER       # claude_code (default) | anthropic | openai | mock
+ANTHROPIC_API_KEY         # If AI_DEFAULT_PROVIDER=anthropic
+OPENAI_API_KEY            # If AI_DEFAULT_PROVIDER=openai
+FRONTEND_DEV_SERVER_URL   # Point Django at the Vite dev server instead of the build
 ```
 
 ## Common Tasks
@@ -231,10 +245,30 @@ python manage.py migrate
 
 ### Add New API Endpoint
 ```python
-# 1. Create serializer in serializers.py
-# 2. Create viewset in the appropriate module under parodynews/views/
-# 3. Register in urls.py
-# 4. Add tests in tests/
+# 1. Create serializer in parodynews/api/serializers.py
+# 2. Create viewset in parodynews/api/views.py (it should call a service, not
+#    contain logic)
+# 3. Register in parodynews/api/urls.py
+# 4. Mirror the response shape in frontend/src/api/types.ts
+# 5. Add tests in parodynews/tests/test_api.py
+```
+
+### Add an AI Provider
+```python
+# 1. Subclass AIProvider in parodynews/ai/providers/
+# 2. Use self.normalize() and self.parse_structured() — don't hand-roll either
+# 3. Register the dotted path in BUILTIN_PROVIDERS in parodynews/ai/registry.py
+# 4. Add a case to tests/test_ai_layer.py — the suite runs shared expectations
+#    against every registered provider, so most coverage comes for free
+```
+
+### Work on the Frontend
+```bash
+cd src/frontend
+npm install
+npm run dev     # Vite, proxying /api to Django
+npm run test    # Vitest
+npm run build   # typecheck + build (this is what the container serves)
 ```
 
 ### Add Management Command

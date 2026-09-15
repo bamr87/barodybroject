@@ -1,10 +1,10 @@
 """
 File: settings.py
-Description: Django project settings with OpenAI integration and Azure deployment configuration
+Description: Django project settings — provider-agnostic AI, React frontend, Azure deployment
 Author: bamr87 <bamr87@users.noreply.github.com>
 Created: 2025-01-15
-Last Modified: 2025-01-27
-Version: 0.2.0
+Last Modified: 2026-09-14
+Version: 0.6.0
 
 Dependencies:
 - django: >=4.2
@@ -21,12 +21,11 @@ Container Requirements:
 Usage: Configure via environment variables in .env file
 """
 
+import importlib.util
 import json
 import logging
 import os
-import sys
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import boto3
 import environ
@@ -51,6 +50,8 @@ env = environ.Env(
     POSTGRES_SSL=(str, ""),
     ENABLE_DEBUG_TOOLBAR=(bool, False),
     LOG_LEVEL=(str, "INFO"),
+    AI_DEFAULT_PROVIDER=(str, "claude_code"),
+    FRONTEND_DEV_SERVER_URL=(str, ""),
 )
 
 # Read environment file if it exists
@@ -81,7 +82,7 @@ MANAGERS = ADMINS
 
 def get_secret(
     secret_name: str = "barodybroject/env", region_name: str = "us-east-1"
-) -> Dict:
+) -> dict:
     """
     Retrieve secrets from AWS Secrets Manager with comprehensive error handling
 
@@ -126,7 +127,7 @@ def get_secret(
         if IS_PRODUCTION and env.str("AWS_ACCESS_KEY_ID", default=""):
             raise ImproperlyConfigured(
                 f"Failed to load production secrets: {error_msg}"
-            )
+            ) from e
 
         return {}
 
@@ -134,7 +135,7 @@ def get_secret(
         logging.error(f"Unexpected error loading secrets: {e}")
         # Only raise in production with proper AWS setup
         if IS_PRODUCTION and env.str("AWS_ACCESS_KEY_ID", default=""):
-            raise ImproperlyConfigured(f"Failed to load production secrets: {e}")
+            raise ImproperlyConfigured(f"Failed to load production secrets: {e}") from e
         return {}
 
 
@@ -317,21 +318,21 @@ LOCAL_APPS = [
 ]
 
 # Development-only apps
-DEV_APPS = []
-if DEBUG and env.bool("ENABLE_DEBUG_TOOLBAR", default=False):
-    try:
-        import debug_toolbar
-
-        DEV_APPS.append("debug_toolbar")
-        THIRD_PARTY_APPS.append("debug_toolbar")
-    except ImportError:
-        pass
+ENABLE_DEBUG_TOOLBAR = (
+    DEBUG
+    and env.bool("ENABLE_DEBUG_TOOLBAR", default=False)
+    and importlib.util.find_spec("debug_toolbar") is not None
+)
+DEV_APPS = ["debug_toolbar"] if ENABLE_DEBUG_TOOLBAR else []
 
 INSTALLED_APPS = DJANGO_APPS + AUTH_APPS + THIRD_PARTY_APPS + LOCAL_APPS + DEV_APPS
 
 # Middleware configuration with environment-specific additions
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Serves the built React bundle (and every other static file) straight from
+    # the app container, so no separate web server is needed on Container Apps.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "setup.middleware.InstallationMiddleware",  # Installation wizard middleware
     "django.middleware.common.CommonMiddleware",
@@ -342,15 +343,6 @@ MIDDLEWARE = [
     "django.middleware.locale.LocaleMiddleware",
     "allauth.account.middleware.AccountMiddleware",
 ]
-
-# Add debug toolbar middleware in development
-if DEBUG and env.bool("ENABLE_DEBUG_TOOLBAR", default=False):
-    try:
-        import debug_toolbar
-
-        MIDDLEWARE.insert(1, "debug_toolbar.middleware.DebugToolbarMiddleware")
-    except ImportError:
-        pass
 
 ROOT_URLCONF = "barodybroject.urls"
 
@@ -377,8 +369,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "parodynews.context_processors.footer_items",
-                "parodynews.context_processors.issue_templates",
+                "parodynews.context_processors.site_links",
             ],
         },
     },
@@ -619,11 +610,10 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # Cache configuration
 if IS_PRODUCTION:
-    # Production caching with Redis (with fallback)
-    try:
-        # Test if Redis cache backend is available
-        from django.core.cache.backends.redis import RedisCache
-
+    # Production caching with Redis, falling back to the database cache when the
+    # redis client is not installed. `find_spec` answers "is it importable?"
+    # without importing it, which keeps the check free of side effects.
+    if importlib.util.find_spec("redis") is not None:
         CACHES = {
             "default": {
                 "BACKEND": "django.core.cache.backends.redis.RedisCache",
@@ -642,8 +632,7 @@ if IS_PRODUCTION:
         CACHE_MIDDLEWARE_SECONDS = 600  # 10 minutes
         CACHE_MIDDLEWARE_KEY_PREFIX = "barodybroject"
 
-    except ImportError:
-        # Fallback to database cache if Redis is not available
+    else:
         CACHES = {
             "default": {
                 "BACKEND": "django.core.cache.backends.db.DatabaseCache",
@@ -779,20 +768,39 @@ LOCALE_PATHS = [
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 
+# The React build. Vite writes hashed files plus `.vite/manifest.json` here;
+# `parodynews.views.spa` reads that manifest to emit the right <script> tags,
+# and collectstatic copies the bundle under `static/frontend/`.
+FRONTEND_DIR = BASE_DIR / "frontend"
+FRONTEND_DIST_DIR = FRONTEND_DIR / "dist"
+# Set to e.g. http://localhost:5173 to load the SPA from the Vite dev server
+# instead of the build (hot reload, with Django still serving auth and API).
+FRONTEND_DEV_SERVER_URL = env.str("FRONTEND_DEV_SERVER_URL", default="")
+
 STATICFILES_DIRS = [
     BASE_DIR / "assets",
 ]
+if FRONTEND_DIST_DIR.is_dir():
+    STATICFILES_DIRS.append(("frontend", FRONTEND_DIST_DIR))
 
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 
-# Static files storage for production
-if IS_PRODUCTION:
-    STATICFILES_STORAGE = (
-        "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
-    )
+# WhiteNoise serves the collected bundle. Hashed filenames are cached hard;
+# unhashed ones (index shell assets, favicon) are revalidated.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": (
+            "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            if IS_PRODUCTION
+            else "whitenoise.storage.CompressedStaticFilesStorage"
+        )
+    },
+}
+WHITENOISE_MAX_AGE = 31536000 if IS_PRODUCTION else 0
 
 # Media files configuration
 MEDIA_URL = "/media/"
@@ -957,22 +965,47 @@ PAGES_DIR = BASE_DIR / "pages"
 POST_DIR = PAGES_DIR / "_posts"
 
 # REST Framework configuration
+#
+# The React app authenticates with the ordinary Django session cookie plus the
+# CSRF token it reads from `GET /api/auth/me/`, so session auth is the only
+# scheme configured. Endpoints that must stay public (site metadata, the
+# who-am-I probe) opt out with `permission_classes = [AllowAny]`.
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+        "rest_framework.permissions.IsAuthenticated",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 20,
+    "DEFAULT_PAGINATION_CLASS": "parodynews.api.pagination.StandardPagination",
+    "PAGE_SIZE": 25,
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "100/day", "user": "1000/day"},
+    # An interactive SPA issues several requests per screen, so the limits are
+    # per hour rather than per day; generation itself is bounded by the
+    # provider's own quota.
+    "DEFAULT_THROTTLE_RATES": {"anon": "120/hour", "user": "2000/hour"},
 }
+
+# ==============================================================================
+# AI PROVIDER CONFIGURATION
+# ==============================================================================
+
+# Slug -> dotted path. Merged over the built-ins in `parodynews.ai.registry`,
+# so a deployment can register its own provider (or disable one with "").
+AI_PROVIDERS = {}
+
+# Provider used when a request does not name one and no AIProviderConfig row is
+# flagged as default. Claude Code (OAuth token from `claude setup-token`) is
+# the project default; `anthropic`, `openai` and `mock` also ship.
+AI_DEFAULT_PROVIDER = env.str("AI_DEFAULT_PROVIDER", default="claude_code")
+
+# Where the "Publications" link points (the Jekyll sidecar).
+PUBLICATIONS_URL = env.str(
+    "PUBLICATIONS_URL", default="https://bamr87.github.io/barodybroject/posts/"
+)
 
 # ==============================================================================
 # PERFORMANCE AND OPTIMIZATION
@@ -999,41 +1032,30 @@ if IS_PRODUCTION:
     ]
 
 # Debug toolbar configuration (development only)
-if DEBUG and env.bool("ENABLE_DEBUG_TOOLBAR", default=False):
-    try:
-        import debug_toolbar
+if ENABLE_DEBUG_TOOLBAR:
+    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
 
-        # Add to installed apps and middleware
-        INSTALLED_APPS.append("debug_toolbar")
-        MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+    DEBUG_TOOLBAR_CONFIG = {
+        "SHOW_TOOLBAR_CALLBACK": lambda request: True,
+        "HIDE_DJANGO_SQL": False,
+        "SHOW_TEMPLATE_CONTEXT": True,
+    }
+    DEBUG_TOOLBAR_PANELS = [
+        "debug_toolbar.panels.versions.VersionsPanel",
+        "debug_toolbar.panels.timer.TimerPanel",
+        "debug_toolbar.panels.settings.SettingsPanel",
+        "debug_toolbar.panels.headers.HeadersPanel",
+        "debug_toolbar.panels.request.RequestPanel",
+        "debug_toolbar.panels.sql.SQLPanel",
+        "debug_toolbar.panels.staticfiles.StaticFilesPanel",
+        "debug_toolbar.panels.templates.TemplatesPanel",
+        "debug_toolbar.panels.cache.CachePanel",
+        "debug_toolbar.panels.signals.SignalsPanel",
+        "debug_toolbar.panels.redirects.RedirectsPanel",
+        "debug_toolbar.panels.profiling.ProfilingPanel",
+    ]
 
-        DEBUG_TOOLBAR_CONFIG = {
-            "SHOW_TOOLBAR_CALLBACK": lambda request: True,
-            "HIDE_DJANGO_SQL": False,
-            "SHOW_TEMPLATE_CONTEXT": True,
-        }
-        DEBUG_TOOLBAR_PANELS = [
-            "debug_toolbar.panels.versions.VersionsPanel",
-            "debug_toolbar.panels.timer.TimerPanel",
-            "debug_toolbar.panels.settings.SettingsPanel",
-            "debug_toolbar.panels.headers.HeadersPanel",
-            "debug_toolbar.panels.request.RequestPanel",
-            "debug_toolbar.panels.sql.SQLPanel",
-            "debug_toolbar.panels.staticfiles.StaticFilesPanel",
-            "debug_toolbar.panels.templates.TemplatesPanel",
-            "debug_toolbar.panels.cache.CachePanel",
-            "debug_toolbar.panels.signals.SignalsPanel",
-            "debug_toolbar.panels.redirects.RedirectsPanel",
-            "debug_toolbar.panels.profiling.ProfilingPanel",
-        ]
-
-        INTERNAL_IPS = [
-            "127.0.0.1",
-            "localhost",
-        ]
-
-    except ImportError:
-        # Debug toolbar not available, skip configuration
-        pass
-    except ImportError:
-        pass
+    INTERNAL_IPS = [
+        "127.0.0.1",
+        "localhost",
+    ]
