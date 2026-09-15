@@ -16,6 +16,7 @@ Container Requirements:
 Usage: Automatically loaded by Django when setup app is in INSTALLED_APPS
 """
 
+import importlib.util
 import logging
 
 from django.apps import AppConfig
@@ -52,12 +53,11 @@ class SetupConfig(AppConfig):
         """
         logger.info("Setup wizard application initialized")
 
-        # Import signal handlers if needed
-        try:
-            from . import signals
-
+        # Import signal handlers if the module exists, so they register.
+        if importlib.util.find_spec(".signals", __package__) is not None:
+            importlib.import_module(".signals", __package__)
             logger.debug("Setup signals imported successfully")
-        except ImportError:
+        else:
             logger.debug("No setup signals found, continuing without them")
 
         # Validate setup app configuration
@@ -85,7 +85,6 @@ class SetupConfig(AppConfig):
             logger.debug("InstallationMiddleware found in middleware configuration")
 
         # Check if templates directory exists
-        import os
         from pathlib import Path
 
         app_path = Path(__file__).parent

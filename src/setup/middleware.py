@@ -25,7 +25,7 @@ import logging
 
 from django.conf import settings
 from django.http import HttpResponseRedirect
-from django.urls import resolve, reverse
+from django.urls import reverse
 from django.utils.deprecation import MiddlewareMixin
 
 from .services import InstallationService
@@ -157,10 +157,7 @@ class InstallationMiddleware(MiddlewareMixin):
             return True
 
         # Allow JSON/XML endpoints for APIs
-        if any(path.endswith(ext) for ext in [".json", ".xml", ".txt"]):
-            return True
-
-        return False
+        return any(path.endswith(ext) for ext in [".json", ".xml", ".txt"])
 
     def _is_debug_mode(self):
         """Check if Django is running in debug mode."""

@@ -15,6 +15,7 @@ concurrency:
 
 env:
   PYTHON_VERSION: "3.11"
+  NODE_VERSION: "22"
   DJANGO_SETTINGS_MODULE: barodybroject.settings.testing
   DEV_COMPOSE: .devcontainer/docker-compose_dev.yml
 
@@ -135,6 +136,48 @@ jobs:
           path: src/coverage.xml
           if-no-files-found: error
 
+  frontend:
+    name: Frontend (Node ${{ env.NODE_VERSION }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: pre-checks
+    defaults:
+      run:
+        working-directory: src/frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit tests (Vitest)
+        run: npm run test -- --run
+
+      # The build is what the Django container serves, so a build failure is a
+      # deploy failure: keep it in the gate rather than only in the image build.
+      - name: Build
+        run: npm run build
+
+      - name: Upload build output
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-dist
+          path: src/frontend/dist
+          retention-days: 7
+
   e2e:
     name: Playwright E2E
     runs-on: ubuntu-latest
@@ -168,6 +211,13 @@ jobs:
           cache-dependency-path: |
             src/requirements.txt
             requirements-dev.txt
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
 
       - name: Install system dependencies
         run: bash .github/scripts/ci-install-system-deps.sh e2e
@@ -212,11 +262,7 @@ jobs:
       - name: Install lint tools
         run: bash .github/scripts/python-install.sh lint
 
-      # TEMPORARY (see PR #134 residual debt): non-blocking until the ~75
-      # outstanding ruff findings are fixed or ignore-listed via [tool.ruff]
-      # in pyproject.toml. Remove continue-on-error once ruff is clean.
       - name: Run lint checks
-        continue-on-error: true
         run: bash .github/scripts/quality.sh lint
 
       - name: Install dependency audit tools
@@ -310,7 +356,16 @@ jobs:
   ci-summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [pre-checks, tests, e2e, quality, container-validation, container-security]
+    needs:
+      [
+        pre-checks,
+        tests,
+        frontend,
+        e2e,
+        quality,
+        container-validation,
+        container-security,
+      ]
     if: always()
 
     steps:
@@ -322,6 +377,7 @@ jobs:
           bash .github/scripts/check-job-results.sh
           pre-checks=${{ needs.pre-checks.result }}
           tests=${{ needs.tests.result }}
+          frontend=${{ needs.frontend.result }}
           e2e=${{ needs.e2e.result }}
           quality=${{ needs.quality.result }}
           container-validation=${{ needs.container-validation.result }}

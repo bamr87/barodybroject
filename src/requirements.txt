@@ -1,9 +1,10 @@
 # Production requirements with pinned versions
-# Last updated: 2025-11-24
+# Last updated: 2026-09-14
 # Python: >=3.10 (required for Django 5.1)
 
 # Web Server
 gunicorn==23.0.0
+whitenoise==6.12.0
 
 # Django Core Framework
 Django==5.1.15
@@ -40,5 +41,13 @@ azure-monitor-opentelemetry==1.6.4
 boto3==1.35.75
 pygithub==2.5.0
 
-# AI Integration
-openai==1.57.2
+# AI providers
+#
+# The application talks to providers through `parodynews.ai`, never directly.
+# `claude-agent-sdk` is the default provider (Claude Code, authenticated with a
+# CLAUDE_CODE_OAUTH_TOKEN) and bundles the Claude Code CLI binary it drives.
+# The other two are optional at runtime: a provider whose SDK is missing raises
+# a configuration error only when something actually selects it.
+claude-agent-sdk==0.2.152
+anthropic==1.5.0
+openai==3.13.0

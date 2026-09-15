@@ -1,9 +1,10 @@
 """
 File: test_models_ai.py
-Description: Unit tests for parodynews.models.ai — JSONSchema, OpenAIModel, Assistant, AssistantGroup, AssistantGroupMembership
+Description: Unit tests for parodynews.models.ai — JSONSchema, AIModel, Assistant, AssistantGroup, AssistantGroupMembership
 Author: Barodybroject Team <team@example.com>
 Created: 2026-09-11
-Version: 1.0.0
+Last Modified: 2026-09-14
+Version: 2.0.0
 
 Dependencies:
 - django
@@ -18,11 +19,11 @@ import pytest
 from django.db import IntegrityError, transaction
 
 from parodynews.models import (
+    AIModel,
     Assistant,
     AssistantGroup,
     AssistantGroupMembership,
     JSONSchema,
-    OpenAIModel,
 )
 
 pytestmark = pytest.mark.django_db
@@ -58,36 +59,50 @@ def test_json_schema_survives_a_nested_structure():
 
 
 # --------------------------------------------------------------------------- #
-# OpenAIModel
+# AIModel — the provider-agnostic replacement for OpenAIModel
 # --------------------------------------------------------------------------- #
-def test_openai_model_round_trips_a_real_export(openai_model, openai_model_export):
-    stored = OpenAIModel.objects.get(pk=openai_model.pk)
-    assert stored.model_id == openai_model_export[0]["model_id"]
+def test_ai_model_round_trips(ai_model):
+    stored = AIModel.objects.get(pk=ai_model.pk)
+    assert (stored.provider, stored.model_id) == ("mock", "mock-1")
+    assert stored.is_active is True
 
 
-def test_openai_model_str_is_the_model_id(openai_model):
-    assert str(openai_model) == openai_model.model_id
+def test_ai_model_str_is_the_model_id(ai_model):
+    assert str(ai_model) == "mock-1"
 
 
-def test_openai_model_stamps_both_timestamps(openai_model):
-    """`auto_now_add` / `auto_now` — no concrete model inherits TimestampedModel,
-    so these columns are declared on OpenAIModel itself."""
-    assert openai_model.created_at is not None
-    assert openai_model.updated_at is not None
+def test_ai_model_label_names_the_provider(ai_model):
+    """The picker shows both halves: the same model id can exist twice."""
+    assert ai_model.label == "mock: Mock model"
 
 
-def test_model_id_is_unique():
-    OpenAIModel.objects.create(model_id="gpt-4", description="")
+def test_ai_model_stamps_both_timestamps(ai_model):
+    assert ai_model.created_at is not None
+    assert ai_model.updated_at is not None
+
+
+def test_the_same_model_id_may_exist_for_two_providers():
+    """`claude-opus-5` is reachable through both claude_code and anthropic, so
+    uniqueness is on the PAIR, not on model_id alone."""
+    AIModel.objects.create(provider="claude_code", model_id="claude-opus-5")
+    AIModel.objects.create(provider="anthropic", model_id="claude-opus-5")
+    assert AIModel.objects.filter(model_id="claude-opus-5").count() == 2
+
+
+def test_a_model_id_is_unique_within_one_provider():
+    AIModel.objects.create(provider="openai", model_id="gpt-4o-mini")
     with pytest.raises(IntegrityError), transaction.atomic():
-        OpenAIModel.objects.create(model_id="gpt-4", description="other")
+        AIModel.objects.create(provider="openai", model_id="gpt-4o-mini")
 
 
-def test_openai_models_are_ordered_by_model_id():
-    OpenAIModel.objects.create(model_id="gpt-4o", description="")
-    OpenAIModel.objects.create(model_id="gpt-3.5-turbo", description="")
-    assert list(OpenAIModel.objects.values_list("model_id", flat=True)) == [
-        "gpt-3.5-turbo",
-        "gpt-4o",
+def test_ai_models_are_ordered_by_provider_then_model_id():
+    AIModel.objects.create(provider="openai", model_id="gpt-4o")
+    AIModel.objects.create(provider="anthropic", model_id="claude-sonnet-5")
+    AIModel.objects.create(provider="anthropic", model_id="claude-opus-5")
+    assert list(AIModel.objects.values_list("provider", "model_id")) == [
+        ("anthropic", "claude-opus-5"),
+        ("anthropic", "claude-sonnet-5"),
+        ("openai", "gpt-4o"),
     ]
 
 
@@ -114,11 +129,28 @@ def test_assistant_display_fields(assistant):
     ]
 
 
-def test_assistant_primary_key_is_the_openai_id(assistant):
-    """Not an AutoField — the OpenAI assistant id IS the primary key, which is
-    what lets a local row be matched to a remote assistant."""
-    assert Assistant._meta.pk.name == "id"
+def test_assistant_mints_its_own_id():
+    """Ids used to come from the OpenAI Assistants API. They are now local, so
+    saving without one must still produce a usable primary key."""
+    created = Assistant.objects.create(name="Local")
+    assert created.pk.startswith("asst_")
+    assert Assistant.objects.filter(pk=created.pk).exists()
+
+
+def test_assistant_keeps_an_id_it_was_given(assistant, assistant_export):
+    """Rows imported from the old OpenAI export keep their original id."""
+    assert assistant.pk == assistant_export[0]["id"]
     assert assistant.pk.startswith("asst_")
+
+
+def test_assistant_provider_follows_its_model(assistant, ai_model):
+    assert assistant.provider == ai_model.provider == "mock"
+
+
+def test_assistant_without_a_model_has_no_provider():
+    """An assistant with no model runs on the application default, so it can
+    name no provider of its own."""
+    assert Assistant.objects.create(name="Default runner").provider == ""
 
 
 def test_assistant_defaults():
@@ -130,18 +162,19 @@ def test_assistant_defaults():
     assert bare.tools == []
     assert bare.metadata == {}
     assert bare.response_format == {}
+    assert bare.remote_id == ""
 
 
-def test_assistant_links_to_its_model_and_schema(assistant, openai_model, json_schema):
+def test_assistant_links_to_its_model_and_schema(assistant, ai_model, json_schema):
     stored = Assistant.objects.get(pk=assistant.pk)
-    assert stored.model == openai_model
+    assert stored.model == ai_model
     assert stored.json_schema == json_schema
 
 
-def test_deleting_the_openai_model_nulls_the_assistant(assistant, openai_model):
+def test_deleting_the_model_nulls_the_assistant(assistant, ai_model):
     """SET_NULL, not CASCADE: retiring a model must not delete the assistants
     configured against it."""
-    openai_model.delete()
+    ai_model.delete()
     assistant.refresh_from_db()
     assert assistant.model is None
     assert Assistant.objects.filter(pk=assistant.pk).exists()
@@ -195,24 +228,35 @@ def test_assistant_groups_are_ordered_by_sequence_then_name():
     ]
 
 
+def test_ordered_assistants_follows_position(assistant_group, assistant, ai_model):
+    second = Assistant.objects.create(id="asst_second", name="Writer", model=ai_model)
+    AssistantGroupMembership.objects.create(
+        assistantgroup=assistant_group, assistant=second, position=2
+    )
+    AssistantGroupMembership.objects.create(
+        assistantgroup=assistant_group, assistant=assistant, position=1
+    )
+    assert assistant_group.ordered_assistants() == [assistant, second]
+
+
+def test_ordered_assistants_skips_an_orphaned_membership(
+    assistant_group, assistant, membership
+):
+    """Both FKs are SET_NULL, so a membership can outlive its assistant. The
+    runner iterates this list, so a None would crash a group run."""
+    assistant.delete()
+    assert assistant_group.ordered_assistants() == []
+
+
 # --------------------------------------------------------------------------- #
 # AssistantGroupMembership — the through model
 # --------------------------------------------------------------------------- #
-@pytest.fixture
-def membership(db, assistant_group, assistant) -> AssistantGroupMembership:
-    # The FK is `assistants` (plural) with `db_column="assistants_id"`; the
-    # docstrings say `assistant`. The field name is the one that exists.
-    return AssistantGroupMembership.objects.create(
-        assistantgroup=assistant_group, assistants=assistant, position=1
-    )
-
-
 def test_membership_joins_a_group_and_an_assistant(
     membership, assistant_group, assistant
 ):
     stored = AssistantGroupMembership.objects.get(pk=membership.pk)
     assert stored.assistantgroup == assistant_group
-    assert stored.assistants == assistant
+    assert stored.assistant == assistant
     assert stored.position == 1
 
 
@@ -236,10 +280,10 @@ def test_the_group_reaches_its_assistants_through_the_membership(
 def test_memberships_are_ordered_by_position(assistant_group, assistant):
     second = Assistant.objects.create(id="asst_second", name="Writer")
     AssistantGroupMembership.objects.create(
-        assistantgroup=assistant_group, assistants=second, position=2
+        assistantgroup=assistant_group, assistant=second, position=2
     )
     AssistantGroupMembership.objects.create(
-        assistantgroup=assistant_group, assistants=assistant, position=1
+        assistantgroup=assistant_group, assistant=assistant, position=1
     )
     positions = list(
         AssistantGroupMembership.objects.values_list("position", flat=True)
@@ -252,7 +296,7 @@ def test_deleting_the_assistant_keeps_the_membership_row(membership, assistant):
     `str()` fallback above is covering a state that can really occur."""
     assistant.delete()
     membership.refresh_from_db()
-    assert membership.assistants is None
+    assert membership.assistant is None
     assert AssistantGroupMembership.objects.filter(pk=membership.pk).exists()
 
 
