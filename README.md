@@ -56,6 +56,26 @@ docker compose -f .devcontainer/docker-compose_dev.yml exec python python manage
 
 The dev container starts Django under `debugpy --wait-for-client` on port `5678`, so `localhost:8000` will not respond until a debugger attaches or that wait flag is removed. See [.github/README.md](.github/README.md) for the current workflow and caveats.
 
+## Using the Application
+
+Once the stack is up, these are the entry points (all routed in [`src/barodybroject/urls.py`](src/barodybroject/urls.py)):
+
+| Path | What it is |
+|---|---|
+| `/` | Home page |
+| `/setup/` | Installation wizard — runs first and handles redirects, see [docs/installation-wizard.md](docs/installation-wizard.md) |
+| `/admin/` | Django admin |
+| `/accounts/` | Sign-in and registration (Django Allauth) |
+| `/api/` | Django REST Framework browsable API |
+
+The parody-content workflow lives under its own routes, registered in [`src/parodynews/urls.py`](src/parodynews/urls.py): `/assistants/` to configure OpenAI assistants, `/content/` to manage content items, `/threads/` to run generation, `/messages/` to review the results, `/posts/` to edit and publish them, and `/schemas/` to manage the JSON schemas that shape assistant output.
+
+Publishing a post writes into the Jekyll sidecar in [`src/pages/`](src/pages/), which renders the public site with the `bamr87/zer0-mistakes` remote theme.
+
+The REST API exposes the same objects as viewsets under `/api/`: `assistants`, `assistant-groups`, `content-items`, `content-details`, `threads`, `messages`, `posts`, `post-front-matters`, `json-schemas` and `powered-by`.
+
+Remember that the dev container starts Django under `debugpy --wait-for-client`, so none of these respond until a debugger attaches — see the caveat in [Development Quick Start](#development-quick-start).
+
 ## Testing
 
 Pytest is configured in [src/pytest.ini](src/pytest.ini). Run tests from `src/` inside the dev container once development dependencies are installed:

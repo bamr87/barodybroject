@@ -205,8 +205,8 @@ breaking: true|false
 
 - [Main Project README](../../README.md)
 - [Contributing Guidelines](../../CONTRIBUTING.md)
-- [Development Documentation](../development/)
-- [API Documentation](../api/)
+- [Documentation Index](../README.md)
+- [Configuration Documentation](../configuration/README.md)
 - [Deployment Documentation](../deployment/)
 
 ---
