@@ -23,7 +23,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.core.exceptions import ValidationError
-from django.http import Http404, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -153,7 +153,7 @@ class CreateAdminView(SetupRequiredMixin, FormView):
         except ValidationError as e:
             messages.error(self.request, f"Failed to create admin user: {e}")
             return self.form_invalid(form)
-        except Exception as e:
+        except Exception:
             logger.exception("Error creating admin user")
             messages.error(
                 self.request, "An unexpected error occurred. Please try again."

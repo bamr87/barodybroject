@@ -69,7 +69,7 @@ def load_template_from_path(template_path: str):
     Returns:
         tuple: (yaml_config, template_body)
     """
-    with open(template_path, "r") as file:
+    with open(template_path) as file:
         content = file.read()
     front_matter_match = re.search(r"^---(.*?)---", content, re.DOTALL)
     if not front_matter_match:

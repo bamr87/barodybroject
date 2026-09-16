@@ -2,7 +2,9 @@
 
 ## Overview
 
-The models package has been refactored to improve code organization and maintainability. Models are now organized into logical modules by domain rather than being in a single monolithic file.
+Models are organized into modules by domain rather than a single monolithic file.
+
+As of v0.6.0 they are also provider-agnostic: nothing here is specific to a single AI vendor. A conversation is stored locally and replayed to whichever provider is configured, which is what lets a thread started on Claude be continued on GPT.
 
 ## Structure
 
@@ -11,7 +13,7 @@ models/
 ├── __init__.py              # Backward-compatible imports
 ├── base.py                  # Abstract base classes and mixins
 ├── config.py                # Application configuration models
-├── ai.py                    # OpenAI and AI assistant models
+├── ai.py                    # Model catalogue, assistants, schemas, groups
 ├── content.py               # Content generation models
 ├── conversation.py          # Thread and message models
 └── publishing.py            # Post and publishing models
@@ -26,17 +28,19 @@ Contains abstract base classes and mixins that can be shared across different mo
 
 ### config.py
 Application-wide configuration and settings:
-- `AppConfig`: OpenAI API keys, GitHub Pages configuration
+- `AppConfig`: GitHub publishing configuration
+- `AIProviderConfig`: Per-provider credentials and defaults, one row per provider,
+  at most one flagged `is_default` (enforced in `save()`)
 - `PoweredBy`: Attribution links for technologies used
 - `FieldDefaults`: Dynamic default values for model fields
 
 ### ai.py
-AI and OpenAI integration models:
+Provider-agnostic AI models:
 - `JSONSchema`: JSON schema definitions for structured content
-- `OpenAIModel`: OpenAI model configurations (GPT-4, etc.)
-- `Assistant`: AI assistant configurations
-- `AssistantGroup`: Groups of assistants for workflows
-- `AssistantGroupMembership`: Many-to-many relationship for assistant groups
+- `AIModel`: A model offered by a provider, keyed by `(provider, model_id)`
+- `Assistant`: Instructions + the model that runs them + an optional output schema
+- `AssistantGroup`: Groups of assistants for sequential workflows
+- `AssistantGroupMembership`: Positional membership in a group
 
 ### content.py
 Content generation and management:
@@ -66,6 +70,18 @@ python -m pytest parodynews/tests/ -k "test_models" \
 
 Model factories are shared from `parodynews/tests/conftest.py` and are built from the real exports under `parodynews/tests/data/`, not from invented literals. See [the tests README](../tests/README.md).
 
+## Two things worth knowing
+
+### Conversations are ours, not a vendor's
+
+`Thread` and `Message` are the application's own record. Running an assistant reads the thread out of the database and replays it to the configured provider; no provider is asked to remember anything between calls. That is the whole reason threads survive a provider change, and it is why the OpenAI Assistants/Threads API could be dropped entirely.
+
+`Message` records `role`, `provider`, `model_id`, `usage` and `error` so a thread shows what actually happened on each turn, including the failures.
+
+### `AIModel` is keyed by a pair
+
+`(provider, model_id)`, under a unique constraint — not by `model_id` alone. `claude-opus-5` legitimately exists for both the `claude_code` and `anthropic` providers, and they are different rows with different credentials behind them.
+
 ## Usage
 
 ### Backward Compatible Imports (Recommended)
@@ -89,18 +105,24 @@ from parodynews.models.content import ContentDetail
 
 ## Migration Guide
 
-### For Developers
+### Upgrading to v0.6.0
 
-1. **No immediate changes required**: All existing imports will continue to work due to the `__init__.py` file.
+`0002_provider_agnostic_ai` and `0003_drop_nullable_text_columns` handle this. Both are reversible and were verified forward, reverse and forward again against seeded legacy-shaped rows.
 
-2. **Field rename**: `AssistantGroupMembership.assistants` will be renamed to `assistant` (singular) in a future migration for clarity.
+What changes:
 
-### Database Migrations
+| Before | After |
+|---|---|
+| `OpenAIModel` | `AIModel`, with a `provider` field (existing rows become `openai`) |
+| `AppConfig.api_key` / `org_id` / `project_id` | Copied into an `AIProviderConfig` row for `openai`, then dropped |
+| `AssistantGroupMembership.assistants` | `assistant` (singular) |
+| Integer thread/message ids | Locally minted `thread_…` / `msg_…` ids |
 
-The model split itself requires no database migrations as it's purely a code organization change. However, future migrations may include:
+Existing assistant replies are identified by the OpenAI `run_id` they carry and tagged `role="assistant"`, `provider="openai"`, so old threads read correctly.
 
-1. Renaming `AssistantGroupMembership.assistants` → `assistant`
-2. Adding indexes for better query performance
+### Nullable text columns
+
+`Assistant.name`, `Assistant.description` and `Message.run_id` were `null=True` *and* had a default, so "unset" could be either NULL or the default string and every reader had to handle both. `0003` backfills the NULLs and makes the columns `NOT NULL` with a default — one empty value, not two. The backfill is not optional: Postgres refuses `SET NOT NULL` while NULLs remain.
 
 ## Benefits
 
@@ -113,12 +135,14 @@ The model split itself requires no database migrations as it's purely a code org
 
 ## Version History
 
+- **0.6.0** (2026-09-14): Provider-agnostic models; `OpenAIModel` → `AIModel`; local thread/message ids; `AIProviderConfig`
 - **2.0.0** (2025-11-30): Split models.py into package structure
 - **1.0.0** (2024-01-01): Initial models.py implementation
 
 ## See Also
 
 - [Main README](../README.md)
+- [AI provider layer](../ai/README.md) — what consumes these models
+- [Migrations](../migrations/README.md)
 - [Django Models Documentation](https://docs.djangoproject.com/en/stable/topics/db/models/)
-- [OpenAI API Documentation](https://platform.openai.com/docs/api-reference)
 

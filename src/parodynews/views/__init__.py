@@ -1,102 +1,16 @@
 """
 File: __init__.py
-Description: View package for parodynews (template, CRUD, API, and AI workflows)
+Description: Server-rendered views that remain after the React migration
 Author: Barodybroject Team <team@example.com>
 Created: 2025-11-30
-Last Modified: 2025-12-20
-Version: 0.4.0
+Last Modified: 2026-09-14
+Version: 0.6.0
 
-Dependencies:
-- django: >=5.1
-
-Usage: from parodynews.views.base import index
+The domain UI lives in the React app under ``src/frontend`` and talks to
+``parodynews.api``. Django still renders the SPA shell (``SPAView``) and the
+allauth account pages.
 """
 
-# REST API ViewSets
-from .api import (
-    AssistantGroupViewSet,
-    AssistantViewSet,
-    ContentDetailViewSet,
-    ContentItemViewSet,
-    JSONSchemaViewSet,
-    MessageViewSet,
-    PostFrontMatterViewSet,
-    PostViewSet,
-    PoweredByViewSet,
-    ThreadViewSet,
-)
+from .spa import SPAView
 
-# Assistant management views
-from .assistants import (
-    ManageAssistantGroupsView,
-    ManageAssistantsView,
-    get_assistant_details,
-)
-
-# Base views
-from .base import FooterView, UserLoginView, index
-
-# Content management views
-from .content import ManageContentView
-
-# Post management views
-from .posts import (
-    ManagePostView,
-    PublicationError,
-    push_to_github_and_create_pr,
-)
-
-# Schema management views
-from .schemas import (
-    create_schema,
-    delete_schema,
-    edit_schema,
-    export_schema,
-    list_schemas,
-)
-
-# Thread and message views
-from .threads import ManageMessageView, ProcessContentView
-
-# Utility views and functions
-from .utils import post_detail, send_welcome_email
-
-__all__ = [
-    # Base
-    "FooterView",
-    "UserLoginView",
-    "index",
-    # Content
-    "ManageContentView",
-    # Threads
-    "ProcessContentView",
-    "ManageMessageView",
-    # Assistants
-    "ManageAssistantsView",
-    "ManageAssistantGroupsView",
-    "get_assistant_details",
-    # Posts
-    "ManagePostView",
-    "PublicationError",
-    "push_to_github_and_create_pr",
-    # Schemas
-    "list_schemas",
-    "create_schema",
-    "edit_schema",
-    "export_schema",
-    "delete_schema",
-    # API ViewSets
-    "AssistantViewSet",
-    "AssistantGroupViewSet",
-    "ContentItemViewSet",
-    "ContentDetailViewSet",
-    "ThreadViewSet",
-    "MessageViewSet",
-    "PostViewSet",
-    "PostFrontMatterViewSet",
-    "JSONSchemaViewSet",
-    "PoweredByViewSet",
-    # Utils
-    "post_detail",
-    "send_welcome_email",
-]
+__all__ = ["SPAView"]
