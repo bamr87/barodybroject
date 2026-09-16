@@ -64,6 +64,15 @@ Vitest with Testing Library, run in CI by the `frontend` job alongside a typeche
 
 One gotcha that cost real time: when stubbing `fetch`, use `mockImplementation(async () => jsonResponse(...))`, not `mockResolvedValue(jsonResponse(...))`. The latter hands the *same* `Response` object to every call, and a `Response` body can only be read once — the second call fails with "Body is unusable". A fresh object per call is what the real `fetch` does anyway.
 
+Some specs exist to pin behaviour the Django UI got **wrong**, so the component that replaced it cannot regress to it:
+
+| Spec | Pins |
+|---|---|
+| `components/DataTable.test.tsx` | The sorting and empty-state contract the old `table_utils.js` carried (issue #96) |
+| `pages/Content.test.tsx` | The assistant select: an existing item with no assistant pre-selects **nothing** and saves `null`, rather than being given an arbitrary one (issue #3) |
+
+They pass on arrival — that is the point. Each was checked by reintroducing the original defect and confirming it fails.
+
 ## Conventions
 
 - `api/types.ts` mirrors the DRF serializers. When an API shape changes, change it there first and let the typechecker find the call sites.
