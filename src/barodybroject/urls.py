@@ -1,18 +1,8 @@
 """
 URL configuration for barodybroject project.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Order matters: Django-owned prefixes (setup, accounts, admin, i18n, martor)
+come first, the parodynews app last because it ends with the React catch-all.
 """
 
 from django.conf import settings
@@ -20,25 +10,18 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic.base import TemplateView
-from rest_framework import routers
-
-from parodynews.views import FooterView
-
-router = routers.DefaultRouter()
 
 urlpatterns = [
     # Installation wizard (must be first to handle redirects properly)
     path("setup/", include("setup.urls")),
-    # Home page and admin page
-    path("", TemplateView.as_view(template_name="index.html")),
-    path("accounts/", include("allauth.urls")),
     path("accounts/profile/", TemplateView.as_view(template_name="profile.html")),
+    path("accounts/", include("allauth.urls")),
     path("admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
+    path("martor/", include("martor.urls")),
+    # REST API + React application (catch-all)
     path("", include("parodynews.urls")),
-    path("footer/", FooterView.as_view(), name="footer"),
-    path("api/", include(router.urls)),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

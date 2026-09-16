@@ -1,13 +1,30 @@
-# Dockerfile for Barodybroject Django Application
-# Optimized for Azure Container Apps deployment
+# Dockerfile for Barodybroject
+# Optimized for Azure Container Apps deployment.
+#
+# Two stages: Node builds the React frontend, Python serves it. The built
+# bundle is copied into the Python image so `collectstatic` picks it up and
+# WhiteNoise serves it — no separate web server or CDN is required.
 
+# ---------------------------------------------------------------- frontend
+FROM node:22-slim AS frontend
+
+WORKDIR /build
+
+# Install dependencies from the lockfile first so this layer is cached
+# whenever only application code changed.
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci --no-audit --no-fund
+
+COPY frontend/ ./
+RUN npm run build
+
+# ------------------------------------------------------------------ python
 FROM python:3.11-slim
 
-# Set working directory
 WORKDIR /app
 
-# Install PostgreSQL client and system dependencies including Cairo for svg support
-RUN apt-get update && apt-get install -y \
+# PostgreSQL client and the system libraries the Python dependencies build against.
+RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     gcc \
     libpq-dev \
@@ -19,11 +36,17 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements file
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt gunicorn
+# Install Python dependencies. This pulls in claude-agent-sdk, which bundles
+# the Claude Code CLI binary the default provider drives.
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
+
+# The built frontend, and the manifest `parodynews.views.spa` reads to emit the
+# hashed asset tags. Copied after the source so a frontend-only change does not
+# invalidate the Python layers.
+COPY --from=frontend /build/dist ./frontend/dist
 
 # Create necessary directories
 RUN mkdir -p /app/logs /app/setup_data /app/static /app/media
@@ -33,8 +56,11 @@ ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 ENV DJANGO_SETTINGS_MODULE=barodybroject.settings.production
 
-# Collect static files
-RUN python manage.py collectstatic --noinput || true
+# Collect static files, including the frontend bundle. A dummy SECRET_KEY keeps
+# production settings importable at build time without baking in a real one.
+RUN SECRET_KEY=build-time-only-not-used-at-runtime \
+    RUNNING_IN_PRODUCTION=False \
+    python manage.py collectstatic --noinput
 
 # Copy and set up entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/

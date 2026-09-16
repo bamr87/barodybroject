@@ -5,15 +5,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "barodybroject"
-version = "0.4.0"
-description = "A Django-based parody news generator with AI integration - Successfully deployed on Azure Container Apps"
+version = "0.6.0"
+description = "A provider-agnostic AI parody news generator: Django + DRF backend, React frontend, Claude Code by default"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "GPL-3.0-or-later" }
 authors = [
   { name = "bamr87", email = "bamr87@users.noreply.github.com" }
 ]
-keywords = ["django", "ai", "parody", "news"]
+keywords = ["django", "react", "ai", "claude", "parody", "news"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Environment :: Web Environment",
@@ -32,6 +32,7 @@ classifiers = [
 dependencies = [
   # Web server
   "gunicorn>=23.0.0,<24.0.0",
+  "whitenoise>=6.9,<7.0",
   
   # Django framework (5.1)
   "Django>=5.1.4,<5.2",
@@ -65,8 +66,12 @@ dependencies = [
   "boto3>=1.35.0,<2.0",
   "pygithub>=2.5.0,<3.0",
   
-  # AI
-  "openai>=1.57.0,<2.0",
+  # AI providers — reached only through `parodynews.ai`, never imported
+  # directly by application code. claude-agent-sdk is the default provider and
+  # bundles the Claude Code CLI it drives.
+  "claude-agent-sdk>=0.2.152,<0.3",
+  "anthropic>=1.5.0,<2.0",
+  "openai>=3.0,<4.0",
 ]
 
 [project.urls]
@@ -127,22 +132,38 @@ where = ["src"]
 # Black formatter
 [tool.black]
 line-length = 88
-target-version = ["py39"]
+target-version = ["py310"]
 
 # Ruff linter
 [tool.ruff]
 line-length = 88
-target-version = "py39"
+target-version = "py310"
+# `test/` and `scripts/` at the repository root are pre-existing legacy code
+# (~730 findings) that predates the lint config being fixed. They are excluded
+# so `ruff check .` reports only findings a contributor is responsible for;
+# `src/` is clean and CI gates on it. Cleaning them up is tracked separately.
+extend-exclude = ["frontend", "pages", "*/migrations/*", "test", "scripts"]
+
+[tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "C4", "UP", "SIM", "DJ"]
-ignore = ["E501"]
+ignore = [
+  "E501",   # line length is enforced by the formatter
+  "B008",   # Django/DRF idioms call functions in defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Settings modules re-export with star imports by design.
+"barodybroject/settings/*.py" = ["F403", "F405", "E402"]
+"src/barodybroject/settings/*.py" = ["F403", "F405", "E402"]
 
 # Pytest
 [tool.pytest.ini_options]
 addopts = ["--cov=parodynews", "--cov=barodybroject"]
 testpaths = ["src/parodynews/tests", "test"]
+# The frontend has its own runner (Vitest); pytest must not walk into it.
+norecursedirs = ["scripts", "frontend", "node_modules"]
 pythonpath = ["src"]
 DJANGO_SETTINGS_MODULE = "barodybroject.settings.testing"
-norecursedirs = ["scripts"]
 markers = [
   "e2e: end-to-end tests that require a running Django server and Playwright",
 ]
@@ -154,6 +175,6 @@ omit = ["*/migrations/*", "*/tests/*", "manage.py", "*/settings/*"]
 
 # MyPy
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 ignore_missing_imports = true
 plugins = ["mypy_django_plugin.main"]

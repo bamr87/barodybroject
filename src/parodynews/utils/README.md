@@ -2,10 +2,13 @@
 # utils Directory
 
 ## Purpose
-This directory contains utility modules and helper functions for the parodynews Django application. It provides specialized functionality that supports the main application features, including email handling with DKIM signing for secure email delivery.
+Small, dependency-light helpers for the parodynews Django application. Anything that talks to an AI provider belongs in [`../ai/`](../ai/README.md) and anything that is a use case belongs in [`../services/`](../services/README.md); what is left here is genuinely generic.
 
 ## Contents
-- `dkim_backend.py`: Custom Django email backend that implements DKIM (DomainKeys Identified Mail) signing for email authentication and deliverability
+- `dkim_backend.py`: Django email backend that adds DKIM signatures to outgoing mail
+- `markdown.py`: Markdown rendering used by both the API and the Jekyll export
+- `schemas.py`: Loads the bundled JSON schemas from [`../schema/`](../schema/README.md) (`load_schemas`, `get_schema`)
+- `defaults.py`: Reads `FieldDefaults` rows to seed model form defaults
 
 ## Usage
 Utility modules are imported and used throughout the application:

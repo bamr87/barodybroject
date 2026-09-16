@@ -22,11 +22,10 @@ Usage: from setup.services import InstallationService
 import hashlib
 import json
 import logging
-import os
 import secrets
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -68,7 +67,7 @@ class InstallationService:
             if not self.installation_file.exists():
                 return False
 
-            with open(self.installation_file, "r") as f:
+            with open(self.installation_file) as f:
                 data = json.load(f)
 
             return data.get(
@@ -84,7 +83,7 @@ class InstallationService:
             if not self.installation_file.exists():
                 return False
 
-            with open(self.installation_file, "r") as f:
+            with open(self.installation_file) as f:
                 data = json.load(f)
 
             return data.get("admin_created", False)
@@ -183,7 +182,7 @@ class InstallationService:
             logger.error(f"Error consuming setup token: {e}")
             return False
 
-    def save_installation_config(self, config: Dict[str, Any]) -> None:
+    def save_installation_config(self, config: dict[str, Any]) -> None:
         """
         Save installation configuration during setup
 
@@ -200,9 +199,9 @@ class InstallationService:
 
         except Exception as e:
             logger.error(f"Error saving installation config: {e}")
-            raise ValidationError(f"Failed to save configuration: {e}")
+            raise ValidationError(f"Failed to save configuration: {e}") from e
 
-    def mark_installation_complete(self, admin_user_id: Optional[int] = None) -> bool:
+    def mark_installation_complete(self, admin_user_id: int | None = None) -> bool:
         """
         Mark installation as complete
 
@@ -231,18 +230,18 @@ class InstallationService:
             logger.info("Installation marked as complete")
             return True
 
-        except User.DoesNotExist:
-            raise ValidationError("Admin user not found")
+        except User.DoesNotExist as exc:
+            raise ValidationError("Admin user not found") from exc
         except Exception as e:
             logger.error(f"Error marking installation complete: {e}")
-            raise ValidationError(f"Failed to complete installation: {e}")
+            raise ValidationError(f"Failed to complete installation: {e}") from e
 
-    def get_installation_status(self) -> Dict[str, Any]:
+    def get_installation_status(self) -> dict[str, Any]:
         """Get detailed installation status information"""
         try:
             # Get basic installation info
             if self.installation_file.exists():
-                with open(self.installation_file, "r") as f:
+                with open(self.installation_file) as f:
                     installation_data = json.load(f)
             else:
                 installation_data = {}
@@ -273,18 +272,18 @@ class InstallationService:
                 "error": str(e),
             }
 
-    def get_installation_info(self) -> Dict[str, Any]:
+    def get_installation_info(self) -> dict[str, Any]:
         """Get current installation information"""
         try:
             if self.installation_file.exists():
-                with open(self.installation_file, "r") as f:
+                with open(self.installation_file) as f:
                     return json.load(f)
             return {"completed": False}
         except Exception as e:
             logger.error(f"Error reading installation info: {e}")
             return {"completed": False, "error": str(e)}
 
-    def get_setup_progress(self) -> Dict[str, Any]:
+    def get_setup_progress(self) -> dict[str, Any]:
         """Get current setup progress and requirements"""
         progress = {
             "database_ready": self._check_database_ready(),
@@ -339,8 +338,8 @@ class InstallationService:
 
             try:
                 validate_email(email)
-            except Exception:
-                raise ValidationError("Invalid email format")
+            except Exception as exc:
+                raise ValidationError("Invalid email format") from exc
 
             # Validate password strength
             if len(password) < 8:
@@ -360,7 +359,7 @@ class InstallationService:
 
         except Exception as e:
             logger.error(f"Error creating admin user: {e}")
-            raise ValidationError(f"Failed to create admin user: {e}")
+            raise ValidationError(f"Failed to create admin user: {e}") from e
 
     def cleanup_expired_tokens(self) -> None:
         """Clean up expired setup tokens"""
@@ -380,18 +379,18 @@ class InstallationService:
         except Exception as e:
             logger.warning(f"Error cleaning up tokens: {e}")
 
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self) -> dict[str, Any]:
         """Load configuration from file"""
         try:
             if self.config_file.exists():
-                with open(self.config_file, "r") as f:
+                with open(self.config_file) as f:
                     return json.load(f)
             return {}
         except Exception as e:
             logger.warning(f"Error loading config: {e}")
             return {}
 
-    def _save_config(self, config: Dict[str, Any]) -> None:
+    def _save_config(self, config: dict[str, Any]) -> None:
         """Save configuration to file"""
         try:
             # Ensure config_file is a Path object
@@ -408,7 +407,7 @@ class InstallationService:
             logger.error(f"Error saving config: {e}")
             raise
 
-    def _validate_installation_integrity(self, data: Dict[str, Any]) -> bool:
+    def _validate_installation_integrity(self, data: dict[str, Any]) -> bool:
         """Validate installation data integrity"""
         required_fields = ["completed", "completed_at", "installation_id", "version"]
         return all(field in data for field in required_fields)
