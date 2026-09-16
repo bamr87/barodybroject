@@ -1,183 +1,97 @@
 ---
-title: "[Bug Fix] ContentItemForm seeded a random assistant onto saved items that had none"
-type: "bugfix"
-version: "0.4.0"
+title: "[Test] Pin the assistant-selection behaviour issue #3 asked for"
+type: "test"
+version: "0.6.0"
 date: "2026-09-13"
 author: "Barodybroject Team <team@example.com>"
 reviewers: []
 related_issues: ["#3"]
-related_prs: []
-impact: "medium"
+related_prs: ["#180"]
+impact: "low"
 breaking: false
-severity: "high"
-affected_versions: ["0.4.0"]
+severity: "low"
+affected_versions: ["0.6.0"]
 ---
 
-# Bug Fix: the Assistant Name field on the content form did not reflect the record being edited
+# Test: the assistant select cannot regress to seeding a random assistant
 
-> **Summary**: `ContentItemForm` could not tell a brand-new form from a saved
-> `ContentItem` whose `assistant` is `NULL`, so it treated the second as the
-> first — showing an arbitrary assistant's instructions and offering a select
-> with no empty option, which made "no assistant" unrepresentable and
-> un-saveable.
+> **Summary**: The defect issue #3 describes was removed by #183, which deleted
+> the form it lived in. This adds the regression test the issue's last open
+> acceptance criterion asks for, against the React component that replaced the
+> form, so the behaviour cannot come back unobserved.
 
 ## 🐛 Problem Description
 
 ### Issue Summary
 
-Opening an existing `ContentItem` whose `assistant` is `NULL` showed a populated
-**Assistant Name** select and a populated read-only **instructions** textarea,
-neither of which belonged to the record. Because `ContentItem.assistant` is
-`on_delete=SET_NULL`, *every* item whose assistant is later deleted lands in
-exactly this state without anyone having created it that way.
-
-### Affected Components
-
-- **`src/parodynews/forms.py`**: `ContentItemForm.__init__` — the seeding branch
-  and the `widget.choices` override.
-- **User Experience**: `/content/<id>/` displayed another assistant's
-  instructions, and pressing *Save* persisted that assistant onto the record.
-
-### Reproduction Steps
-
-1. Create a `ContentItem` whose `assistant` is `NULL` — or create one with an
-   assistant and then delete that `Assistant`, which `SET_NULL` turns into the
-   same state.
-2. Open it for editing: `GET /content/<content_detail_id>/`.
-3. Observe the **Assistant Name** select and the **instructions** textarea.
-
-## 🔍 Root Cause Analysis
-
-### Root Cause
-
-The seeding branch was guarded by the value of `self.initial`:
+`ContentItemForm.__init__` (`src/parodynews/forms.py`) could not tell a brand-new form from a saved `ContentItem` whose nullable `assistant` FK was `NULL`. Django's `BaseModelForm` builds `self.initial` from `model_to_dict(instance)`, which reports `assistant: None` for **both**. The code tested `if not self.initial.get("assistant")` and answered the ambiguity with:
 
 ```python
-# Only set the assistant field to a random record if the form is new
-if not self.initial.get("assistant"):
+random_assistant = Assistant.objects.annotate(num=Count("id")).order_by("?").first()
 ```
 
-The comment states the intent; the condition does not test it. Django's
-`BaseModelForm.__init__` builds `self.initial` from `model_to_dict(instance)`,
-which yields `assistant: None` for **both** a brand-new form and a saved record
-whose `assistant` is `NULL`. The two are indistinguishable to `self.initial`.
-Whether the instance has been saved — `self.instance.pk is None` — is the
-discriminator the code actually needed.
+So opening an existing item that had no assistant pre-selected a **random** one — potentially a different one on each reload — and `views/content.py:112` saved the form against the existing instance, which meant pressing Save on any unrelated edit silently persisted that random choice. `ContentItem.assistant` is `on_delete=SET_NULL`, so items reach the triggering state on their own whenever an assistant is deleted.
 
-### Contributing Factors
+### Why this change is a test and not a fix
 
-Two details decided how the defect surfaced, and are worth recording because the
-obvious reading of the code is wrong about one of them:
+`main` @ 32a9e2f (#183, "provider-agnostic AI framework … React frontend") deleted `src/parodynews/forms.py`, `mixins.py`, every `views/*.py` except the SPA shell, and the server-rendered templates. `ContentItemForm` does not exist. The content authoring screen is `src/frontend/src/pages/Content.tsx`, and it does not carry the defect:
 
-- **The randomly-seeded assistant never reached the select.**
-  `BoundField.value()` resolves to `self.form.initial.get(name, field.initial)`,
-  and for a saved instance the key `"assistant"` *exists* with value `None` — so
-  it shadows the `self.fields["assistant"].initial` the branch had just set.
-  What the user saw came from the second factor.
-- **The `widget.choices` override dropped the blank option.** `__init__`
-  replaced the field's `ModelChoiceIterator` with a plain list of
-  `(id, name)` pairs, which does not include `ModelChoiceField.empty_label`. A
-  `<select>` with no empty option and nothing marked `selected` displays its
-  first entry, so the browser showed an arbitrary assistant — and submitted it
-  on the next *Save*, writing it to the record (`views/content.py:112` binds the
-  form to the existing instance).
-- **`instructions` is a plain form field**, not a model field, so it is absent
-  from `self.initial` and `self.fields["instructions"].initial` *did* take
-  effect — which is why the textarea showed a stranger's instructions.
-- The declared `assistant = forms.ModelChoiceField(...)` defaulted to
-  `required=True`, contradicting the model's `null=True, blank=True`.
+```tsx
+assistant: item?.assistant ?? '',          // load: bound straight to the record
+assistant: form.assistant || null,         // save: empty stays NULL
+```
+
+`grep -rn 'order_by("?")' src/` returns nothing, and the only surviving mentions of `ContentItemForm` are in `docs/DJANGO_BOOTSTRAP5_MIGRATION.md`.
+
+So every behavioural criterion on #3 is already satisfied by `main`. The one that was not is the last: *"A test … covers all four cases above."*
 
 ## ✅ Solution Implementation
 
-### Fix Description
+`src/frontend/src/pages/Content.test.tsx` — 6 Vitest specs against `ContentDetailPage` with `../api/endpoints` mocked:
 
-Seed a default assistant only when `self.instance.pk is None`; keep the blank
-choice when overriding the widget's choices; and make the form field optional so
-it matches the model.
+| Test | Asserts |
+|---|---|
+| `pre-selects nothing when the item has no assistant` | The blank `<option>` is the selected one |
+| `is stable across renders when the item has no assistant` | The value is `''` — asserting *empty*, not "not Alpha", which is what makes it able to fail against a non-deterministic `order_by("?")` |
+| `shows the item's own assistant when it has one` | No regression on the populated case |
+| `saves NULL rather than silently reassigning an unmodified item` | The `PATCH` payload carries `assistant: null` |
+| `saves the assistant the user picks` | The explicit choice reaches the payload |
+| `starts empty and asks for an explicit choice` | A new item seeds nothing and fetches nothing |
 
-### Code Changes
+### One deliberate deviation from the issue
 
-```python
-# Before
-self.fields["assistant"].widget.choices = [
-    (assistant.id, assistant.name) for assistant in Assistant.objects.all()
-]
-if not self.initial.get("assistant"):
-    random_assistant = (
-        Assistant.objects.annotate(num=Count("id")).order_by("?").first()
-    )
-    ...
-
-# After
-self.fields["assistant"].widget.choices = [
-    ("", self.fields["assistant"].empty_label),
-    *((assistant.id, assistant.name) for assistant in Assistant.objects.all()),
-]
-assistant_id = self.initial.get("assistant")
-if assistant_id:
-    ...                                   # show the record's own assistant
-elif self.instance.pk is None:
-    default_assistant = Assistant.objects.order_by("?").first()
-    ...                                   # seed only a genuinely new form
-else:
-    self.fields["instructions"].initial = ""
-```
-
-The unused `.annotate(num=Count("id"))` is removed — the annotation was never
-read and `.order_by("?")` ignores it — along with the now-unused `Count` import.
-
-No configuration or database changes.
+Criterion 4 reads *"A new, unsaved form still seeds a default assistant and its instructions."* The React screen deliberately does **not**: a new item starts with "Select an assistant" and the Generate button stays disabled until one is picked (`disabled={pending || !form.assistant}`, `title="Pick an assistant first"`). Seeding an arbitrary default was the mechanism behind this very bug, and an explicit choice is the better behaviour. The test pins the explicit-choice behaviour rather than the criterion as literally written.
 
 ## 🧪 Testing and Validation
 
-### Test Cases Added
+```console
+$ cd src/frontend && npx vitest run
+Test Files  4 passed (4)
+     Tests  31 passed (31)
 
-`src/parodynews/tests/test_forms_content.py` — four tests built on the existing
-`conftest.py` factories:
-
-- `test_new_form_seeds_a_default_assistant` — an unsaved form still gets one.
-- `test_existing_item_shows_its_own_assistant` — no regression for the normal case.
-- `test_saved_item_without_assistant_preselects_nothing` — the select rests on the
-  empty choice and the instructions textarea is empty. Asserted as *empty*, never
-  as "≠ this particular assistant": the old code picked with `.order_by("?")`, so
-  a value-inequality assertion would pass at random.
-- `test_saving_an_untouched_null_assistant_item_leaves_it_null` — an unrelated
-  edit round-trips without acquiring an assistant.
-
-### Test Results
-
-Run from `src/` against the project's PostgreSQL test database (`base.py` rejects
-SQLite outright):
-
-```bash
-DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -m pytest \
-  src/parodynews/tests
+$ npx tsc --noEmit
+(clean)
 ```
 
-Before the change, two of the four fail — `This field is required.` on the save
-round-trip, and a stranger's instructions in the textarea. After it:
+**These tests pass on arrival — that is the point, and it is also why they were checked the other way round.** Reintroducing the defect in `Content.tsx`:
 
-```
-183 passed, 15 deselected in 16.35s
+```diff
+-      assistant: item?.assistant ?? '',
++      assistant: item?.assistant ?? assistantsState.data?.[1]?.id ?? '',
 ```
 
-`ruff check` is clean on both changed files.
+fails 4 of the 6, including both cases that matter: the select is no longer empty, and the save payload carries `asst_bravo` instead of `null`. The change was then reverted; `Content.tsx` is untouched by this PR.
 
 ## ⚠️ Breaking Changes and Migration
 
-None. `assistant` becoming `required=False` on the form widens what is accepted
-and matches the model's existing `blank=True`; no migration is involved.
+None. This PR adds one test file and two documentation paragraphs. No application code changes.
 
 ## 🔄 Prevention Measures
 
-- The new-vs-saved distinction is now asserted rather than implied by a comment.
-- The blank choice is covered by a rendering assertion, so an override that drops
-  it again fails the suite.
+`src/frontend/README.md` now names the specs that exist to pin behaviour the Django UI got wrong — `DataTable.test.tsx` (#96) and `Content.test.tsx` (#3) — and records that each was verified by reintroducing the original defect.
 
 ## 🔗 Related Resources
 
-- Original Bug Report: #3
-- Form: `src/parodynews/forms.py` → `ContentItemForm.__init__`
-- Model: `src/parodynews/models/content.py` → `ContentItem.assistant` (`SET_NULL`)
-- Call sites: `src/parodynews/views/content.py:55,62,112`
-- [Django `ModelForm` — initial data from an instance](https://docs.djangoproject.com/en/5.1/topics/forms/modelforms/)
+- Issue [#3](https://github.com/bamr87/barodybroject/issues/3)
+- [`src/frontend/README.md`](../../../src/frontend/README.md)
+- `main` @ 32a9e2f — the rewrite that removed the defect
