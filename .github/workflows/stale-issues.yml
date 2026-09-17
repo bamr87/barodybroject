@@ -1,0 +1,91 @@
+name: Mark Stale Issues and PRs
+
+on:
+  schedule:
+    # Run every Monday at 07:00 UTC
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    name: Mark and Close Stale Issues
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Mark stale issues and PRs
+        uses: actions/stale@v9
+        with:
+          # ── Stale thresholds ──────────────────────────────────────────────
+          # Issues with no activity for 90 days are marked stale
+          days-before-issue-stale: 90
+          # Issues are closed 14 days after being marked stale
+          days-before-issue-close: 14
+
+          # PRs with no activity for 60 days are marked stale
+          days-before-pr-stale: 60
+          # PRs are closed 14 days after being marked stale
+          days-before-pr-close: 14
+
+          # ── Labels ───────────────────────────────────────────────────────
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          close-issue-label: 'closed-stale'
+          close-pr-label: 'closed-stale'
+
+          # ── Exemptions ───────────────────────────────────────────────────
+          # Never mark issues with these labels as stale
+          exempt-issue-labels: 'pinned,security,help-wanted,good-first-issue,in-progress'
+          exempt-pr-labels: 'pinned,security,in-progress'
+
+          # ── Messages ─────────────────────────────────────────────────────
+          stale-issue-message: |
+            👋 This issue has had no activity for **90 days** and has been automatically marked as stale.
+
+            It will be **closed in 14 days** unless there is new activity (a comment, commit reference, or label change).
+
+            If this issue is still relevant:
+            - Leave a comment explaining the current status
+            - Remove the `stale` label to reset the timer
+            - Update the issue with any new information
+
+            Thank you for contributing to Barodybroject! 🎉
+
+          close-issue-message: |
+            🔒 This issue has been automatically closed after **14 days of inactivity** since being marked stale.
+
+            If this issue is still relevant, feel free to re-open it or create a new issue with updated information.
+
+            Thank you! 🙏
+
+          stale-pr-message: |
+            👋 This pull request has had no activity for **60 days** and has been automatically marked as stale.
+
+            It will be **closed in 14 days** unless there is new activity.
+
+            If this PR is still relevant:
+            - Leave a comment explaining the current status
+            - Remove the `stale` label to reset the timer
+            - Rebase / update the branch if needed
+
+            Thank you for contributing to Barodybroject! 🎉
+
+          close-pr-message: |
+            🔒 This pull request has been automatically closed after **14 days of inactivity** since being marked stale.
+
+            If this work is still relevant, feel free to re-open the PR or create a new one.
+
+            Thank you! 🙏
+
+          # ── Options ──────────────────────────────────────────────────────
+          # Remove the stale label if the issue becomes active again
+          remove-stale-when-updated: true
+          # Maximum number of operations (comments + state changes) per run
+          operations-per-run: 100
+          # Print what would be done without actually doing it
+          debug-only: false
+          # Ascending means oldest issues are processed first
+          ascending: true
