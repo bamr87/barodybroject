@@ -232,9 +232,7 @@ main() {
     # Test network connectivity between containers
     # Using Python socket instead of nc (netcat) for better container compatibility
     run_test "Inter-container Network" \
-        "docker_exec python python3 -c 'import socket; s = socket.socket(); s.settimeout(2); \
-try: s.connect((\"barodydb\", 5432)); print(\"Connection successful\") \
-finally: s.close()'"
+        "docker_exec python python3 -c 'import socket; s = socket.socket(); s.settimeout(2); s.connect((\"barodydb\", 5432)); s.close(); print(\"Connection successful\")'"
     
     echo ""
 

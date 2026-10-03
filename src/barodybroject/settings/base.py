@@ -1014,7 +1014,7 @@ PUBLICATIONS_URL = env.str(
 # Optimize queries
 if IS_PRODUCTION:
     # Enable query optimization in production
-    DATABASES["default"]["OPTIONS"]["CONN_MAX_AGE"] = 600  # 10 minutes
+    DATABASES["default"]["CONN_MAX_AGE"] = 600  # 10 minutes
 
     # File compression
     COMPRESS_ENABLED = True
