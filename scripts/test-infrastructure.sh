@@ -187,13 +187,14 @@ main() {
         exit 1
     fi
     
-    # Wait for Django installation to complete (check for django module)
+    # Wait for the dev container's install script to finish. debugpy is the
+    # last thing it installs; django alone appears mid-way through pip.
     log_info "Waiting for package installation to complete..."
-    MAX_WAIT=180  # 3 minutes max wait
+    MAX_WAIT=600  # 10 minutes max wait
     WAIT_COUNT=0
     LAST_ERROR=""
     while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-        LAST_ERROR=$(docker compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>&1 || true)
+        LAST_ERROR=$(docker compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django, debugpy; print('Django installed')" 2>&1 || true)
         if echo "$LAST_ERROR" | grep -q "Django installed"; then
             log_success "Package installation completed"
             break
