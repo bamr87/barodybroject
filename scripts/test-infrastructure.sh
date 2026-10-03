@@ -193,7 +193,7 @@ main() {
     WAIT_COUNT=0
     LAST_ERROR=""
     while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-        LAST_ERROR=$(docker compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>&1)
+        LAST_ERROR=$(docker compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>&1 || true)
         if echo "$LAST_ERROR" | grep -q "Django installed"; then
             log_success "Package installation completed"
             break
