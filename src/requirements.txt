@@ -1,5 +1,5 @@
 # Production requirements with pinned versions
-# Last updated: 2026-09-14
+# Last updated: 2026-10-04
 # Python: >=3.10 (required for Django 5.2)
 
 # Web Server
@@ -19,7 +19,11 @@ django-environ==0.11.2
 django-import-export==4.3.3
 django-json-widget==2.0.1
 django-markdownify==0.9.5
-django-allauth[mfa,saml,socialaccount,steam]==65.14.1
+django-allauth[mfa,saml,socialaccount,steam]==65.19.7
+# oauthlib 3.3.1 is vulnerable to PYSEC-2026-4114, fixed in 4.0.0. allauth
+# 65.14.1 capped oauthlib at <4 through its socialaccount extra, so the patch is
+# only reachable by upgrading allauth alongside it.
+oauthlib>=4.0.0
 django-ses==4.2.0
 django-bootstrap5==24.3
 # fido2 1.2.0 caps cryptography at <45, which pins the tree to 44.0.3 and its
