@@ -219,7 +219,7 @@ class InstallationService:
             installation_data = {
                 "completed": True,
                 "completed_at": timezone.now().isoformat(),
-                "admin_created": self.admin_user_created,
+                "admin_created": admin_user_id is not None,
                 "installation_id": secrets.token_hex(16),
                 "version": "0.2.0",
             }
@@ -426,21 +426,16 @@ class InstallationService:
     def _check_migrations_applied(self) -> bool:
         """Check if Django migrations have been applied"""
         try:
-            import sys
             from io import StringIO
 
-            from django.core.management import execute_from_command_line
+            from django.core.management import call_command
 
-            # Capture output
-            old_stdout = sys.stdout
-            sys.stdout = StringIO()
-
-            try:
-                execute_from_command_line(["manage.py", "showmigrations", "--plan"])
-                output = sys.stdout.getvalue()
-                return "[X]" in output  # Applied migrations show [X]
-            finally:
-                sys.stdout = old_stdout
+            # call_command, not execute_from_command_line: the latter closes every
+            # DB connection when it returns, which breaks the surrounding request
+            # transaction (ATOMIC_REQUESTS).
+            output = StringIO()
+            call_command("showmigrations", "--plan", stdout=output)
+            return "[X]" in output.getvalue()  # Applied migrations show [X]
 
         except Exception:
             return False
