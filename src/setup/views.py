@@ -139,8 +139,11 @@ class CreateAdminView(SetupRequiredMixin, FormView):
             # Mark installation as complete
             self.installation_service.mark_installation_complete(admin_user_id=user.id)
 
-            # Log the user in
-            login(self.request, user)
+            # Log the user in. Several auth backends are configured (allauth), so
+            # login() must be told which one authenticated this user.
+            login(
+                self.request, user, backend="django.contrib.auth.backends.ModelBackend"
+            )
 
             messages.success(
                 self.request,
@@ -230,8 +233,9 @@ class SetupRedirectView(View):
         if token and installation_service.validate_setup_token(token):
             return redirect(f"/setup/?token={token}")
 
-        # No valid token, show instructions
-        return render(request, "setup/no_token.html")
+        # No valid token: the wizard page explains how to get one
+        # (there is no separate no-token template).
+        return redirect("/setup/")
 
 
 class CompletionView(View):
@@ -260,4 +264,4 @@ class CompletionView(View):
             ],
         }
 
-        return render(request, "setup/completion.html", context)
+        return render(request, "setup/complete.html", context)

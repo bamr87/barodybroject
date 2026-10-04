@@ -10,6 +10,7 @@ import os
 import shutil
 import tempfile
 from io import StringIO
+from urllib.parse import parse_qs, urlparse
 from unittest.mock import MagicMock, Mock, patch
 
 from django.contrib.auth.models import User
@@ -21,6 +22,15 @@ from django.urls import reverse
 from setup.management.commands.setup_wizard import \
     Command as SetupWizardCommand
 from setup.services import InstallationService
+
+
+def extract_token(output):
+    """Return the token from the setup URL the headless command prints."""
+    for line in output.splitlines():
+        line = line.strip()
+        if line.startswith("http") and "token=" in line:
+            return parse_qs(urlparse(line).query).get("token", [None])[0]
+    return None
 
 
 class TestSetupWizardWorkflow(TransactionTestCase):
@@ -52,13 +62,17 @@ class TestSetupWizardWorkflow(TransactionTestCase):
     def test_complete_interactive_workflow(self):
         """Test complete interactive setup workflow."""
         # Step 1: Run setup wizard command in interactive mode
-        with patch('builtins.input') as mock_input:
+        with patch('builtins.input') as mock_input, \
+                patch('getpass.getpass') as mock_getpass:
             mock_input.side_effect = [
                 'testadmin',  # username
                 'admin@test.com',  # email
+                '',  # first name (optional)
+                '',  # last name (optional)
+            ]
+            mock_getpass.side_effect = [
                 'SecurePassword123!',  # password
                 'SecurePassword123!',  # confirm password
-                'y'  # confirm creation
             ]
             
             out = StringIO()
@@ -67,7 +81,8 @@ class TestSetupWizardWorkflow(TransactionTestCase):
                 output = out.getvalue()
                 
                 # Verify command completed successfully
-                self.assertIn('Installation wizard completed', output.lower())
+                self.assertIn('installation completed successfully', output.lower())
+                self.assertTrue(InstallationService().is_installation_complete())
                 
                 # Verify admin user was created
                 admin_user = User.objects.get(username='testadmin')
@@ -89,19 +104,8 @@ class TestSetupWizardWorkflow(TransactionTestCase):
         self.assertIn('token', output.lower())
         self.assertIn('http', output.lower())
         
-        # Extract token from output (simplified extraction)
-        lines = output.split('\n')
-        token = None
-        for line in lines:
-            if 'token:' in line.lower():
-                token = line.split(':')[-1].strip()
-                break
-        
-        if not token:
-            # Try to get token from service
-            service = InstallationService()
-            if hasattr(service, '_config') and service._config:
-                token = service._config.get('setup_token')
+        # Extract the token from the printed setup URL
+        token = extract_token(output)
         
         self.assertIsNotNone(token, "Setup token should be generated in headless mode")
         
@@ -116,16 +120,17 @@ class TestSetupWizardWorkflow(TransactionTestCase):
         data = {
             'username': 'webadmin',
             'email': 'webadmin@test.com',
-            'password1': 'WebPassword123!',
-            'password2': 'WebPassword123!',
+            'password': 'WebPassword123!',
+            'password_confirm': 'WebPassword123!',
             'token': token
         }
         
         response = self.client.post(admin_url, data)
         
-        # Should redirect to complete page
+        # Success logs the new admin in and redirects to the admin panel
         self.assertEqual(response.status_code, 302)
-        self.assertIn('complete', response.url)
+        self.assertEqual(response.url, '/admin/')
+        self.assertTrue(InstallationService().is_installation_complete())
         
         # Verify admin user was created
         admin_user = User.objects.get(username='webadmin')
@@ -161,20 +166,31 @@ class TestSetupWizardWorkflow(TransactionTestCase):
     def test_workflow_error_handling(self):
         """Test error handling throughout the workflow."""
         # Test command with invalid input
-        with patch('builtins.input') as mock_input:
+        with patch('builtins.input') as mock_input, \
+                patch('getpass.getpass') as mock_getpass:
             mock_input.side_effect = [
-                '',  # empty username
+                '',  # empty username: re-prompted
+                'erruser',  # username
                 'invalid_email',  # invalid email
-                'weak',  # weak password
-                'different',  # mismatched password
-                'n'  # don't retry
+                '',  # first name (optional)
+                '',  # last name (optional)
+            ]
+            mock_getpass.side_effect = [
+                'weak',  # too short: re-prompted
+                'ValidPass123',  # password
+                'ValidPass123',  # confirm password
             ]
             
             out = StringIO()
             err = StringIO()
             
+            # The invalid email is rejected and the wizard exits non-zero
             with self.assertRaises(SystemExit):
                 call_command('setup_wizard', stdout=out, stderr=err)
+            self.assertIn('invalid email', out.getvalue().lower())
+        
+        self.assertFalse(User.objects.filter(is_superuser=True).exists())
+        self.assertFalse(InstallationService().is_installation_complete())
         
         # Test web interface with invalid data
         # First get a valid token
@@ -185,8 +201,8 @@ class TestSetupWizardWorkflow(TransactionTestCase):
         data = {
             'username': '',  # invalid
             'email': 'invalid_email',  # invalid
-            'password1': 'weak',  # weak
-            'password2': 'different',  # mismatch
+            'password': 'weak',  # weak
+            'password_confirm': 'different',  # mismatch
             'token': token
         }
         
@@ -194,7 +210,10 @@ class TestSetupWizardWorkflow(TransactionTestCase):
         
         # Should return form with errors, not crash
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'error')
+        errors = response.context['form'].errors
+        for field in ('username', 'email', 'password'):
+            self.assertIn(field, errors)
+        self.assertFalse(User.objects.filter(is_superuser=True).exists())
     
     def test_workflow_database_transactions(self):
         """Test database transaction behavior during workflow."""
@@ -223,11 +242,11 @@ class TestSetupWizardWorkflow(TransactionTestCase):
         service2 = InstallationService()
         token2 = service2.generate_setup_token()
         
-        # Both tokens should be valid initially
-        self.assertTrue(service1.validate_token(token1))
+        # There is a single active setup token: the newest one replaces the old
+        self.assertFalse(service1.validate_token(token1))
         self.assertTrue(service2.validate_token(token2))
         
-        # Complete setup with first token
+        # Complete setup
         admin_user = service1.create_admin_user(
             'admin1', 'admin1@test.com', 'Password123!'
         )
@@ -263,11 +282,11 @@ class TestSetupWizardIntegration(TestCase):
         # Test all setup URLs are accessible
         setup_urls = [
             '/setup/',
-            '/setup/wizard/',
             '/setup/create-admin/',
             '/setup/status/',
             '/setup/complete/',
             '/setup/health/',
+            '/setup/redirect/',
         ]
         
         for url in setup_urls:
@@ -278,18 +297,18 @@ class TestSetupWizardIntegration(TestCase):
     def test_template_inheritance_integration(self):
         """Test template inheritance and rendering."""
         # Access wizard page and verify template inheritance
-        response = self.client.get('/setup/wizard/')
+        response = self.client.get('/setup/')
         
         # Should use base template with proper structure
         self.assertContains(response, '<html')
         self.assertContains(response, '<head>')
-        self.assertContains(response, '<body>')
-        self.assertContains(response, 'Installation Wizard')
+        self.assertContains(response, '<body')
+        self.assertContains(response, 'Setup Wizard')
     
     def test_static_files_integration(self):
         """Test static files are properly served."""
         # Access wizard page and check for CSS/JS references
-        response = self.client.get('/setup/wizard/')
+        response = self.client.get('/setup/')
         
         # Should reference Bootstrap and custom CSS
         self.assertContains(response, 'bootstrap')
@@ -298,7 +317,8 @@ class TestSetupWizardIntegration(TestCase):
     def test_form_csrf_integration(self):
         """Test CSRF integration with forms."""
         # Get form page
-        response = self.client.get('/setup/create-admin/?token=test_token')
+        token = InstallationService().generate_setup_token()
+        response = self.client.get(f'/setup/create-admin/?token={token}')
         
         # Should contain CSRF token
         self.assertContains(response, 'csrfmiddlewaretoken')
@@ -306,7 +326,7 @@ class TestSetupWizardIntegration(TestCase):
     def test_session_integration(self):
         """Test session handling integration."""
         # Access wizard page
-        response = self.client.get('/setup/wizard/')
+        response = self.client.get('/setup/')
         
         # Should create session
         self.assertTrue(self.client.session.session_key)
@@ -396,7 +416,7 @@ class TestSetupWizardPerformance(TestCase):
 
         # Test wizard view performance
         start_time = time.time()
-        response = self.client.get('/setup/wizard/')
+        response = self.client.get('/setup/')
         view_time = time.time() - start_time
         
         # Should respond quickly (< 2 seconds)

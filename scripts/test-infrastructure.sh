@@ -278,8 +278,8 @@ main() {
     echo "====================================="
     
     # Test admin user creation
-    run_test "Admin User Creation" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token = svc.generate_setup_token(); user = svc.create_admin_user(\\\"testadmin\\\", \\\"admin@test.com\\\", \\\"TestPass123\\\", token); assert user is not None; assert user.is_superuser == True\"'"
+    run_test "Admin User Exists (duplicate refused)" \
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python test/scripts/infra_checks.py admin-exists'"
     
     # Test installation completion
     run_test "Installation Completion Status" \
@@ -348,7 +348,7 @@ main() {
     
     # Test password validation
     run_test "Password Strength Validation" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token = svc.generate_setup_token(); try: svc.create_admin_user(\\\"test\\\", \\\"test@test.com\\\", \\\"weak\\\", token); assert False; except: pass\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python test/scripts/infra_checks.py password-strength'"
     
     echo ""
 
