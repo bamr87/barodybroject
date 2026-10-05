@@ -24,6 +24,22 @@
               "secretRef": "secret-key"
             },
             {
+              "name": "AI_DEFAULT_PROVIDER",
+              "value": "${AI_DEFAULT_PROVIDER=claude_code}"
+            },
+            {
+              "name": "CLAUDE_CODE_OAUTH_TOKEN",
+              "value": "${CLAUDE_CODE_OAUTH_TOKEN}",
+              "secret": true,
+              "secretRef": "claude-code-oauth-token"
+            },
+            {
+              "name": "ANTHROPIC_API_KEY",
+              "value": "${ANTHROPIC_API_KEY}",
+              "secret": true,
+              "secretRef": "anthropic-api-key"
+            },
+            {
               "name": "OPENAI_API_KEY",
               "value": "${OPENAI_API_KEY}",
               "secret": true,

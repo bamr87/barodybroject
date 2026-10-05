@@ -22,12 +22,11 @@ Usage:
 
 import getpass
 import logging
-import os
 import sys
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.core.management import execute_from_command_line
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
@@ -153,7 +152,7 @@ class Command(BaseCommand):
                 cursor.execute("SELECT 1")
             self.stdout.write(self.style.SUCCESS("  ✓ Database connection: OK"))
         except Exception as e:
-            raise CommandError(f"Database connection failed: {e}")
+            raise CommandError(f"Database connection failed: {e}") from e
 
         # Check Django installation
         try:
@@ -162,8 +161,8 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS(f"  ✓ Django version: {django.get_version()}")
             )
-        except ImportError:
-            raise CommandError("Django not properly installed")
+        except ImportError as exc:
+            raise CommandError("Django not properly installed") from exc
 
         # Check for existing admin users
         admin_count = User.objects.filter(is_superuser=True).count()
@@ -171,10 +170,11 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.WARNING(f"  ⚠ Found {admin_count} existing admin user(s)")
             )
-            if not self.options["headless"]:
-                if not self._confirm_action("Continue anyway?"):
-                    self.stdout.write(self.style.ERROR("Installation cancelled"))
-                    sys.exit(0)
+            if not self.options["headless"] and not self._confirm_action(
+                "Continue anyway?"
+            ):
+                self.stdout.write(self.style.ERROR("Installation cancelled"))
+                sys.exit(0)
         else:
             self.stdout.write(self.style.SUCCESS("  ✓ No existing admin users"))
 
@@ -188,10 +188,12 @@ class Command(BaseCommand):
 
         try:
             # Run migrations
-            execute_from_command_line(["manage.py", "migrate", "--noinput"])
+            # call_command, not execute_from_command_line: the latter goes through
+            # run_from_argv, which closes every DB connection when it returns.
+            call_command("migrate", interactive=False, stdout=self.stdout)
             self.stdout.write(self.style.SUCCESS("  ✓ Database migrations applied"))
         except Exception as e:
-            raise CommandError(f"Database migration failed: {e}")
+            raise CommandError(f"Database migration failed: {e}") from e
 
     def _create_admin_user_interactive(self):
         """Create admin user through interactive prompts"""
@@ -224,7 +226,7 @@ class Command(BaseCommand):
             self.admin_user_id = user.id
 
         except ValidationError as e:
-            raise CommandError(f"Failed to create admin user: {e}")
+            raise CommandError(f"Failed to create admin user: {e}") from e
 
     def _finalize_installation(self):
         """Mark installation as complete"""
@@ -236,7 +238,7 @@ class Command(BaseCommand):
             )
             self.stdout.write(self.style.SUCCESS("  ✓ Installation marked as complete"))
         except Exception as e:
-            raise CommandError(f"Failed to finalize installation: {e}")
+            raise CommandError(f"Failed to finalize installation: {e}") from e
 
     def _show_completion_message(self):
         """Show installation completion message"""
@@ -260,16 +262,16 @@ class Command(BaseCommand):
         self.stdout.write("")
         self.stdout.write("To complete the setup, follow these steps:")
         self.stdout.write("")
-        self.stdout.write(self.style.HTTP_INFO(f"1. Start the web server"))
+        self.stdout.write(self.style.HTTP_INFO("1. Start the web server"))
         self.stdout.write("   python manage.py runserver")
         self.stdout.write("")
         self.stdout.write(
-            self.style.HTTP_INFO(f"2. Visit the setup URL in your browser:")
+            self.style.HTTP_INFO("2. Visit the setup URL in your browser:")
         )
         self.stdout.write(f"   http://localhost:8000/setup/?token={token}")
         self.stdout.write("")
         self.stdout.write(
-            self.style.HTTP_INFO(f"3. Create your admin user through the web interface")
+            self.style.HTTP_INFO("3. Create your admin user through the web interface")
         )
         self.stdout.write("")
         self.stdout.write(

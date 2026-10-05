@@ -1,32 +1,42 @@
+# Jekyll site data
 
-## Getting Started
+Data files for the Jekyll sidecar in `src/pages/`, which publishes generated parody-news content. Jekyll loads everything in this directory into `site.data`, keyed by filename, so a template reads `ui-text.yml` as `site.data.ui-text` and `navigation/main.yml` as `site.data.navigation.main`. The site renders with the [`bamr87/zer0-mistakes`](https://github.com/bamr87/zer0-mistakes) remote theme, which is what expects these particular files.
 
-These instructions will help you understand the data files in this directory.
+## Contents
 
-### Raw Data
+| Path | What it holds |
+|---|---|
+| [`navigation/`](navigation/) | Menu structure: `main.yml` (header), `about.yml` and `posts.yml` (section menus). See [navigation/README.md](navigation/README.md). |
+| `ui-text.yml` | Interface strings for the theme, grouped by locale (`en` is the default). Pagination labels, breadcrumbs, skip links and similar chrome. |
 
-The `raw` directory contains the raw data files. These files are the original data and have not been processed or manipulated in any way.
+## Changing site text
 
-### Processed Data
+Wording that belongs to the theme's chrome rather than to a page lives in `ui-text.yml` under its locale key:
 
-The `processed` directory contains the data files that have been processed and are ready for analysis. These files have been cleaned, manipulated, or otherwise processed from the raw data files.
+```yaml
+en: &DEFAULT_EN
+  pagination_previous        : "Previous"
+  breadcrumb_home_label      : "Home"
+```
 
-## Contributing
+Templates read it as `{{ site.data.ui-text[site.locale].pagination_previous }}`, so a missing key renders as an empty string rather than failing the build. Add a new locale by copying the `en` block and overriding the strings that differ.
 
-Please read [CONTRIBUTING.md](url) for details on our code of conduct, and the process for submitting pull requests to us.
+## Changing the menus
 
-## Authors
+Edit the relevant file in [`navigation/`](navigation/). Entries are a list of `title`/`url` pairs, optionally with `sublinks`:
 
-* **Your Name** - *Initial work* - [YourGithub](url)
+```yaml
+- title: News
+  url: /posts
+  sublinks:
+    - title: Pages
+      url: /pages
+```
 
-See also the list of [contributors](url) who participated in this project.
+URLs are site-relative and are not validated at build time, so a typo produces a dead menu item rather than a build error.
 
-## License
+## Related
 
-This project is licensed under the MIT License - see the [LICENSE.md](url) file for details
-
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+- [Jekyll data files documentation](https://jekyllrb.com/docs/datafiles/)
+- [Site configuration](../_config.yml)
+- [Project documentation index](../../../docs/README.md)

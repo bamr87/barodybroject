@@ -11,6 +11,7 @@ import shutil
 import tempfile
 import time
 from io import StringIO
+from urllib.parse import parse_qs, urlparse
 from unittest.mock import Mock, patch
 
 from django.contrib.auth.models import User
@@ -18,6 +19,23 @@ from django.core.management import call_command
 from django.test import Client, TestCase
 from django.urls import reverse
 from setup.services import InstallationService
+
+
+def extract_setup_url(output):
+    """Return the setup URL the headless command prints (http://…/setup/?token=…)."""
+    for line in output.splitlines():
+        line = line.strip()
+        if line.startswith("http") and "token=" in line:
+            return line
+    return None
+
+
+def extract_token(output):
+    """Return the token from the setup URL the headless command prints."""
+    url = extract_setup_url(output)
+    if not url:
+        return None
+    return parse_qs(urlparse(url).query).get("token", [None])[0]
 
 
 class TestHeadlessMode(TestCase):
@@ -92,28 +110,9 @@ class TestHeadlessMode(TestCase):
         out = StringIO()
         call_command('setup_wizard', '--headless', stdout=out)
         
-        # Extract token from output (simplified extraction)
-        output = out.getvalue()
-        token = None
-        
-        # Look for token in output
-        lines = output.split('\n')
-        for line in lines:
-            if 'token:' in line.lower():
-                parts = line.split(':')
-                if len(parts) > 1:
-                    token = parts[-1].strip()
-                    break
-        
-        # If not found in output, try to get from service
-        if not token:
-            service = InstallationService()
-            if hasattr(service, '_config') and service._config:
-                token = service._config.get('setup_token')
-        
-        # Skip test if we can't get token (service implementation dependent)
-        if not token:
-            self.skipTest("Unable to extract token from headless mode")
+        # Extract the token from the printed setup URL
+        token = extract_token(out.getvalue())
+        self.assertIsNotNone(token, "Headless mode should print a setup URL with a token")
         
         # Test accessing wizard with token
         wizard_url = reverse('setup:wizard')
@@ -132,43 +131,37 @@ class TestHeadlessMode(TestCase):
         out = StringIO()
         call_command('setup_wizard', '--headless', stdout=out)
         
-        # Step 2: Extract token (mock for this test)
-        token = "test_headless_token"
+        # Step 2: Extract the token from the printed setup URL
+        token = extract_token(out.getvalue())
+        self.assertIsNotNone(token, "Headless mode should print a setup URL with a token")
         
-        # Mock service to return our test token as valid
-        with patch('setup.views.InstallationService') as mock_service_class:
-            mock_service = Mock()
-            mock_service_class.return_value = mock_service
-            mock_service.validate_token.return_value = True
-            mock_service.is_installation_complete.return_value = False
-            mock_service.create_admin_user.return_value = Mock(username='headlessadmin')
-            mock_service.mark_installation_complete.return_value = True
-            
-            # Step 3: Access admin creation form
-            admin_url = reverse('setup:create_admin')
-            response = self.client.get(admin_url, {'token': token})
-            self.assertEqual(response.status_code, 200)
-            
-            # Step 4: Submit admin creation form
-            data = {
-                'username': 'headlessadmin',
-                'email': 'headless@test.com',
-                'password1': 'HeadlessPassword123!',
-                'password2': 'HeadlessPassword123!',
-                'token': token
-            }
-            
-            response = self.client.post(admin_url, data)
-            
-            # Should redirect to complete page
-            self.assertEqual(response.status_code, 302)
-            self.assertIn('complete', response.url)
-            
-            # Verify service methods were called
-            mock_service.create_admin_user.assert_called_once_with(
-                'headlessadmin', 'headless@test.com', 'HeadlessPassword123!'
-            )
-            mock_service.mark_installation_complete.assert_called_once()
+        # Step 3: Access admin creation form
+        admin_url = reverse('setup:create_admin')
+        response = self.client.get(admin_url, {'token': token})
+        self.assertEqual(response.status_code, 200)
+        
+        # Step 4: Submit admin creation form
+        data = {
+            'username': 'headlessadmin',
+            'email': 'headless@test.com',
+            'password': 'HeadlessPassword123!',
+            'password_confirm': 'HeadlessPassword123!',
+            'token': token
+        }
+        
+        response = self.client.post(admin_url, data)
+        
+        # Success logs the new admin in and redirects to the admin panel
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/admin/')
+        
+        user = User.objects.get(username='headlessadmin')
+        self.assertTrue(user.is_superuser)
+        service = InstallationService()
+        self.assertTrue(service.is_installation_complete())
+        self.assertTrue(service.is_admin_created_during_install())
+        # The token is single-use
+        self.assertFalse(service.validate_token(token))
     
     def test_headless_token_validation(self):
         """Test token validation in headless mode."""
@@ -186,11 +179,10 @@ class TestHeadlessMode(TestCase):
         # Should redirect or show error
         self.assertIn(response.status_code, [302, 403, 400])
         
-        # Test missing token
+        # Test missing token: redirected back to the setup wizard
         response = self.client.get(admin_url)
-        # Should redirect to wizard
-        if response.status_code == 302:
-            self.assertIn('wizard', response.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('setup:wizard'))
     
     def test_headless_security_features(self):
         """Test security features in headless mode."""
@@ -207,7 +199,7 @@ class TestHeadlessMode(TestCase):
         
         # Test token format (should be cryptographically secure)
         self.assertGreater(len(token), 20, "Token should be sufficiently long")
-        self.assertRegex(token, r'^[a-zA-Z0-9]+$', "Token should be alphanumeric")
+        self.assertRegex(token, r'^[A-Za-z0-9_-]+$', "Token should be URL-safe")
     
     def test_headless_state_persistence(self):
         """Test state persistence in headless mode."""
@@ -234,15 +226,14 @@ class TestHeadlessMode(TestCase):
         service.create_admin_user('existing', 'existing@test.com', 'Password123!')
         service.mark_installation_complete()
         
-        # Try to run headless mode again
+        # Running headless mode again is a no-op that reports the finished install
         out = StringIO()
         err = StringIO()
         
-        with self.assertRaises(SystemExit):
-            call_command('setup_wizard', '--headless', stdout=out, stderr=err)
+        call_command('setup_wizard', '--headless', stdout=out, stderr=err)
         
-        error_output = err.getvalue()
-        self.assertIn('already complete', error_output.lower())
+        self.assertIn('already complete', out.getvalue().lower())
+        self.assertIsNone(extract_token(out.getvalue()), "No new token once installed")
     
     def test_headless_concurrent_access(self):
         """Test concurrent access in headless mode."""
@@ -257,12 +248,11 @@ class TestHeadlessMode(TestCase):
         token1 = service1.generate_setup_token()
         token2 = service2.generate_setup_token()
         
-        # Both should generate valid tokens initially
-        self.assertTrue(service1.validate_token(token1))
-        self.assertTrue(service2.validate_token(token2))
-        
-        # But tokens should be different
+        # There is a single active setup token: the newest one replaces the old
         self.assertNotEqual(token1, token2)
+        self.assertFalse(service1.validate_token(token1))
+        self.assertTrue(service1.validate_token(token2))
+        self.assertTrue(service2.validate_token(token2))
     
     def test_headless_output_format(self):
         """Test output format of headless mode."""
@@ -295,18 +285,14 @@ class TestHeadlessMode(TestCase):
         
         output = out.getvalue()
         
-        # Should contain a complete URL
-        lines = output.split('\n')
-        url_found = False
-        
-        for line in lines:
-            if 'http' in line.lower():
-                # Basic URL validation
-                if '://' in line and '.' in line:
-                    url_found = True
-                    break
-        
-        self.assertTrue(url_found, "Should provide a complete URL")
+        # Should contain a complete setup URL carrying a valid token
+        url = extract_setup_url(output)
+        self.assertIsNotNone(url, "Should provide a complete URL")
+        parsed = urlparse(url)
+        self.assertIn(parsed.scheme, ('http', 'https'))
+        self.assertTrue(parsed.netloc)
+        self.assertEqual(parsed.path, reverse('setup:wizard'))
+        self.assertTrue(InstallationService().validate_token(extract_token(output)))
     
     def test_headless_docker_integration(self):
         """Test headless mode integration with Docker environment."""
