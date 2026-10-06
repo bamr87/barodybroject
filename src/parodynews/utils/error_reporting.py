@@ -80,17 +80,17 @@ MARKER_RE = re.compile(r"<!-- django-error-reporter fingerprint=([0-9a-f]{16}) -
 
 DEFAULTS = {
     # --- the two gates that decide whether anything happens at all ---------- #
-    "ENABLED": False,          # off by default; enabling is an explicit act
-    "REPO": None,              # "owner/name". No default. Never "this repo".
-    "TOKEN": None,             # a token with `issues: write` on REPO
+    "ENABLED": False,  # off by default; enabling is an explicit act
+    "REPO": None,  # "owner/name". No default. Never "this repo".
+    "TOKEN": None,  # a token with `issues: write` on REPO
     "ALLOW_PUBLIC_REPO": False,  # separate, explicitly-named public override
     # --- what may leave the process ---------------------------------------- #
     # ALLOWLISTS. Anything not named here is not transmitted, including headers
     # and fields that do not exist yet.
     "ALLOWED_REQUEST_HEADERS": ("Content-Type", "Accept", "Accept-Language"),
-    "ALLOWED_REQUEST_FIELDS": (),      # POST/GET keys; empty means none
+    "ALLOWED_REQUEST_FIELDS": (),  # POST/GET keys; empty means none
     "ALLOWED_USER_ATTRIBUTES": ("pk",),  # never username/email by default
-    "INCLUDE_FRAME_LOCALS": False,     # locals can carry SECRET_KEY et al
+    "INCLUDE_FRAME_LOCALS": False,  # locals can carry SECRET_KEY et al
     # Values scrubbed from the body wherever they appear, as defence in depth
     # behind the allowlist. Dotted setting names, resolved at send time.
     "SCRUB_SETTINGS": ("SECRET_KEY",),
@@ -99,8 +99,8 @@ DEFAULTS = {
     "RATE_LIMIT_MAX_ISSUES": 5,
     "RATE_LIMIT_WINDOW_SECONDS": 60 * 60,
     # --- delivery ----------------------------------------------------------- #
-    "ASYNC": True,             # never block a response on the GitHub API
-    "QUEUE_SIZE": 100,         # bounded: a flood must not grow without limit
+    "ASYNC": True,  # never block a response on the GitHub API
+    "QUEUE_SIZE": 100,  # bounded: a flood must not grow without limit
     "LABELS": ("bug", "auto-reported"),
 }
 
@@ -487,7 +487,9 @@ class GitHubIssueReporter:
         (or a second worker) would file the same defect again.
         """
         try:
-            for issue in repo.get_issues(state="open", labels=list(self.config["LABELS"])):
+            for issue in repo.get_issues(
+                state="open", labels=list(self.config["LABELS"])
+            ):
                 match = MARKER_RE.search(issue.body or "")
                 if match and match.group(1) == fingerprint:
                     return issue
@@ -510,7 +512,9 @@ class GitHubIssueHandler(logging.Handler):
 
     def __init__(self, level=logging.ERROR, config=None, client_factory=None):
         super().__init__(level=level)
-        self.reporter = GitHubIssueReporter(config=config, client_factory=client_factory)
+        self.reporter = GitHubIssueReporter(
+            config=config, client_factory=client_factory
+        )
         self._executor = None
 
     def _get_executor(self):

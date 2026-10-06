@@ -220,8 +220,13 @@ class RedactionTests(SimpleTestCase):
         except ValueError:
             exc_info = sys.exc_info()
         record = logging.LogRecord(
-            "django.request", logging.ERROR, __file__, 1,
-            "Internal Server Error: /checkout", (), exc_info,
+            "django.request",
+            logging.ERROR,
+            __file__,
+            1,
+            "Internal Server Error: /checkout",
+            (),
+            exc_info,
         )
         record.request = request
         cfg = error_reporting.get_config(dict(BASE_CONFIG, **overrides))
@@ -232,11 +237,11 @@ class RedactionTests(SimpleTestCase):
         session cookie and SECRET_KEY must all be absent."""
         body = self._body_for_sensitive_request()
         for secret in (
-            "hunter2-not-in-the-issue",          # POST field
-            "tok-abcdef1234567890",              # Authorization header
-            "sekrit-session-value-123",          # session cookie
-            settings.SECRET_KEY,                 # frame local
-            "sk-super-secret-openai-key",        # frame local
+            "hunter2-not-in-the-issue",  # POST field
+            "tok-abcdef1234567890",  # Authorization header
+            "sekrit-session-value-123",  # session cookie
+            settings.SECRET_KEY,  # frame local
+            "sk-super-secret-openai-key",  # frame local
         ):
             with self.subTest(secret=secret[:16]):
                 self.assertNotIn(secret, body)
@@ -244,9 +249,7 @@ class RedactionTests(SimpleTestCase):
     def test_allowlisted_header_is_present(self):
         """Proves the allowlist actually transmits — that the test above is not
         passing merely because nothing is ever included."""
-        body = self._body_for_sensitive_request(
-            ALLOWED_REQUEST_HEADERS=("Accept",)
-        )
+        body = self._body_for_sensitive_request(ALLOWED_REQUEST_HEADERS=("Accept",))
         self.assertIn("text/html", body)
 
     def test_allowlisted_field_is_present_and_others_are_not(self):
@@ -300,6 +303,7 @@ class DeduplicationTests(SimpleTestCase):
     def test_the_message_does_not_affect_the_fingerprint(self):
         """Volatile values in the message must not fork the fingerprint —
         otherwise every occurrence carrying a row id files a new issue."""
+
         def boom(value):
             raise ValueError(f"row {value} exploded")
 
@@ -317,9 +321,14 @@ class DeduplicationTests(SimpleTestCase):
             record_from_exception(ValueError("x")).exc_info
         )
         seeded = FakeIssue(
-            7, "old", error_reporting.MARKER_TEMPLATE.format(fingerprint=fingerprint), []
+            7,
+            "old",
+            error_reporting.MARKER_TEMPLATE.format(fingerprint=fingerprint),
+            [],
         )
-        reporter, repo = make_reporter(repo=FakeRepo(private=True, seed_issues=[seeded]))
+        reporter, repo = make_reporter(
+            repo=FakeRepo(private=True, seed_issues=[seeded])
+        )
         self.assertEqual(reporter.report(record_from_exception(ValueError("x"))), 7)
         self.assertEqual(repo.create_calls, 0)
 
@@ -348,8 +357,15 @@ class RateLimitTests(SimpleTestCase):
         # ValueErrors raised from the same line would dedupe to one issue and
         # never reach the limiter at all.
         distinct = [
-            ValueError, KeyError, TypeError, IndexError, AttributeError,
-            RuntimeError, OSError, ZeroDivisionError, NotImplementedError,
+            ValueError,
+            KeyError,
+            TypeError,
+            IndexError,
+            AttributeError,
+            RuntimeError,
+            OSError,
+            ZeroDivisionError,
+            NotImplementedError,
             ArithmeticError,
         ]
         reporter, repo = make_reporter(RATE_LIMIT_MAX_ISSUES=3)
@@ -490,7 +506,9 @@ class ImportSafetyTests(SimpleTestCase):
                 return False
             if level > 0:  # relative: ..models, .models
                 return module in ("models", "admin") or module.startswith("models.")
-            return module.startswith("parodynews.models") or module == "parodynews.admin"
+            return (
+                module.startswith("parodynews.models") or module == "parodynews.admin"
+            )
 
         package = pathlib.Path(error_reporting.__file__).parent
         offenders = []
