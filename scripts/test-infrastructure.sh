@@ -187,13 +187,14 @@ main() {
         exit 1
     fi
     
-    # Wait for Django installation to complete (check for django module)
+    # Wait for the dev container's install script to finish. debugpy is the
+    # last thing it installs; django alone appears mid-way through pip.
     log_info "Waiting for package installation to complete..."
-    MAX_WAIT=180  # 3 minutes max wait
+    MAX_WAIT=600  # 10 minutes max wait
     WAIT_COUNT=0
     LAST_ERROR=""
     while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-        LAST_ERROR=$(docker compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django; print('Django installed')" 2>&1)
+        LAST_ERROR=$(docker compose -f "$COMPOSE_FILE" exec -T python python3 -c "import django, debugpy; print('Django installed')" 2>&1 || true)
         if echo "$LAST_ERROR" | grep -q "Django installed"; then
             log_success "Package installation completed"
             break
@@ -232,9 +233,7 @@ main() {
     # Test network connectivity between containers
     # Using Python socket instead of nc (netcat) for better container compatibility
     run_test "Inter-container Network" \
-        "docker_exec python python3 -c 'import socket; s = socket.socket(); s.settimeout(2); \
-try: s.connect((\"barodydb\", 5432)); print(\"Connection successful\") \
-finally: s.close()'"
+        "docker_exec python python3 -c 'import socket; s = socket.socket(); s.settimeout(2); s.connect((\"barodydb\", 5432)); s.close(); print(\"Connection successful\")'"
     
     echo ""
 
@@ -279,8 +278,8 @@ finally: s.close()'"
     echo "====================================="
     
     # Test admin user creation
-    run_test "Admin User Creation" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token = svc.generate_setup_token(); user = svc.create_admin_user(\\\"testadmin\\\", \\\"admin@test.com\\\", \\\"TestPass123\\\", token); assert user is not None; assert user.is_superuser == True\"'"
+    run_test "Admin User Exists (duplicate refused)" \
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python test/scripts/infra_checks.py admin-exists'"
     
     # Test installation completion
     run_test "Installation Completion Status" \
@@ -349,7 +348,7 @@ finally: s.close()'"
     
     # Test password validation
     run_test "Password Strength Validation" \
-        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python -c \"import django; django.setup(); from setup.services import InstallationService; svc = InstallationService(); token = svc.generate_setup_token(); try: svc.create_admin_user(\\\"test\\\", \\\"test@test.com\\\", \\\"weak\\\", token); assert False; except: pass\"'"
+        "docker_exec python bash -c 'cd /workspace && PYTHONPATH=/workspace/src:/workspace DJANGO_SETTINGS_MODULE=barodybroject.settings.testing python test/scripts/infra_checks.py password-strength'"
     
     echo ""
 

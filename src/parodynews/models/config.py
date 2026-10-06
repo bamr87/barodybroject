@@ -1,42 +1,24 @@
 """
 File: config.py
-Description: Django models for application-wide configuration (keys, settings, attribution)
+Description: Application-wide configuration (AI provider credentials, publishing, attribution)
 Author: Barodybroject Team <team@example.com>
 Created: 2025-11-30
-Last Modified: 2025-12-20
-Version: 0.4.0
+Last Modified: 2026-09-14
+Version: 0.6.0
 
 Dependencies:
 - django: >=5.1
 
-Usage: from parodynews.models.config import AppConfig
+Usage: from parodynews.models.config import AIProviderConfig, AppConfig
 """
 
 from django.core.cache import cache
-from django.db import models
-from django.utils import timezone
+from django.core.exceptions import ValidationError
+from django.db import models, transaction
 
 
 class PoweredBy(models.Model):
-    """Configuration for 'Powered By' attribution links.
-
-    This model stores information about technologies and services that power
-    the application, typically displayed in the footer or about page.
-
-    Attributes:
-        name (str): Display name of the technology/service (max 100 chars)
-        icon (str): CSS class or icon identifier for visual representation
-        url (str): URL to the technology's website or documentation
-
-    Examples:
-        >>> powered_by = PoweredBy.objects.create(
-        ...     name="OpenAI",
-        ...     icon="fa-robot",
-        ...     url="https://openai.com"
-        ... )
-        >>> str(powered_by)
-        'OpenAI'
-    """
+    """Configuration for 'Powered By' attribution links shown in the footer."""
 
     name = models.CharField(max_length=100)
     icon = models.CharField(max_length=100)
@@ -48,43 +30,23 @@ class PoweredBy(models.Model):
         verbose_name_plural = "Powered By"
 
     def __str__(self):
-        """Return the name of the technology/service.
-
-        Returns:
-            str: The name field value
-        """
         return self.name
 
 
 class AppConfig(models.Model):
-    """Application-wide configuration settings.
+    """Publishing configuration (GitHub Pages target).
 
-    Singleton model that stores API keys, project identifiers, and GitHub Pages
-    configuration. Should only have one instance in the database.
+    Singleton-style model: the application reads the first row. AI provider
+    credentials used to live here as OpenAI-specific columns; they moved to
+    :class:`AIProviderConfig` so every provider is configured the same way.
 
     Attributes:
-        api_key (str): OpenAI API key for authentication (max 255 chars)
-        project_id (str): Project identifier for OpenAI API (max 255 chars)
-        org_id (str): Organization identifier for OpenAI API (max 255 chars)
-        github_pages_repo (str): GitHub repository for publishing (format: 'owner/repo')
+        github_pages_repo (str): GitHub repository for publishing ('owner/repo')
         github_pages_branch (str): Target branch for publishing (default: 'main')
-        github_pages_token (str): GitHub Personal Access Token for API authentication
-        github_pages_post_dir (str): Directory path for posts (default: 'posts/')
-
-    Note:
-        API keys and tokens should be kept secure. Consider using environment
-        variables or secret management systems in production.
-
-    Examples:
-        >>> config = AppConfig.objects.first()
-        >>> if config:
-        ...     print(f"Publishing to {config.github_pages_repo}")
-        Publishing to username/my-blog
+        github_pages_token (str): GitHub token used to open publish pull requests
+        github_pages_post_dir (str): Directory for posts (default: 'posts/')
     """
 
-    api_key = models.CharField(max_length=255)
-    project_id = models.CharField(max_length=255)
-    org_id = models.CharField(max_length=255)
     github_pages_repo = models.CharField(max_length=255)
     github_pages_branch = models.CharField(max_length=255, default="main")
     github_pages_token = models.CharField(max_length=255)
@@ -96,64 +58,89 @@ class AppConfig(models.Model):
         verbose_name_plural = "App Configurations"
 
     def __str__(self):
-        """Return a human-readable string representation.
-
-        Returns:
-            str: Always returns 'App Configuration'
-        """
         return "App Configuration"
+
+
+class AIProviderConfig(models.Model):
+    """Per-provider credentials and defaults, editable from the settings UI.
+
+    One row per provider slug (``claude_code``, ``anthropic``, ``openai``,
+    ``mock``...). Every field is optional: a provider with no row, or a row
+    with an empty ``api_key``, falls back to its environment variables (for
+    example ``CLAUDE_CODE_OAUTH_TOKEN``). The row flagged ``is_default`` is
+    the provider used when a request does not name one; without such a row
+    ``settings.AI_DEFAULT_PROVIDER`` applies.
+
+    Attributes:
+        provider (str): Provider slug registered in ``parodynews.ai``
+        api_key (str): Credential (Claude Code OAuth token, API key...)
+        base_url (str): Optional API base URL override (proxies, gateways)
+        organization_id / project_id (str): Provider-specific scoping ids
+        default_model (str): Model used when an assistant has none
+        is_default (bool): Whether this is the application's default provider
+        is_enabled (bool): Disabled providers cannot be used
+        extra (dict): Provider-specific options (``effort``, ``max_turns``,
+            ``cli_path``, ``server_side_fallbacks``...)
+    """
+
+    provider = models.CharField(max_length=50, unique=True)
+    display_name = models.CharField(max_length=100, blank=True, default="")
+    api_key = models.CharField(max_length=1024, blank=True, default="")
+    base_url = models.CharField(max_length=255, blank=True, default="")
+    organization_id = models.CharField(max_length=255, blank=True, default="")
+    project_id = models.CharField(max_length=255, blank=True, default="")
+    default_model = models.CharField(max_length=255, blank=True, default="")
+    is_default = models.BooleanField(default=False)
+    is_enabled = models.BooleanField(default=True)
+    extra = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "parodynews"
+        verbose_name = "AI Provider Configuration"
+        verbose_name_plural = "AI Provider Configurations"
+        ordering = ["-is_default", "provider"]
+
+    def __str__(self):
+        return self.display_name or self.provider
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if self.is_default:
+                # Exactly one default at a time.
+                AIProviderConfig.objects.filter(is_default=True).exclude(
+                    pk=self.pk
+                ).update(is_default=False)
+            super().save(*args, **kwargs)
+
+    @property
+    def has_credential(self) -> bool:
+        return bool(self.api_key)
+
+    def clean(self):
+        from parodynews.ai.registry import available_providers
+
+        if self.provider not in available_providers():
+            raise ValidationError({"provider": f"Unknown provider {self.provider!r}."})
+        if self.is_default and not self.is_enabled:
+            raise ValidationError(
+                {"is_default": "The default provider must be enabled."}
+            )
 
 
 class FieldDefaults(models.Model):
     """Stores default values grouped by type for model fields.
 
-    Provides centralized default value management for dynamically configuring
-    model instances. Supports multiple models with their field defaults in
-    a single JSON structure.
+    JSON structure::
 
-    Attributes:
-        type (str): Category or purpose of these defaults (max 255 chars)
-        defaults (list): List of model definitions with fields and default values
-
-    JSON Structure:
         defaults = [
-            {
-                "model_name": "MyModel",
-                "fields": {
-                    "field1": "some default",
-                    "field2": 42
-                }
-            },
+            {"model_name": "MyModel", "fields": {"field1": "some default"}},
             ...
         ]
 
-    Examples:
-        >>> from parodynews.models import FieldDefaults
-        >>> defaults = FieldDefaults.objects.create(
-        ...     type="post_defaults",
-        ...     defaults=[
-        ...         {
-        ...             "model_name": "Post",
-        ...             "fields": {
-        ...                 "status": "draft",
-        ...                 "author": "ParodyNews Staff"
-        ...             }
-        ...         },
-        ...         {
-        ...             "model_name": "ContentDetail",
-        ...             "fields": {
-        ...                 "keywords": ["news", "parody"],
-        ...                 "description": "AI-generated content"
-        ...             }
-        ...         }
-        ...     ]
-        ... )
-        >>> print(defaults)
-        Defaults for post_defaults
-
-    Note:
-        Saving this model clears the 'field_defaults' cache to ensure
-        updated defaults are immediately available.
+    Saving clears the ``field_defaults`` cache so updated defaults are
+    immediately available.
     """
 
     type = models.CharField(max_length=255, default="default_type")
@@ -168,18 +155,8 @@ class FieldDefaults(models.Model):
         verbose_name_plural = "Field Defaults"
 
     def __str__(self):
-        """Return the type description.
-
-        Returns:
-            str: Formatted string 'Defaults for {type}'
-        """
         return f"Defaults for {self.type}"
 
     def save(self, *args, **kwargs):
-        """Clear cached defaults and save.
-
-        Ensures the cache is invalidated whenever defaults are updated.
-        """
-        # Clear cached defaults when updated
         cache.delete("field_defaults")
         super().save(*args, **kwargs)

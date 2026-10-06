@@ -48,8 +48,10 @@ case "$command" in
     pip list
     pip-check
     pip list --outdated || true
-    safety check --json --output safety-report.json || true
-    safety check
+    # Scan the project's declared pins, not the runner's own toolchain
+    # (setup-python ships its own setuptools, which is not ours to fix).
+    safety check -r requirements.txt --json --output safety-report.json || true
+    safety check -r requirements.txt
     cd ..
 
     {
@@ -87,7 +89,7 @@ case "$command" in
         docker compose -f "$dev_compose" run --rm \
           -e DJANGO_SETTINGS_MODULE=barodybroject.settings.testing \
           -e SECRET_KEY=ci-test-key-not-for-production \
-          python python manage.py check
+          python bash -c "pip install -q -r requirements.txt && python manage.py check"
         ;;
       production)
         trap 'docker compose -f docker-compose.yml down -v --remove-orphans || true' EXIT

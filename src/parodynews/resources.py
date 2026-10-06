@@ -1,7 +1,7 @@
 # resources.py
 from import_export import resources
 
-from .models import Assistant, JSONSchema, OpenAIModel, Post
+from .models import AIModel, Assistant, JSONSchema, Post
 
 
 class AssistantResource(resources.ModelResource):
@@ -9,9 +9,9 @@ class AssistantResource(resources.ModelResource):
         model = Assistant
 
 
-class OpenAIModelResource(resources.ModelResource):
+class AIModelResource(resources.ModelResource):
     class Meta:
-        model = OpenAIModel
+        model = AIModel
 
 
 class JSONSchemaResource(resources.ModelResource):

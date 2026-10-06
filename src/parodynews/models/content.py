@@ -80,14 +80,6 @@ class ContentDetail(models.Model):
             models.Index(fields=["slug"]),
         ]
 
-    def get_display_fields(self):
-        """Return list of fields to display in admin and list views.
-
-        Returns:
-            list: Field names ['id', 'title', 'description', 'author', 'published_at']
-        """
-        return ["id", "title", "description", "author", "published_at"]
-
     def __str__(self):
         """Return the content title.
 
@@ -95,6 +87,14 @@ class ContentDetail(models.Model):
             str: The title field value
         """
         return self.title
+
+    def get_display_fields(self):
+        """Return list of fields to display in admin and list views.
+
+        Returns:
+            list: Field names ['id', 'title', 'description', 'author', 'published_at']
+        """
+        return ["id", "title", "description", "author", "published_at"]
 
 
 class ContentItem(models.Model):
@@ -166,13 +166,13 @@ class ContentItem(models.Model):
             models.Index(fields=["detail", "line_number"]),
         ]
 
-    def get_display_fields(self):
-        """Return list of fields to display in admin and list views.
+    def __str__(self):
+        """Return the prompt text.
 
         Returns:
-            list: Field names ['id', 'assistant', 'prompt', 'content_text', 'detail']
+            str: The prompt field value
         """
-        return ["id", "assistant", "prompt", "content_text", "detail"]
+        return self.prompt
 
     def save(self, *args, **kwargs):
         """Save with automatic line_number assignment.
@@ -190,12 +190,12 @@ class ContentItem(models.Model):
                 self.line_number = last_item.line_number + 1
             else:
                 self.line_number = 1
-        super(ContentItem, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
-    def __str__(self):
-        """Return the prompt text.
+    def get_display_fields(self):
+        """Return list of fields to display in admin and list views.
 
         Returns:
-            str: The prompt field value
+            list: Field names ['id', 'assistant', 'prompt', 'content_text', 'detail']
         """
-        return self.prompt
+        return ["id", "assistant", "prompt", "content_text", "detail"]

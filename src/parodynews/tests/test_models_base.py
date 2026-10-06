@@ -1,9 +1,10 @@
 """
 File: test_models_base.py
-Description: Unit tests for parodynews.models.base — the abstract timestamp base and display mixin
+Description: Unit tests for parodynews.models.base — the abstract timestamp base, display mixin, and id helper
 Author: Barodybroject Team <team@example.com>
 Created: 2026-09-11
-Version: 1.0.0
+Last Modified: 2026-09-14
+Version: 2.0.0
 
 Dependencies:
 - django
@@ -11,19 +12,22 @@ Dependencies:
 
 Usage: python -m pytest parodynews/tests/test_models_base.py (run from src/)
 
-Note on completeness (issue #51): `TimestampedModel` is the one class in
-`grep -rn "^class .*(models\\." src/parodynews/models/` that is NOT instantiated
-anywhere in this suite, because it is `abstract = True` — Django creates no table
-for it and instantiating it is meaningless. It has no concrete subclass in the
-tree either (`OpenAIModel` and `Post` declare their own timestamp columns rather
-than inheriting), so it is asserted on through its field definitions and its
-abstractness instead. `DisplayFieldsMixin` is a plain Python mixin, not a model
-at all, so it is exercised through an ordinary subclass with no database.
+Note on completeness: `TimestampedModel` is `abstract = True`, so Django
+creates no table for it and instantiating it is meaningless. It has no
+concrete subclass in the tree either (`AIModel` and `Post` declare their own
+timestamp columns rather than inheriting), so it is asserted on through its
+field definitions and its abstractness instead. `DisplayFieldsMixin` is a
+plain Python mixin, not a model at all, so it is exercised through an ordinary
+subclass with no database.
 """
 
 from django.db import models
 
-from parodynews.models.base import DisplayFieldsMixin, TimestampedModel
+from parodynews.models.base import (
+    DisplayFieldsMixin,
+    TimestampedModel,
+    generate_prefixed_id,
+)
 
 
 # --------------------------------------------------------------------------- #
@@ -64,6 +68,25 @@ def test_a_concrete_subclass_inherits_both_columns():
 
     field_names = {f.name for f in Concrete._meta.fields}
     assert {"created_at", "updated_at"} <= field_names
+
+
+# --------------------------------------------------------------------------- #
+# generate_prefixed_id — assistants, threads and messages mint their own keys
+# --------------------------------------------------------------------------- #
+def test_generated_ids_carry_the_prefix():
+    assert generate_prefixed_id("asst").startswith("asst_")
+    assert generate_prefixed_id("thread").startswith("thread_")
+
+
+def test_generated_ids_are_unique():
+    ids = {generate_prefixed_id("msg") for _ in range(500)}
+    assert len(ids) == 500
+
+
+def test_generated_ids_fit_the_id_columns():
+    """The columns are CharField(max_length=225/255); a key that overflowed
+    would fail only on insert, and only for one model."""
+    assert len(generate_prefixed_id("thread")) <= 64
 
 
 # --------------------------------------------------------------------------- #

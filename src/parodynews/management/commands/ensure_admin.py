@@ -254,7 +254,7 @@ This file contains sensitive credentials in plaintext!
 For Development:
   - This is acceptable for local development environments
   - Keep this file in .gitignore (should already be configured)
-  
+
 For Production:
   - DO NOT use default credentials
   - Set strong credentials via environment variables:

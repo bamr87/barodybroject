@@ -159,6 +159,28 @@ class Post(models.Model):
             models.Index(fields=["user", "-created_at"]),
         ]
 
+    def __str__(self):
+        """Return the post title from content_detail.
+
+        Returns:
+            str: The title from the related ContentDetail
+        """
+        if self.content_detail:
+            return self.content_detail.title
+        return f"Post {self.pk}"
+
+    def get_absolute_url(self):
+        """Return the canonical URL for this post.
+
+        The `post_detail` route is declared as `posts/<int:post_id>/` in
+        `parodynews/urls.py`, so the kwarg must be `post_id`. Passing `pk`
+        raised `NoReverseMatch` on every call (issue #51).
+
+        Returns:
+            str: URL path to post detail view
+        """
+        return reverse("post_detail", kwargs={"post_id": self.pk})
+
     def get_display_fields(self):
         """Return list of fields to display in admin and list views.
 
@@ -174,28 +196,6 @@ class Post(models.Model):
             "created_at",
             "status",
         ]
-
-    def get_absolute_url(self):
-        """Return the canonical URL for this post.
-
-        The `post_detail` route is declared as `posts/<int:post_id>/` in
-        `parodynews/urls.py`, so the kwarg must be `post_id`. Passing `pk`
-        raised `NoReverseMatch` on every call (issue #51).
-
-        Returns:
-            str: URL path to post detail view
-        """
-        return reverse("post_detail", kwargs={"post_id": self.pk})
-
-    def __str__(self):
-        """Return the post title from content_detail.
-
-        Returns:
-            str: The title from the related ContentDetail
-        """
-        if self.content_detail:
-            return self.content_detail.title
-        return f"Post {self.pk}"
 
 
 class PostFrontMatter(models.Model):
@@ -255,14 +255,6 @@ class PostFrontMatter(models.Model):
         verbose_name = "Post Front Matter"
         verbose_name_plural = "Post Front Matters"
 
-    def get_display_fields(self):
-        """Return list of fields to display in admin and list views.
-
-        Returns:
-            list: Field names ['post', 'title', 'author', 'published_at', 'slug']
-        """
-        return ["post", "title", "author", "published_at", "slug"]
-
     def __str__(self):
         """Return the front matter title.
 
@@ -270,6 +262,14 @@ class PostFrontMatter(models.Model):
             str: The title field value
         """
         return self.title
+
+    def get_display_fields(self):
+        """Return list of fields to display in admin and list views.
+
+        Returns:
+            list: Field names ['post', 'title', 'author', 'published_at', 'slug']
+        """
+        return ["post", "title", "author", "published_at", "slug"]
 
 
 class PostVersion(models.Model):

@@ -1,0 +1,53 @@
+/* Small additions on top of Bootstrap; the theme itself is Bootstrap 5.3's
+   colour modes, driven by data-bs-theme on <html>. */
+
+.prose {
+  max-width: 72ch;
+}
+
+.prose h2,
+.prose h3 {
+  margin-top: 1.5rem;
+}
+
+.prose p {
+  line-height: 1.7;
+}
+
+/* Conversation bubbles on the thread screen. */
+.chat-turn {
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+}
+
+.chat-turn--user {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.chat-turn--assistant {
+  background-color: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+}
+
+.chat-turn--failed {
+  border: 1px solid var(--bs-danger-border-subtle);
+  background-color: var(--bs-danger-bg-subtle);
+}
+
+/* Filter inputs inside sortable headers must not inherit the header's
+   pointer cursor, and the sort button must look like a header, not a link. */
+table thead th button.btn-link {
+  white-space: nowrap;
+}
+
+.code-block {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.85rem;
+}
+
+textarea.code-editor {
+  font-family: var(--bs-font-monospace);
+  font-size: 0.85rem;
+  min-height: 18rem;
+}

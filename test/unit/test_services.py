@@ -312,9 +312,31 @@ class TestInstallationService(TestCase):
         import re
         self.assertTrue(re.match(r'^[A-Za-z0-9_-]+$', token))
         
-            from django.conf import settings
-            django.setup()
-            pytest.main([__file__, '-v'])
+        # Token should have reasonable length
+        self.assertGreaterEqual(len(token), 32)
+        self.assertLessEqual(len(token), 128)
+
+
+class TestInstallationServiceIntegration(TestCase):
+    """Integration tests for InstallationService with Django components."""
+    
+    def setUp(self):
+        """Set up integration test environment."""
+        self.test_dir = tempfile.mkdtemp()
+        self.test_config_file = os.path.join(self.test_dir, 'integration_config.json')
+        self.test_installation_file = os.path.join(self.test_dir, '.installation')
+        
+        self.service = InstallationService()
+        self.service.config_file = Path(self.test_config_file)
+        self.service.installation_file = Path(self.test_installation_file)
+    
+    def tearDown(self):
+        """Clean up integration test environment."""
+        import shutil
+        if os.path.exists(self.test_dir):
+            shutil.rmtree(self.test_dir)
+        
+        # Clean up any created users
         User.objects.all().delete()
     
     def test_full_installation_workflow(self):
@@ -376,12 +398,14 @@ class TestInstallationService(TestCase):
         """Test that installation state persists across service instances."""
         # Create installation state
         token = self.service.generate_setup_token()
-        self.service.create_admin_user('persistent', 'persist@test.com', 'PersistPass123!')
-        self.service.mark_installation_complete()
+        self.assertTrue(self.service.consume_setup_token(token))
+        user = self.service.create_admin_user('persistent', 'persist@test.com', 'PersistPass123!')
+        self.service.mark_installation_complete(admin_user_id=user.id)
         
-        # Create new service instance
+        # Create new service instance over the same state files
         new_service = InstallationService()
-        new_service.config_file = self.test_config_file
+        new_service.config_file = Path(self.test_config_file)
+        new_service.installation_file = Path(self.test_installation_file)
         
         # Verify state is preserved
         self.assertTrue(new_service.is_installation_complete())

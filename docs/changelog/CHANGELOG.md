@@ -2,8 +2,7 @@
 
 All notable changes to the Barodybroject Django application are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
@@ -82,11 +81,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Template Performance**: Template caching improved rendering speed by ~25%
 
 ### Documentation
-- **[Django Settings Optimization Guide](./docs/configuration/settings-optimization.md)** - 100+ page comprehensive guide
-- **[Environment Configuration Guide](./docs/configuration/environment-config.md)** - Complete environment variable reference
-- **[Security Configuration Guide](./docs/configuration/security-config.md)** - Security best practices and implementation
-- **[Performance Configuration Guide](./docs/configuration/performance-config.md)** - Performance optimization strategies
-- **[Migration Guide](./docs/configuration/settings-optimization.md#migration-guide)** - Step-by-step migration instructions
+- **[Django Settings Optimization Guide](../configuration/settings-optimization.md)** - 100+ page comprehensive guide
+- **[Environment Configuration Guide](../configuration/environment-config.md)** - Complete environment variable reference
+- **[Security Configuration Guide](../configuration/settings-optimization.md#security-configuration)** - Security best practices and implementation
+- **[Performance Configuration Guide](../configuration/settings-optimization.md#performance-optimization)** - Performance optimization strategies
+- **[Migration Guide](../configuration/settings-optimization.md#migration-guide)** - Step-by-step migration instructions
 
 **Impact**: Transforms Django application into enterprise-ready, scalable, and secure platform suitable for high-traffic production environments while maintaining excellent developer experience.
 
@@ -186,8 +185,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Impact**: Significant improvement in user experience, accessibility, and code maintainability
 
 ### Documentation
-- [Complete Template Improvements Summary](./docs/changelog/archive/TEMPLATE_IMPROVEMENTS.md)
-- [Detailed Implementation Guide](./docs/changelog/summaries/2025-01-27-template-improvements/)
+- [Complete Template Improvements Summary](./archive/TEMPLATE_IMPROVEMENTS.md)
 
 ## [0.2.0] - 2025-01-26 - Framework Simplification Release
 
@@ -213,7 +211,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Benefits**: Reduced complexity, cleaner codebase, simplified maintenance, faster onboarding
 
 ### Documentation
-- [Framework Simplification Summary](./docs/changelog/archive/FRAMEWORK_SIMPLIFICATION_SUMMARY.md)
+- [Framework Simplification Summary](./archive/FRAMEWORK_SIMPLIFICATION_SUMMARY.md)
 
 ## [0.1.0] - 2025-01-25 - Docker Optimization Release
 
@@ -242,7 +240,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Benefits**: Simplified development, faster iteration, reduced complexity, better maintainability
 
 ### Documentation
-- [Docker Simplification Summary](./docs/changelog/archive/DOCKER_SIMPLIFICATION_SUMMARY.md)
+- [Docker Simplification Summary](./archive/DOCKER_SIMPLIFICATION_SUMMARY.md)
 
 ---
 
@@ -281,18 +279,18 @@ When contributing changes to this project:
 4. **Include Details**: Provide sufficient detail for users to understand impact
 5. **Link Resources**: Reference related issues, PRs, and documentation
 
-For detailed contribution guidelines, see [CONTRIBUTING_CHANGES.md](./docs/changelog/CONTRIBUTING_CHANGES.md).
+For detailed contribution guidelines, see [CONTRIBUTING_CHANGES.md](./CONTRIBUTING_CHANGES.md).
 
 ---
 
 ## Resources
 
-- [Changelog Documentation System](./docs/changelog/README.md)
-- [Change Templates](./docs/changelog/templates/)
-- [Migration Guides](./docs/changelog/summaries/)
-- [Historical Summaries](./docs/changelog/archive/)
+- [Changelog Documentation System](./README.md)
+- [Change Templates](./templates/)
+- [Migration Guides](./summaries/)
+- [Historical Summaries](./archive/)
 - [Project README](./README.md)
-- [Contributing Guidelines](./CONTRIBUTING.md)
+- [Contributing Guidelines](../../CONTRIBUTING.md)
 
 ---
 
