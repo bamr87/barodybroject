@@ -33,9 +33,10 @@ class Command(BaseCommand):
                     continue
 
                 # Exclude default values for foreign keys and date/datetime fields.
-                if isinstance(field, models.ForeignKey):
-                    value = None
-                elif isinstance(field, (models.DateField, models.DateTimeField)):
+                if isinstance(
+                    field,
+                    (models.ForeignKey, models.DateField, models.DateTimeField),
+                ):
                     value = None
                 else:
                     if hasattr(field, "default") and field.default != NOT_PROVIDED:

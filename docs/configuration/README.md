@@ -7,10 +7,10 @@ This directory contains comprehensive documentation for Django application confi
 ### Core Configuration
 - **[Settings Optimization Guide](./settings-optimization.md)** - Complete guide to Django settings optimization for production and development
 - **[Environment Configuration](./environment-config.md)** - Environment variables and configuration management
-- **[Security Configuration](./security-config.md)** - Security settings and best practices
-- **[Performance Configuration](./performance-config.md)** - Performance optimization settings
-- **[Database Configuration](./database-config.md)** - Database setup and optimization
-- **[Deployment Configuration](./deployment-config.md)** - Deployment-specific settings and configurations
+- **[Security Configuration](./settings-optimization.md#security-configuration)** - Security settings and best practices
+- **[Performance Configuration](./settings-optimization.md#performance-optimization)** - Performance optimization settings
+- **[Database Configuration](./settings-optimization.md#database-optimization)** - Database setup and optimization
+- **[Deployment Configuration](./settings-optimization.md#deployment-configuration)** - Deployment-specific settings and configurations
 
 ### Ecosystem Integration
 - **[Ecosystem Integration Configuration](./ecosystem-integration-config.md)** - IT-Journey ecosystem integration settings and standards
@@ -41,10 +41,10 @@ This directory contains comprehensive documentation for Django application confi
 See [Environment Configuration](./environment-config.md) for complete variable reference.
 
 ### Security Settings
-See [Security Configuration](./security-config.md) for production security requirements.
+See [Security Configuration](./settings-optimization.md#security-configuration) for production security requirements.
 
 ### Performance Optimization
-See [Performance Configuration](./performance-config.md) for scaling and optimization guidance.
+See [Performance Configuration](./settings-optimization.md#performance-optimization) for scaling and optimization guidance.
 
 ### Ecosystem Integration
 See [Ecosystem Integration Configuration](./ecosystem-integration-config.md) for IT-Journey ecosystem integration settings.

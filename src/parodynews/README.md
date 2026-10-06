@@ -1,84 +1,67 @@
+# parodynews
 
-# parodynews Directory
+The main Django application: creating, generating, and publishing parody news content.
 
-## Purpose
-This is the main Django application directory for the parody news generator. It contains the core functionality for creating, managing, and generating parody news content using OpenAI assistants. The app handles user interactions, content management, AI assistant configurations, and the complete workflow for content generation from prompts to published articles.
+## What changed in v0.6.0
 
-## Recent Changes (v2.0.0)
+Two structural changes worth reading before you work in here.
 
-**Models Refactoring**: The monolithic `models.py` file has been split into a well-organized package structure for better maintainability. See [`models/README.md`](models/README.md) for details.
+**The AI layer is provider-agnostic.** No application code imports a vendor SDK. Everything goes through [`ai/`](ai/README.md), which defines one provider contract and resolves the configured implementation at runtime. Claude Code is the default, driven by a `CLAUDE_CODE_OAUTH_TOKEN`; Anthropic, OpenAI, and a test mock are also built in. Switching providers is configuration, not code.
 
-- ✅ **Backward Compatible**: Current domain model imports continue to work
-- 📦 **Better Organization**: Models grouped by domain (AI, Content, Publishing, etc.)
-- 🧹 **Placeholder Models Removed**: obsolete generic demo models were removed during repository cleanup
-- 📚 **Improved Documentation**: Each model module has comprehensive docstrings
+**The UI is React.** The Django template UI and its view modules are gone, replaced by [`../frontend/`](../frontend/README.md) talking to [`api/`](api/README.md). What remains server-rendered is the allauth account pages and the SPA shell.
 
 ## Contents
 
-### Core Files
-- `admin.py`: Django admin interface configurations (organized by model category)
-- `apps.py`: Django app configuration (ParodynewsConfig)
-- `context_processors.py`: Django context processors for template rendering
-- `forms.py`: Django forms for user input (organized by model category)
-- `mixins.py`: Reusable class mixins for views and models
-- `resources.py`: Import/export resource definitions
-- `serializers.py`: Django REST framework serializers (organized by model category)
-- `tests.py`: Main test file
-- `urls.py`: URL routing configurations
-- `utils.py`: Main utilities file for OpenAI integration
+### Core files
+- `admin.py` — Django admin configuration
+- `apps.py` — app config (`ParodynewsConfig`)
+- `context_processors.py` — `site_links`, which also hands the allauth pages the React bundle's CSS so they need no third-party requests
+- `resources.py` — import/export resource definitions
+- `serializers.py` — legacy serializers (the API's own live in `api/serializers.py`)
+- `urls.py` — routing; Django-owned prefixes first, then a catch-all that hands everything else to the SPA
 
-### Directories
-- `docs/`: Documentation directory with detailed app documentation
-- `management/`: Django management commands directory
-- `migrations/`: Database migration files
-- **`models/`**: **NEW** - Organized model package (see [models/README.md](models/README.md))
-  - `base.py`: Abstract base classes and mixins
-  - `config.py`: Application configuration models
-  - `ai.py`: OpenAI and AI assistant models
-  - `content.py`: Content generation models
-  - `conversation.py`: Thread and message models
-  - `publishing.py`: Post and publishing models
-- `schema/`: JSON schema definitions for data validation
-- `scripts/`: Application-specific utility scripts
-- `templates/`: HTML templates for the application UI
-- `templatetags/`: Custom Django template tags
-- `tests/`: Test suite for the application
-- `utils/`: Utility functions and helper modules
-- `views/`: Package-based Django views and REST API viewsets
+### Packages
 
-### Legacy Data
-- `model_choices.json`: JSON file containing model choice configurations
+| Directory | Contains |
+|---|---|
+| [`ai/`](ai/README.md) | The provider contract, registry, and the four providers |
+| [`api/`](api/README.md) | DRF viewsets, serializers, pagination — the SPA's only interface |
+| [`services/`](services/README.md) | Use cases: generate content, run assistants, publish posts |
+| [`models/`](models/README.md) | Domain models, organized by area |
+| [`views/`](views/) | Just `spa.py` now — reads the Vite manifest and renders the shell |
+| [`management/`](management/README.md) | Management commands, including `sync_models` |
+| [`migrations/`](migrations/README.md) | Database migrations |
+| [`schema/`](schema/README.md) | Bundled JSON schemas for structured output |
+| [`templates/`](templates/README.md) | The SPA shell and the server-rendered account pages |
+| [`tests/`](tests/README.md) | Test suite |
+| [`utils/`](utils/README.md) | Markdown rendering, DKIM email backend, schema helpers, field defaults |
 
-## Usage
-This Django app provides the core functionality of the parody news generator:
+## How a request flows
 
-```python
-# In Django settings
-INSTALLED_APPS = [
-    'parodynews.apps.ParodynewsConfig',
-    # other apps...
-]
-
-# URL inclusion in main urls.py
-from django.urls import path, include
-urlpatterns = [
-    path('', include('parodynews.urls')),
-]
+```
+React (frontend/)
+  -> /api/...            api/views.py      parse, authorize
+  -> services/...        services/*.py     the actual use case
+  -> parodynews.ai       ai/registry.py    pick the configured provider
+  -> provider            ai/providers/*    one vendor call
+  <- GenerationResult    validated against the caller's JSON schema
 ```
 
-Key features include:
-- OpenAI assistant management and configuration
-- Content generation workflows using AI
-- User interface for creating and managing parody news articles
-- REST API endpoints for programmatic access
+Each layer has one job, and the boundary that matters most is the last one: everything above `ai/` is written against `GenerationRequest`/`GenerationResult` and never sees a vendor's vocabulary.
 
-## Container Configuration
-The app runs within the Django container environment:
-- Requires OpenAI API credentials for assistant functionality
-- Database access for model persistence
-- Static file serving for templates and assets
-- Environment variables for configuration (OpenAI API keys, etc.)
+## Running it
 
-## Related Paths
-- Incoming: Receives requests through Django URL routing, integrates with barodybroject settings
-- Outgoing: Interfaces with OpenAI API, renders templates, manages database through Django ORM
+See [the repository README](../../README.md) for the dev stack. Quick reference, from `src/`:
+
+```bash
+python manage.py migrate
+python manage.py sync_models          # populate the AIModel catalogue
+python manage.py runserver
+python -m pytest                      # from src/
+```
+
+## See also
+
+- [`../frontend/README.md`](../frontend/README.md) — the user interface
+- [`../../CLAUDE.md`](../../CLAUDE.md) — conventions for AI coding agents
+- [`../../docs/changelog/`](../../docs/changelog/) — change records

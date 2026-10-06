@@ -12,6 +12,18 @@ e2e_password=${E2E_PASSWORD:-e2e_password}
 
 python -m playwright install --with-deps chromium
 
+# The e2e suite drives the React SPA, which Django serves from the Vite
+# manifest, so the bundle has to exist before the server starts. Skipped when
+# a build is already present (the CI job uploads one) or Node is unavailable.
+if [[ ! -f src/frontend/dist/.vite/manifest.json ]]; then
+  if command -v npm > /dev/null; then
+    (cd src/frontend && npm ci --no-audit --no-fund && npm run build)
+  else
+    echo "npm not found and no frontend build present; the SPA will not render." >&2
+    exit 1
+  fi
+fi
+
 export PGPASSWORD="$db_password"
 psql -h "$db_host" -U "$db_user" -d postgres -c "CREATE DATABASE $e2e_db;" || true
 psql -h "$db_host" -U "$db_user" -d "$e2e_db" -c "CREATE SCHEMA IF NOT EXISTS $e2e_schema;"
