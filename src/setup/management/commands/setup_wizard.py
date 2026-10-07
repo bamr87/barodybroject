@@ -26,7 +26,7 @@ import sys
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.core.management import execute_from_command_line
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
@@ -188,7 +188,9 @@ class Command(BaseCommand):
 
         try:
             # Run migrations
-            execute_from_command_line(["manage.py", "migrate", "--noinput"])
+            # call_command, not execute_from_command_line: the latter goes through
+            # run_from_argv, which closes every DB connection when it returns.
+            call_command("migrate", interactive=False, stdout=self.stdout)
             self.stdout.write(self.style.SUCCESS("  ✓ Database migrations applied"))
         except Exception as e:
             raise CommandError(f"Database migration failed: {e}") from e

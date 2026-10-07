@@ -43,6 +43,9 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       DJANGO_SETTINGS_MODULE: barodybroject.settings.production
       DEBUG: "False"
+      # Production settings refuse to start without these; the image has no .env.
+      SECRET_KEY: ${SECRET_KEY:-}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-}
       PYTHONPATH: /app
       PYTHONUNBUFFERED: 1
       # AI provider configuration. Credentials saved in the Settings screen

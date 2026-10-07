@@ -37,6 +37,16 @@ Everything requires authentication by default (`IsAuthenticated`). Provider conf
 
 The 400/502 split matters to the frontend: a 400 shows the operator a "check your settings" message, a 502 offers a retry.
 
+`POST /api/posts/{id}/publish/` follows the same split for publication failures:
+
+| Exception | Status | Body |
+|---|---|---|
+| `PublishingNotConfigured` | 400 | `{"detail": "GitHub publishing is not configured…"}` |
+| `PublicationError` | 502 | `{"detail": "<message written for a reader>"}`, plus `"url"` when the failure is an already-open pull request |
+| anything else | 502 | `{"detail": "Publishing failed: …"}` |
+
+A `PublicationError`'s message is already phrased for a reader, so it is passed through verbatim rather than wrapped in the generic prefix — that generic prefix is now only reached by a failure the service did not anticipate. See issue #114 and [`../services/README.md`](../services/README.md).
+
 ## Provider endpoints
 
 `ProviderViewSet` is how the settings screen works:
