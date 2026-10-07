@@ -11,6 +11,7 @@ This directory contains comprehensive documentation for Django application confi
 - **[Performance Configuration](./settings-optimization.md#performance-optimization)** - Performance optimization settings
 - **[Database Configuration](./settings-optimization.md#database-optimization)** - Database setup and optimization
 - **[Deployment Configuration](./settings-optimization.md#deployment-configuration)** - Deployment-specific settings and configurations
+- **[Error Reporting](./error-reporting.md)** - Filing unhandled exceptions as deduplicated GitHub issues. **Off by default**; read the data-handling section before enabling it, since this repository is public
 
 ### Ecosystem Integration
 - **[Ecosystem Integration Configuration](./ecosystem-integration-config.md)** - IT-Journey ecosystem integration settings and standards
