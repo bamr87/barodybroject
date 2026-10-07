@@ -13,6 +13,7 @@ The test suite for the parodynews application: 349 Python tests covering models,
 | `test_api.py` | The REST API: authentication, permissions, pagination, and the AI error → status mapping |
 | `test_models_*.py` | One module per `models/` module, one-for-one |
 | `test_services_*.py` | Content generation, thread runs, publishing |
+| `test_post_publish.py` | Publication **failure** reporting (issue #114): every GitHub refusal becomes a reader-facing message, a non-404 is never answered by a second write, and the endpoint returns it instead of a 500 |
 | `test_templates.py` | The SPA shell, the Vite manifest branches, and the auth pages |
 | `e2e/test_spa.py` | Playwright specs against a running server, marked `@pytest.mark.e2e` |
 | `data/` | Real exports the factories build from |
