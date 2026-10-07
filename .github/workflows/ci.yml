@@ -15,6 +15,7 @@ concurrency:
 
 env:
   PYTHON_VERSION: "3.11"
+  NODE_VERSION: "22"
   DJANGO_SETTINGS_MODULE: barodybroject.settings.testing
   DEV_COMPOSE: .devcontainer/docker-compose_dev.yml
 
@@ -41,10 +42,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -98,10 +99,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -129,11 +130,53 @@ jobs:
 
       - name: Upload coverage artifact
         if: matrix.python-version == '3.11'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: django-coverage-xml
           path: src/coverage.xml
           if-no-files-found: error
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: pre-checks
+    defaults:
+      run:
+        working-directory: src/frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit tests (Vitest)
+        run: npm run test -- --run
+
+      # The build is what the Django container serves, so a build failure is a
+      # deploy failure: keep it in the gate rather than only in the image build.
+      - name: Build
+        run: npm run build
+
+      - name: Upload build output
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-dist
+          path: src/frontend/dist
+          retention-days: 7
 
   e2e:
     name: Playwright E2E
@@ -158,16 +201,23 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
           cache-dependency-path: |
             src/requirements.txt
             requirements-dev.txt
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
 
       - name: Install system dependencies
         run: bash .github/scripts/ci-install-system-deps.sh e2e
@@ -195,10 +245,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -212,11 +262,7 @@ jobs:
       - name: Install lint tools
         run: bash .github/scripts/python-install.sh lint
 
-      # TEMPORARY (see PR #134 residual debt): non-blocking until the ~75
-      # outstanding ruff findings are fixed or ignore-listed via [tool.ruff]
-      # in pyproject.toml. Remove continue-on-error once ruff is clean.
       - name: Run lint checks
-        continue-on-error: true
         run: bash .github/scripts/quality.sh lint
 
       - name: Install dependency audit tools
@@ -236,7 +282,7 @@ jobs:
 
       - name: Upload quality reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: quality-and-security-reports
           path: |
@@ -260,10 +306,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Validate Compose files
         run: bash .github/scripts/compose-validation.sh validate
@@ -286,10 +332,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build production image for scanning
         run: bash .github/scripts/compose-validation.sh build-production-image barodybroject:security-scan
@@ -302,7 +348,7 @@ jobs:
           output: trivy-results.sarif
 
       - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         with:
           sarif_file: trivy-results.sarif
@@ -310,18 +356,28 @@ jobs:
   ci-summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [pre-checks, tests, e2e, quality, container-validation, container-security]
+    needs:
+      [
+        pre-checks,
+        tests,
+        frontend,
+        e2e,
+        quality,
+        container-validation,
+        container-security,
+      ]
     if: always()
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Check required jobs
         run: >-
           bash .github/scripts/check-job-results.sh
           pre-checks=${{ needs.pre-checks.result }}
           tests=${{ needs.tests.result }}
+          frontend=${{ needs.frontend.result }}
           e2e=${{ needs.e2e.result }}
           quality=${{ needs.quality.result }}
           container-validation=${{ needs.container-validation.result }}

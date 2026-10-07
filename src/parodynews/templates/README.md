@@ -1,66 +1,48 @@
-
-# templates Directory
+# templates
 
 ## Purpose
-This directory contains Django HTML templates that define the user interface and presentation layer for the parody news generator application. It includes templates for authentication, content management, navigation, and various user interface components using Django's template system.
+
+What is still server-rendered after the move to React: the SPA shell, the allauth account pages, and a couple of error pages. Application UI lives in [`../../frontend/`](../../frontend/README.md).
 
 ## Contents
-- `429.html`: Rate limiting error page template
-- `account/`: Django Allauth account management templates (login, signup, profile)
-- `admin/`: Custom Django admin interface templates
-- `allauth/`: Django Allauth authentication system templates and layouts
-- `base.html`: Base template that other templates extend, includes common HTML structure
-- `chatbox.html`: Template for chat/messaging interface components
-- `footer.html`: Footer component template used across the site
-- `includes/`: Reusable template fragments and components
-- `index.html`: Main landing page template
-- `menu/`: Navigation menu templates
-- `mfa/`: Multi-factor authentication templates (TOTP, WebAuthn, recovery codes)
-- `parodynews/`: Application-specific templates for parody news functionality
-- `profile.html`: User profile display template
-- `registration/`: User registration and password reset templates
-- `socialaccount/`: Social media authentication templates
-- `usersessions/`: User session management templates
+
+| Path | What it is |
+|---|---|
+| `spa/index.html` | The shell the React app mounts into |
+| `base.html` | Layout the account pages extend |
+| `account/`, `allauth/`, `socialaccount/`, `mfa/`, `usersessions/` | Django-allauth templates |
+| `profile.html` | User profile page |
+| `footer.html` | Shared footer |
+| `429.html` | Rate-limit error page |
+
+## The SPA shell
+
+`spa/index.html` is small but does four specific things:
+
+1. Renders `<div id="root">` for React to mount into.
+2. Emits a `csrf` meta tag, which `frontend/src/api/client.ts` reads for write requests.
+3. Runs a tiny pre-paint script that applies the stored theme, so a reload in dark mode doesn't flash white.
+4. Picks its script tags one of three ways: the Vite dev server when `FRONTEND_DEV_SERVER_URL` is set, the built manifest when `dist/.vite/manifest.json` exists, and a plain message when neither does — so a missing frontend build says so instead of rendering a blank page.
+
+## The account pages make no third-party requests
+
+Worth preserving if you edit `base.html`. These templates used to pull Bootstrap's CSS and JS from a CDN, which meant every login page load depended on jsDelivr being reachable and its certificate validating — and in a restricted network it simply failed.
+
+They now reuse the React bundle's stylesheet, handed to the template by the `site_links` context processor, and load no JavaScript at all. If you add a component here that needs Bootstrap's JS, prefer a CSS-only alternative or move that screen into the SPA.
 
 ## Usage
-Templates are rendered by Django views and follow Django template conventions:
-
-```python
-# In views.py
-from django.shortcuts import render
-
-def home_view(request):
-    return render(request, 'index.html', context)
-
-def content_view(request):
-    return render(request, 'parodynews/content_detail.html', context)
-```
 
 ```html
-<!-- Template inheritance -->
 {% extends 'base.html' %}
 {% load static %}
 
 {% block content %}
-<!-- Page-specific content -->
+  <!-- page content -->
 {% endblock %}
 ```
 
-Template features:
-- Django template inheritance with `base.html`
-- Integration with Django Allauth for authentication
-- Multi-factor authentication support
-- Social media login integration
-- Responsive design components
-- Static file integration
+## Related paths
 
-## Container Configuration
-Templates are served through Django's template system:
-- Located in Django's `TEMPLATES` setting configuration
-- Processed by Django template engine during request handling
-- Static assets referenced via `{% static %}` template tags
-- Automatically reloaded in development mode
-
-## Related Paths
-- Incoming: Rendered by Django views in response to HTTP requests
-- Outgoing: Generates HTML responses sent to web browsers, includes static assets
+- [`../../frontend/README.md`](../../frontend/README.md) — the application UI
+- [`../views/spa.py`](../views/spa.py) — reads the Vite manifest and renders the shell
+- [`../context_processors.py`](../context_processors.py) — `site_links`, including `frontend_styles`

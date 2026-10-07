@@ -1,19 +1,31 @@
 """
 File: base.py
-Description: Abstract base models and mixins for parodynews models
+Description: Abstract base models, mixins, and id helpers for parodynews models
 Author: Barodybroject Team <team@example.com>
 Created: 2025-11-30
-Last Modified: 2025-12-20
-Version: 0.4.0
+Last Modified: 2026-09-14
+Version: 0.6.0
 
 Dependencies:
 - django: >=5.1
 
-Usage: from parodynews.models.base import TimestampedModel
+Usage: from parodynews.models.base import TimestampedModel, generate_prefixed_id
 """
 
+import uuid
+
 from django.db import models
-from django.utils import timezone
+
+
+def generate_prefixed_id(prefix: str) -> str:
+    """Return a locally generated identifier such as ``asst_3f9c...``.
+
+    Assistants, threads and messages used to take their primary keys from the
+    OpenAI Assistants API. They are now created locally, so the key is minted
+    here; the familiar prefixes are kept so existing rows and new rows look
+    alike in the UI and in logs.
+    """
+    return f"{prefix}_{uuid.uuid4().hex[:24]}"
 
 
 class TimestampedModel(models.Model):
