@@ -10,6 +10,8 @@ This directory exists because `src/pytest.ini` already lists `tests` in its `tes
 
 - `test_dependency_scan_scope.py`: CI contract for the `Quality and Security` dependency gate (issue #176) — asserts that `quality.sh dependency-scan` passes `-r requirements.txt` to both `safety` and `pip-audit`, that the gating (non-report) invocations are not silenced with `|| true`, that the `Run dependency scans` step has no `continue-on-error`, and that the obsolete runtime `setuptools` upgrade is gone. Pure stdlib, so it runs even where the application's dependencies are absent.
 
+- `test_auth_stack_pins.py`: dependency contract for the auth stack (bamr87/bamr87#326) — asserts that `src/requirements.txt` floors `oauthlib` at 4.0.0 (the PYSEC-2026-4114 fix) and pins a `django-allauth` new enough to accept it, with all four extras kept. Pure stdlib.
+
 ## Usage
 
 These tests run as part of the normal suite:
