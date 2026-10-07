@@ -2,7 +2,7 @@
 # .devcontainer Directory
 
 ## Purpose
-This directory contains Visual Studio Code development container configuration for the barodybroject. It provides a consistent, reproducible development environment using Docker containers that includes all necessary dependencies, tools, and extensions for Django development with OpenAI integration.
+This directory contains Visual Studio Code development container configuration for the barodybroject. It provides a consistent, reproducible development environment using Docker containers with all the dependencies, tools, and extensions needed for Django and React development.
 
 ## Contents
 - `devcontainer.json`: VS Code dev container configuration specifying container services, extensions, and settings
@@ -34,13 +34,28 @@ Development environment features:
 - **Debugging Support**: Integrated debugging with breakpoints (port 5678)
 - **Hot Reload**: File changes automatically reflected
 - **Database Access**: Direct connection to PostgreSQL container
-- **Port Forwarding**: Automatic forwarding of development ports (8000, 5432)
+- **Port Forwarding**: Automatic forwarding of development ports (8000 Django, 5173 Vite, 5432 PostgreSQL, 5678 debugger)
+
+### Services
+
+| Service | What it runs |
+|---|---|
+| `python` | Django, under `debugpy --wait-for-client` — port 8000 stays silent until a debugger attaches |
+| `frontend` | The Vite dev server for `src/frontend/`, with hot reload |
+| `barodydb` | PostgreSQL |
+
+`node_modules` lives in a named volume (`frontend-node-modules`) rather than the bind mount, so a host install and the container install don't fight over native modules.
+
+### AI provider credentials
+
+The compose file passes `AI_DEFAULT_PROVIDER`, `CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` through from your `.env`. The default provider is `claude_code`; mint a token with `claude setup-token`. Set only the variable for the credential you actually have — a stale key in another variable is a common source of confusing auth failures.
 
 ## Container Configuration
 Development environment uses standard Python 3.11-slim image with:
 - **Automated dependency installation**: System packages and Python requirements
 - **Volume mounts**: Source code with live reload (`../:/workspace`)
 - **PostgreSQL container**: Shared database for development
+- **Vite container**: React dev server for the frontend
 - **Jekyll container**: Optional static site generation
 - **Network configuration**: Isolated network for inter-container communication
 - **Debug port exposure**: VS Code debugging integration on port 5678
@@ -54,4 +69,4 @@ Development environment uses standard Python 3.11-slim image with:
 ## Related Paths
 - Incoming: Used by VS Code when opening the project in dev containers
 - Outgoing: Provides containerized development environment for Django application
-- Parent: `/Users/bamr87/github/barodybroject/docker-compose.yml` for production configuration
+- Parent: [`../docker-compose.yml`](../docker-compose.yml) for the production-like configuration

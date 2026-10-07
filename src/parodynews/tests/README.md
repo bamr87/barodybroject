@@ -1,67 +1,76 @@
-
-# tests Directory
+# tests
 
 ## Purpose
-This directory contains the comprehensive test suite for the parodynews Django application, including unit tests, integration tests, test configuration, and test data. It provides automated testing infrastructure to ensure code quality, functionality verification, and regression prevention for the parody news generator.
+
+The test suite for the parodynews application: 349 Python tests covering models, the AI provider layer, services, the REST API, templates, plus a Playwright end-to-end suite.
 
 ## Contents
-- `conftest.py`: pytest configuration file with shared fixtures, test setup, and common test utilities
-- `__init__.py`: Python package initialization file making the directory a Python module
-- `data/`: Test data directory containing sample data, fixtures, and mock responses (has its own README)
-- `scripts/`: Test scripts directory containing testing utilities and automation scripts (has its own README)
-- `.pytest_cache/`: Subdirectory for pytest cache files (auto-generated)
-- `__pycache__/`: Subdirectory for Python bytecode cache (auto-generated)
 
-## Usage
-Tests are executed using pytest with Django integration:
+| File | Covers |
+|---|---|
+| `conftest.py` | Shared fixtures — model factories, API clients, the mock-provider reset, and the Playwright session fixtures |
+| `test_ai_layer.py` | [`parodynews.ai`](../ai/README.md): the provider contract, the registry, and each built-in provider |
+| `test_api.py` | The REST API: authentication, permissions, pagination, and the AI error → status mapping |
+| `test_models_*.py` | One module per `models/` module, one-for-one |
+| `test_services_*.py` | Content generation, thread runs, publishing |
+| `test_post_publish.py` | Publication **failure** reporting (issue #114): every GitHub refusal becomes a reader-facing message, a non-404 is never answered by a second write, and the endpoint returns it instead of a 500 |
+| `test_templates.py` | The SPA shell, the Vite manifest branches, and the auth pages |
+| `e2e/test_spa.py` | Playwright specs against a running server, marked `@pytest.mark.e2e` |
+| `data/` | Real exports the factories build from |
+
+## Running
+
+From `src/`:
 
 ```bash
-# Run all tests
-python -m pytest src/parodynews/tests/
-
-# Run tests with coverage
-python -m pytest src/parodynews/tests/ --cov=src/parodynews
-
-# Run specific test categories
-python -m pytest src/parodynews/tests/ -k "test_models"
-python -m pytest src/parodynews/tests/ -k "test_views"
-
-# Run tests with verbose output
-python -m pytest src/parodynews/tests/ -v
-
-# Example conftest.py fixtures
-@pytest.fixture
-def authenticated_user(db):
-    return User.objects.create_user(
-        username='testuser',
-        email='test@example.com',
-        password='testpass'
-    )
-
-@pytest.fixture
-def sample_article(db):
-    return Article.objects.create(
-        title='Test Article',
-        content='Test content'
-    )
+python -m pytest                      # e2e deselected by default (pytest.ini)
+python -m pytest -k "test_models"     # one area
+python -m pytest -m e2e --browser chromium   # needs a running server
+python -m pytest --cov=parodynews --cov-report=term-missing
 ```
 
-Testing features:
-- **Unit Tests**: Individual component testing for models, views, forms, and utilities
-- **Integration Tests**: End-to-end testing of complete user workflows
-- **API Tests**: REST API endpoint testing with authentication and permissions
-- **Database Tests**: Model relationships, constraints, and data integrity
-- **Authentication Tests**: User authentication, authorization, and session management
-- **OpenAI Integration Tests**: Mocked testing of AI content generation features
+## The mock provider is the point
 
-## Container Configuration
-Tests run within containerized development environment:
-- pytest executed in Django development container
-- Database tests use isolated test database
-- Test fixtures provide consistent test data
-- Coverage reports generated for code quality metrics
-- CI/CD integration through GitHub Actions workflows
+Tests do not reach a real AI vendor, and they also do not monkey-patch one. `settings.testing` sets `AI_DEFAULT_PROVIDER = "mock"`, so the *registry itself* resolves to `MockProvider` and every layer above it runs its real code path — services, serializers, views, error mapping.
 
-## Related Paths
-- Incoming: Tests validate functionality of Django models, views, forms, and utilities from parent directories
-- Outgoing: Generates test reports, coverage data, and validation results for CI/CD pipelines
+```python
+def test_generation_records_the_model(mock_provider, assistant, content_detail):
+    mock_provider.queue_response(build_example(assistant.json_schema.schema))
+    outcome = generate_content(assistant, content_detail)
+    assert outcome.result.provider == "mock"
+```
+
+Two things make this trustworthy rather than a comfortable fiction:
+
+- **The mock validates against the caller's schema like any other provider.** Queue a response that does not satisfy the schema and the test fails exactly where production would.
+- **`queue_response()` accepts an exception.** Failure paths — a provider erroring mid-thread, a configuration error surfacing as a 400 — are tested with the same seam as the happy path.
+
+An autouse `reset_mock_provider` fixture clears the recorded calls and the queue between tests, so ordering never leaks.
+
+## Fixtures compose
+
+The factories chain: asking for `post` transitively creates the `user`, `content_detail`, `thread`, `message`, `assistant`, `ai_model` and `json_schema` it needs. Each depends on `db`, so requesting one is enough to get database access — no extra `@pytest.mark.django_db`.
+
+```python
+def test_a_post_belongs_to_its_author(post, user):
+    assert post.user == user
+```
+
+Factories live in `conftest.py`, not per file, so a field rename breaks in one place. The `*_export` fixtures read `data/*.json` — real exports, not invented literals — so a test that passes against a fabricated shape cannot pass against a shape the application never produces.
+
+API tests get `api_client`, `staff_api_client` and `anon_api_client` rather than building clients inline, which keeps the permission boundary explicit in the test's signature.
+
+## End-to-end
+
+`e2e/test_spa.py` drives the real SPA in Chromium against a real server. It is deselected by default because it needs one; CI runs it in the `e2e` job, which builds the frontend bundle first — without it Django renders a shell with nothing in it.
+
+## Conventions
+
+- Test names are sentences: `test_a_disabled_provider_cannot_be_used`, not `test_provider_disabled_1`. The failure output should read as the claim that broke.
+- One behaviour per test. If the name needs "and", it is two tests.
+- `test_models_publishing.py` carries a completeness guard: it fails if a name in `parodynews.models.__all__` is not referenced by any `test_models_*.py` module. Add a model and the suite tells you it is untested.
+
+## Related paths
+
+- [`../ai/README.md`](../ai/README.md) — the layer `test_ai_layer.py` pins
+- [`../../frontend/README.md`](../../frontend/README.md) — Vitest lives there, run separately

@@ -1,11 +1,13 @@
 # Documentation
 
-Project documentation for the Django/OpenAI parody news generator.
+Project documentation for the parody news generator: a Django backend with a provider-agnostic AI layer and a React frontend.
 
 ## Reference Docs
 
 | Area | Start Here |
 |---|---|
+| AI provider layer | [../src/parodynews/ai/README.md](../src/parodynews/ai/README.md) |
+| Frontend | [../src/frontend/README.md](../src/frontend/README.md) |
 | Admin credentials | [ADMIN_CREDENTIALS_SETUP.md](ADMIN_CREDENTIALS_SETUP.md) |
 | CI/CD | [ci-cd-pipeline.md](ci-cd-pipeline.md) |
 | Configuration | [configuration/README.md](configuration/README.md) |

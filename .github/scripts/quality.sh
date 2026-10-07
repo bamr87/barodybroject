@@ -15,15 +15,31 @@ case "$command" in
     bandit -r src/ -f txt || true
     ;;
   dependency-scan)
+    # Audit the dependencies this project DECLARES, not whatever happens to be
+    # installed in the interpreter.
+    #
+    # Scope: src/requirements.txt — the application's runtime dependencies, and
+    # the only set whose advisories should be able to block a merge. Dev and
+    # CI-toolchain packages are deliberately out of scope: an advisory against a
+    # linter or a scanner is not a risk to what this project ships, and gating
+    # on one blocks merges nobody can unblock.
+    #
+    # Without -r, safety and pip-audit audit the whole environment. In the
+    # `quality` job that environment is installed by python-install.sh lint +
+    # security, and src/requirements.txt only arrives three steps LATER — so the
+    # unscoped form could never report an advisory against Django, openai,
+    # boto3 or psycopg2, while it did fail the build on nltk, a transitive
+    # dependency of safety itself, for an advisory with no patched version.
+    # Passing -r makes the audited set a declared artifact instead of a side
+    # effect of step ordering, and keeps it correct if the job is reordered.
+    #
+    # The --json/--output calls write the report artifacts and may swallow their
+    # exit code; the bare calls are the gate and must keep their teeth.
     cd src
-    # The audits scan the whole environment, including the runner's
-    # preinstalled setuptools — patch it so env-level advisories
-    # (PYSEC-2026-3447) don't mask project findings.
-    pip install --quiet --upgrade "setuptools>=83.0.0"
-    safety check --json > safety-report.json 2>/dev/null || true
-    safety check
-    pip-audit --desc --format=json --output=pip-audit-report.json || true
-    pip-audit --desc
+    safety check -r requirements.txt --json > safety-report.json 2>/dev/null || true
+    safety check -r requirements.txt
+    pip-audit --desc -r requirements.txt --format=json --output=pip-audit-report.json || true
+    pip-audit --desc -r requirements.txt
     ;;
   metrics)
     cd src

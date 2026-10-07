@@ -38,6 +38,14 @@ services:
       DEBUG: "True"
       PYTHONPATH: /workspace/src
       PYTHONUNBUFFERED: 1
+      # AI provider configuration. The app is provider-agnostic; claude_code
+      # is the default and reads a `claude setup-token` OAuth token.
+      AI_DEFAULT_PROVIDER: ${AI_DEFAULT_PROVIDER:-claude_code}
+      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # Point Django at the Vite dev server to hot-reload the React app.
+      FRONTEND_DEV_SERVER_URL: ${FRONTEND_DEV_SERVER_URL:-}
       # Installation wizard configuration for development
       SKIP_INSTALLATION_CHECK: ${SKIP_INSTALLATION_CHECK:-true}
       SETUP_TOKEN_EXPIRY_HOURS: ${SETUP_TOKEN_EXPIRY_HOURS:-2}
@@ -83,6 +91,29 @@ services:
         echo "Waiting for VS Code debugger to attach..."
         python -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000 --noreload --nothreading
 
+  # React frontend dev server. Start it with:
+  #   docker compose -f .devcontainer/docker-compose_dev.yml up -d frontend
+  # then set FRONTEND_DEV_SERVER_URL=http://localhost:5173 for the python
+  # service so Django's shell loads the app from Vite instead of the build.
+  frontend:
+    image: node:22-slim
+    working_dir: /workspace/src/frontend
+    volumes:
+      - ../:/workspace
+      - frontend-node-modules:/workspace/src/frontend/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      DJANGO_ORIGIN: http://python:8000
+    networks:
+      - barody-network
+    command:
+      - /bin/bash
+      - -c
+      - |
+        npm install --no-audit --no-fund
+        npm run dev -- --host 0.0.0.0
+
   jekyll:
     image: jekyll/jekyll:latest
     command: jekyll serve --watch --force_polling --config "_config.yml,_config_dev.yml"
@@ -125,6 +156,7 @@ volumes:
   postgres-data:
   setup-data-dev:
   dev-logs:
+  frontend-node-modules:
 
 networks:
   barody-network:

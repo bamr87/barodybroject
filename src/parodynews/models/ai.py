@@ -1,19 +1,21 @@
 """
 File: ai.py
-Description: AI/OpenAI-related Django models (assistants, schemas, model configs)
+Description: Provider-agnostic AI models (model catalogue, assistants, schemas, groups)
 Author: Barodybroject Team <team@example.com>
 Created: 2025-11-30
-Last Modified: 2025-12-20
-Version: 0.4.0
+Last Modified: 2026-09-14
+Version: 0.6.0
 
 Dependencies:
 - django: >=5.1
 
-Usage: from parodynews.models.ai import Assistant
+Usage: from parodynews.models.ai import Assistant, AIModel
 """
 
 from django.db import models
 from django.utils import timezone
+
+from .base import generate_prefixed_id
 
 
 class JSONSchema(models.Model):
@@ -21,28 +23,12 @@ class JSONSchema(models.Model):
 
     Stores JSON Schema specifications used to validate and structure AI-generated
     content. These schemas can be attached to assistants to ensure consistent
-    output formats.
+    output formats regardless of which provider generates the content.
 
     Attributes:
         name (str): Unique identifier for the schema (max 255 chars)
         description (str): Human-readable description of schema purpose
         schema (dict): JSON Schema specification following JSON Schema standard
-
-    Examples:
-        >>> schema = JSONSchema.objects.create(
-        ...     name="article_schema",
-        ...     description="Schema for news articles",
-        ...     schema={
-        ...         "type": "object",
-        ...         "properties": {
-        ...             "title": {"type": "string"},
-        ...             "content": {"type": "string"}
-        ...         },
-        ...         "required": ["title", "content"]
-        ...     }
-        ... )
-        >>> str(schema)
-        'article_schema'
 
     See Also:
         https://json-schema.org/ for JSON Schema specification
@@ -58,137 +44,98 @@ class JSONSchema(models.Model):
         verbose_name_plural = "JSON Schemas"
 
     def __str__(self):
-        """Return the schema name.
-
-        Returns:
-            str: The name field value
-        """
         return self.name
 
 
-class OpenAIModel(models.Model):
-    """OpenAI model configuration and metadata.
+class AIModel(models.Model):
+    """A model offered by an AI provider.
 
-    Represents an OpenAI model (e.g., GPT-4, GPT-3.5-turbo) that can be used
-    by assistants for content generation. Tracks model availability and metadata.
+    Replaces the OpenAI-only ``OpenAIModel``. A row is identified by the pair
+    ``(provider, model_id)``: ``claude-opus-5`` can exist for both the
+    ``claude_code`` and the ``anthropic`` provider, and ``gpt-4o-mini`` for
+    ``openai``. Rows are created from the settings UI ("Sync models"), by the
+    ``sync_models`` management command, or by hand in the admin.
 
     Attributes:
-        model_id (str): Unique OpenAI model identifier (e.g., 'gpt-4', 'gpt-3.5-turbo')
-        description (str): Detailed description of model capabilities and use cases
-        created_at (datetime): Timestamp when model was added to the system
-        updated_at (datetime): Timestamp of last model metadata update
-
-    Examples:
-        >>> model = OpenAIModel.objects.create(
-        ...     model_id="gpt-4",
-        ...     description="Most capable GPT-4 model for complex tasks"
-        ... )
-        >>> str(model)
-        'gpt-4'
-        >>> assistants_using_gpt4 = model.assistant_set.all()
-
-    See Also:
-        https://platform.openai.com/docs/models for available models
+        provider (str): Provider slug from ``parodynews.ai`` (``claude_code``,
+            ``anthropic``, ``openai``, ``mock``)
+        model_id (str): The provider's model identifier
+        display_name (str): Optional friendly name
+        description (str): Free-text notes
+        is_active (bool): Hidden from pickers when False
     """
 
-    model_id = models.CharField(max_length=255, unique=True)
-    description = models.TextField()
+    provider = models.CharField(max_length=50, default="claude_code", db_index=True)
+    model_id = models.CharField(max_length=255)
+    display_name = models.CharField(max_length=255, blank=True, default="")
+    description = models.TextField(blank=True, default="")
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         app_label = "parodynews"
-        verbose_name = "OpenAI Model"
-        verbose_name_plural = "OpenAI Models"
-        ordering = ["model_id"]
+        verbose_name = "AI Model"
+        verbose_name_plural = "AI Models"
+        ordering = ["provider", "model_id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider", "model_id"],
+                name="parodynews_aimodel_provider_model",
+            )
+        ]
 
     def __str__(self):
-        """Return the model identifier.
-
-        Returns:
-            str: The model_id field value
-        """
         return self.model_id
+
+    @property
+    def label(self) -> str:
+        return f"{self.provider}: {self.display_name or self.model_id}"
 
 
 class Assistant(models.Model):
     """AI assistant configuration for content generation.
 
-    Represents an OpenAI assistant with custom instructions, tools, and behavior
-    settings. Assistants can be organized into groups and used for generating
-    various types of content.
+    An assistant is a named set of instructions plus the model that should
+    run them and, optionally, a JSON schema its output must follow. It is
+    stored locally and is independent of any provider: the same assistant can
+    be pointed at a Claude model today and an OpenAI model tomorrow by
+    changing ``model``.
 
     Attributes:
-        id (str): OpenAI assistant ID (primary key, max 225 chars)
-        name (str): Human-readable name for the assistant
-        description (str): Brief description of assistant's purpose and capabilities
-        instructions (str): System instructions that define assistant behavior (max 256000 chars)
-        prompt (str): Default user prompt template (max 256000 chars)
-        object (str): Object type identifier (default: 'assistant')
-        model (OpenAIModel): Foreign key to the OpenAI model used by this assistant
-        created_at (datetime): Timestamp when assistant was created
-        tools (list): JSON array of tool configurations (e.g., code interpreter, retrieval)
-        metadata (dict): Custom key-value pairs for additional assistant data
-        temperature (float): Sampling temperature (0.0-2.0) for response randomness
-        top_p (float): Nucleus sampling parameter (0.0-1.0) for response diversity
-        response_format (dict): Desired output format specification
-        json_schema (JSONSchema): Optional schema for structured output validation
-        assistant_group_memberships (ManyToMany): Groups this assistant belongs to
-
-    Examples:
-        >>> from parodynews.models import Assistant, OpenAIModel
-        >>> model = OpenAIModel.objects.get(model_id="gpt-4")
-        >>> assistant = Assistant.objects.create(
-        ...     name="News Writer",
-        ...     description="Writes satirical news articles",
-        ...     instructions="You are a witty news writer who creates satirical content.",
-        ...     model=model,
-        ...     temperature=0.7
-        ... )
-        >>> print(assistant.name)
-        News Writer
-        >>> assistant.get_display_fields()
-        ['name', 'description', 'model', 'json_schema']
-
-    Note:
-        Temperature controls randomness: lower values (0.0-0.5) are more focused,
-        higher values (0.7-1.0) are more creative. Default model behavior is used
-        if not specified.
-
-    See Also:
-        https://platform.openai.com/docs/api-reference/assistants for API details
+        id (str): Locally generated primary key (``asst_...``). Rows imported
+            from the OpenAI Assistants API keep their original id.
+        name / description / instructions / prompt: Persona definition
+        model (AIModel): Model to run; ``None`` means the provider default
+        remote_id (str): Identifier in a provider that persists assistants
+            (unused by the built-in providers; kept for extensions)
+        json_schema (JSONSchema): Optional structured-output schema
+        temperature / top_p: Sampling hints, applied where the model allows
+        tools / metadata / response_format: Free-form provider extras
     """
 
     id = models.CharField(max_length=225, blank=True, primary_key=True)
-    name = models.CharField(
-        max_length=256, null=True, blank=True, default="system default"
-    )
+    # `blank=True` without `null=True`: an unset name is "", never NULL, so
+    # callers have one empty value to check rather than two.
+    name = models.CharField(max_length=256, blank=True, default="system default")
     description = models.CharField(
-        max_length=512, null=True, blank=True, default="Describe the assistant."
+        max_length=512, blank=True, default="Describe the assistant."
     )
     instructions = models.TextField(
         max_length=256000, default="you are a helpful assistant."
     )
     prompt = models.TextField(max_length=256000, default="you are a helpful assistant.")
     object = models.CharField(max_length=50, default="assistant")
-    model = models.ForeignKey(
-        OpenAIModel, on_delete=models.SET_NULL, null=True, blank=False
-    )
+    model = models.ForeignKey(AIModel, on_delete=models.SET_NULL, null=True, blank=True)
+    remote_id = models.CharField(max_length=255, blank=True, default="")
     created_at = models.DateTimeField(default=timezone.now)
-    tools = models.JSONField(
-        default=list,
-        null=True,
-        blank=True,
-    )
+    tools = models.JSONField(default=list, null=True, blank=True)
     metadata = models.JSONField(default=dict, null=True, blank=True)
     temperature = models.FloatField(null=True, blank=True)
     top_p = models.FloatField(null=True, blank=True)
     response_format = models.JSONField(default=dict, null=True, blank=True)
     json_schema = models.ForeignKey(
         JSONSchema, on_delete=models.SET_NULL, null=True, blank=True
-    )
-    assistant_group_memberships = models.ManyToManyField(
-        "AssistantGroupMembership", related_name="assistant", blank=True
     )
 
     class Meta:
@@ -197,28 +144,29 @@ class Assistant(models.Model):
         verbose_name_plural = "Assistants"
         ordering = ["name"]
 
-    def get_display_fields(self):
-        """Return list of fields to display in admin and list views.
-
-        Returns:
-            list: Field names to display ['name', 'description', 'model', 'json_schema']
-        """
-        return ["name", "description", "model", "json_schema"]
-
     def __str__(self):
-        """Return the assistant name.
+        return self.name or self.id
 
-        Returns:
-            str: The name field value
-        """
-        return self.name
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = generate_prefixed_id("asst")
+        super().save(*args, **kwargs)
+
+    @property
+    def provider(self) -> str:
+        """Provider slug of the configured model, or ``""`` for the default."""
+        return self.model.provider if self.model_id else ""
+
+    def get_display_fields(self):
+        return ["name", "description", "model", "json_schema"]
 
 
 class AssistantGroup(models.Model):
     """Group of assistants for workflow orchestration.
 
-    Organizes multiple assistants into sequential or parallel workflows.
-    Groups can be activated/deactivated and prioritized for different use cases.
+    Organizes multiple assistants into a sequential pipeline: running a group
+    on a thread runs each member in ``position`` order, and every member sees
+    the output of the members before it.
 
     Attributes:
         name (str): Human-readable name for the group (max 256 chars)
@@ -228,38 +176,13 @@ class AssistantGroup(models.Model):
         is_active (bool): Whether this group is currently active (default: True)
         priority (int): Priority level for conflict resolution (default: 0)
         created_at (datetime): Timestamp when group was created
-        threads (RelatedManager): Threads using this assistant group (reverse relation)
-
-    Examples:
-        >>> from parodynews.models import AssistantGroup, Assistant
-        >>> group = AssistantGroup.objects.create(
-        ...     name="Content Pipeline",
-        ...     group_type="sequential",
-        ...     sequence=1,
-        ...     priority=10
-        ... )
-        >>> researcher = Assistant.objects.get(name="Researcher")
-        >>> writer = Assistant.objects.get(name="Writer")
-        >>> # Add assistants through membership
-        >>> AssistantGroupMembership.objects.create(
-        ...     assistantgroup=group, assistant=researcher, position=1
-        ... )
-        >>> AssistantGroupMembership.objects.create(
-        ...     assistantgroup=group, assistant=writer, position=2
-        ... )
-        >>> print(group.get_display_fields())
-        ['name', 'sequence', 'is_active', 'priority']
-
-    Note:
-        Use sequence for ordering multiple groups, priority for determining
-        which group takes precedence when conflicts arise.
     """
 
     name = models.CharField(max_length=256)
     assistants = models.ManyToManyField(
         Assistant,
         through="AssistantGroupMembership",
-        related_name="assistant_group_membership",
+        related_name="assistant_groups",
     )
     group_type = models.CharField(max_length=100, default="default")
     sequence = models.IntegerField(default=0)
@@ -273,68 +196,31 @@ class AssistantGroup(models.Model):
         verbose_name_plural = "Assistant Groups"
         ordering = ["sequence", "name"]
 
-    def get_display_fields(self):
-        """Return list of fields to display in admin and list views.
+    def __str__(self):
+        return self.name
 
-        Returns:
-            list: Field names ['name', 'sequence', 'is_active', 'priority']
-        """
+    def get_display_fields(self):
         return ["name", "sequence", "is_active", "priority"]
 
-    def __str__(self):
-        """Return the group name.
-
-        Returns:
-            str: The name field value
-        """
-        return self.name
+    def ordered_assistants(self):
+        """Assistants in execution order, skipping memberships whose assistant was deleted."""
+        return [
+            membership.assistant
+            for membership in self.assistantgroupmembership_set.select_related(
+                "assistant", "assistant__model"
+            ).order_by("position", "id")
+            if membership.assistant is not None
+        ]
 
 
 class AssistantGroupMembership(models.Model):
-    """Many-to-many relationship for assistants in groups.
-
-    Defines membership of assistants in groups with positional ordering
-    for sequential workflow execution.
-
-    Attributes:
-        id (int): Auto-incrementing primary key
-        assistantgroup (AssistantGroup): Foreign key to the group
-        assistant (Assistant): Foreign key to the assistant (renamed from 'assistants')
-        position (int): Position in execution order (used for sorting)
-
-    Examples:
-        >>> from parodynews.models import Assistant, AssistantGroup, AssistantGroupMembership
-        >>> group = AssistantGroup.objects.get(name="Content Pipeline")
-        >>> assistant1 = Assistant.objects.get(name="Researcher")
-        >>> assistant2 = Assistant.objects.get(name="Writer")
-        >>> membership1 = AssistantGroupMembership.objects.create(
-        ...     assistantgroup=group,
-        ...     assistant=assistant1,
-        ...     position=1
-        ... )
-        >>> membership2 = AssistantGroupMembership.objects.create(
-        ...     assistantgroup=group,
-        ...     assistant=assistant2,
-        ...     position=2
-        ... )
-
-    Note:
-        Lower position values execute first. Use consistent numbering (1, 2, 3...)
-        for clarity in multi-assistant workflows.
-
-        IMPORTANT: The field was renamed from 'assistants' (plural) to 'assistant'
-        (singular) for clarity. A migration will handle the database column rename.
-    """
+    """Many-to-many relationship for assistants in groups with positional ordering."""
 
     id = models.AutoField(primary_key=True)
     assistantgroup = models.ForeignKey(
         "AssistantGroup", on_delete=models.SET_NULL, null=True
     )
-    # Note: This field is named 'assistants' in the database for backward compatibility
-    # but will be renamed to 'assistant' in a migration
-    assistants = models.ForeignKey(
-        "Assistant", on_delete=models.SET_NULL, null=True, db_column="assistants_id"
-    )
+    assistant = models.ForeignKey("Assistant", on_delete=models.SET_NULL, null=True)
     position = models.PositiveIntegerField()
 
     class Meta:
@@ -344,11 +230,6 @@ class AssistantGroupMembership(models.Model):
         ordering = ["position"]
 
     def __str__(self):
-        """Return membership description with position.
-
-        Returns:
-            str: Formatted string showing assistant, group, and position
-        """
-        assistant_name = self.assistants.name if self.assistants else "Unknown"
+        assistant_name = self.assistant.name if self.assistant else "Unknown"
         group_name = self.assistantgroup.name if self.assistantgroup else "Unknown"
         return f"{assistant_name} in {group_name} at position {self.position}"
