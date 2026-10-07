@@ -582,6 +582,13 @@ class PostViewSet(viewsets.ModelViewSet):
             version, url = publishing_services.publish_post(post)
         except publishing_services.PublishingNotConfigured as exc:
             return Response({"detail": str(exc)}, status=400)
+        except publishing_services.PublicationError as exc:
+            # Already phrased for a reader: pass it through verbatim rather
+            # than burying it under a generic "Publishing failed" prefix.
+            body = {"detail": exc.message}
+            if exc.url:
+                body["url"] = exc.url
+            return Response(body, status=502)
         except Exception as exc:  # noqa: BLE001 - GitHub client raises many types
             return Response({"detail": f"Publishing failed: {exc}"}, status=502)
         return Response(

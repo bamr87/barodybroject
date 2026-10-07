@@ -9,6 +9,7 @@ Small, dependency-light helpers for the parodynews Django application. Anything 
 - `markdown.py`: Markdown rendering used by both the API and the Jekyll export
 - `schemas.py`: Loads the bundled JSON schemas from [`../schema/`](../schema/README.md) (`load_schemas`, `get_schema`)
 - `defaults.py`: Reads `FieldDefaults` rows to seed model form defaults
+- `error_reporting.py`: `logging` handler that files unhandled exceptions as deduplicated GitHub issues. **Off by default**, with no default target repository and no fallback to this repository. Redaction is allowlist-based and frame locals are excluded — see [docs/configuration/error-reporting.md](../../../docs/configuration/error-reporting.md) before enabling it
 
 ## Usage
 Utility modules are imported and used throughout the application:

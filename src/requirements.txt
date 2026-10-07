@@ -1,5 +1,5 @@
 # Production requirements with pinned versions
-# Last updated: 2026-09-14
+# Last updated: 2026-10-04
 # Python: >=3.10 (required for Django 5.2)
 
 # Web Server
@@ -7,19 +7,25 @@ gunicorn==23.0.0
 whitenoise==6.12.0
 
 # Django Core Framework
-# 5.2.x is the current LTS. 5.1.15 carried six advisories the scoped
-# dependency scan reports (#176): CVE-2026-48587, CVE-2026-6873 and
+# 5.2.x is the current LTS. 5.1.15 carried six advisories that the newly
+# scoped dependency scan reports (#176): CVE-2026-48587, CVE-2026-6873 and
 # CVE-2026-8404 (fixed in 5.2.15) and CVE-2026-53877, CVE-2026-53878 and
 # CVE-2026-48588 (fixed in 5.2.16).
 Django==5.2.17
-djangorestframework==3.17.2
+# 3.15.2 carries PYSEC-2026-3827 and PYSEC-2026-3828, fixed in 3.17.2; 3.15
+# also predates official Django 5.2 support.
+djangorestframework==3.18.1
 django-environ==0.11.2
 
 # Django Extensions & Apps
 django-import-export==4.3.3
 django-json-widget==2.0.1
 django-markdownify==0.9.5
-django-allauth[mfa,saml,socialaccount,steam]==65.14.1
+django-allauth[mfa,saml,socialaccount,steam]==65.19.7
+# oauthlib 3.3.1 is vulnerable to PYSEC-2026-4114, fixed in 4.0.0. allauth
+# 65.14.1 capped oauthlib at <4 through its socialaccount extra, so the patch is
+# only reachable by upgrading allauth alongside it.
+oauthlib>=4.0.0
 django-ses==4.2.0
 django-bootstrap5==24.3
 # fido2 1.2.0 caps cryptography at <45, which pins the tree to 44.0.3 and its

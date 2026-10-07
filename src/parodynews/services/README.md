@@ -35,6 +35,10 @@ services/
 
 `render_post()` produces the Jekyll file — YAML front matter plus body, named `YYYY-MM-DD-slug.md`. `publish_post()` pushes it to the configured GitHub repository and opens a pull request, raising `PublishingNotConfigured` when the GitHub settings are missing, so "you haven't set this up" doesn't surface as a confusing API error.
 
+Everything GitHub itself refuses raises `PublicationError`, whose `message` is written for a reader rather than for a log: which repository, which branch, and what to change — an expired token, an exhausted rate limit, a repository the token cannot see. `PostViewSet.publish` passes that message through verbatim. When the refusal is a 422 because a pull request for this post version is already open, the error also carries its `url`.
+
+The one rule to preserve when touching `push_to_github_and_create_pr()`: **a 404 is the only status that means "not there yet, create it"**. Every branch and file probe checks `exc.status != 404` before deciding, because the previous shape — one `except GithubException:` around the read *and* the write, whose handler called `create_file()` — answered an expired token or a rate limit with a second, unrelated write, and reported that write's failure instead of the real one. See issue #114.
+
 ## assistants.py
 
 `sync_models()` asks the configured provider for its catalogue and reconciles the `AIModel` table, returning a `SyncReport` (created / updated / deactivated). Providers that cannot enumerate models report `supports_model_discovery = False` and are skipped rather than failing.
