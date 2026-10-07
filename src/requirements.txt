@@ -7,12 +7,14 @@ gunicorn==23.0.0
 whitenoise==6.12.0
 
 # Django Core Framework
-# 5.2.x is the current LTS. 5.1.15 carried six advisories the scoped
-# dependency scan reports (#176): CVE-2026-48587, CVE-2026-6873 and
+# 5.2.x is the current LTS. 5.1.15 carried six advisories that the newly
+# scoped dependency scan reports (#176): CVE-2026-48587, CVE-2026-6873 and
 # CVE-2026-8404 (fixed in 5.2.15) and CVE-2026-53877, CVE-2026-53878 and
 # CVE-2026-48588 (fixed in 5.2.16).
 Django==5.2.17
-djangorestframework==3.17.2
+# 3.15.2 carries PYSEC-2026-3827 and PYSEC-2026-3828, fixed in 3.17.2; 3.15
+# also predates official Django 5.2 support.
+djangorestframework==3.18.1
 django-environ==0.11.2
 
 # Django Extensions & Apps
